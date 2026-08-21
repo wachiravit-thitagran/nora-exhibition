@@ -1,0 +1,17 @@
+# ไฟล์สื่อขนาดใหญ่ — ไม่เก็บใน git
+# (วิดีโอชุดหนึ่ง ~150 MB + ภาพ ~36 MB) ให้ก็อปเข้าเซิร์ฟเวอร์ตอน deploy
+# ถ้าอยากเก็บใน git ให้ลบบรรทัดพวกนี้ออก และพิจารณาใช้ Git LFS
+assets/**/*.mp4
+assets/**/*.webm
+assets/**/*.mov
+assets/**/*.m4v
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+!assets/**/.gitkeep
+
+# ระบบปฏิบัติการ / เครื่องมือ
+.DS_Store
+Thumbs.db
+*.swp
+node_modules/

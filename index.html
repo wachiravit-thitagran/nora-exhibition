@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI NORA — นิทรรศการ Breath of Nora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Noto+Serif+Thai:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   AI NORA — Exhibition loop deck
+   Stage authored at 3840x2160 (4K) and scaled to fit viewport.
+   Record the browser window in fullscreen at 3840x2160 for 4K.
+   ============================================================ */
+:root{
+  --maroon:#7B1E28;
+  --maroon-dk:#5A1520;
+  --maroon-ink:#3E0E16;
+  --gold:#C2922B;
+  --gold-lt:#E4C468;
+  --cream:#FBF6EC;
+  --cream-2:#F3EADA;
+  --ink:#2B2118;
+  --muted:#8A7B68;
+  --stage-w:3840px;
+  --stage-h:2160px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0D0709;overflow:hidden}
+body{font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+
+#viewport{position:fixed;inset:0;overflow:hidden;background:#0D0709}
+#stage{
+  width:var(--stage-w);height:var(--stage-h);
+  position:absolute;left:50%;top:50%;
+  transform-origin:center center;
+  transform:translate(-50%,-50%) scale(0.25);
+  overflow:hidden;background:var(--cream);
+}
+
+/* ---------- slide shell ---------- */
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .45s ease}
+.slide.on{opacity:1;visibility:visible}
+.slide::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(120% 90% at 8% -10%, rgba(194,146,43,.10), transparent 60%),
+    radial-gradient(110% 80% at 100% 110%, rgba(123,30,40,.09), transparent 62%),
+    var(--cream);
+}
+.slide > *{position:relative}
+
+/* ---------- header / footer chrome ---------- */
+.hdr{position:absolute;top:96px;left:150px;right:150px;display:flex;align-items:flex-start;gap:60px}
+.hdr-txt{flex:1;min-width:0}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:22px;
+  font-size:44px;font-weight:600;letter-spacing:.14em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:22px;
+}
+.eyebrow::before{content:"";width:110px;height:5px;background:var(--gold);border-radius:3px}
+h1.title{
+  font-family:"Noto Serif Thai","Noto Sans Thai",serif;
+  font-size:104px;line-height:1.14;font-weight:700;color:var(--maroon);
+  letter-spacing:-.01em;
+}
+h1.title .thin{color:var(--muted);font-weight:600}
+.sub{margin-top:20px;font-size:50px;font-weight:400;color:#6C5B49;line-height:1.35}
+
+.wordmark{flex:0 0 auto;text-align:right;padding-top:6px}
+.wordmark .wm{
+  font-family:"Noto Serif Thai",serif;font-weight:700;font-size:96px;line-height:1;
+  letter-spacing:.06em;
+  background:linear-gradient(178deg,#EBCE7C 0%,#C2922B 46%,#8E651A 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 0 rgba(0,0,0,.10));
+}
+.wordmark .org{margin-top:14px;font-size:34px;color:var(--muted);font-weight:500;letter-spacing:.02em}
+
+.ftr{
+  position:absolute;left:150px;right:150px;bottom:78px;
+  display:flex;align-items:center;gap:40px;
+  font-size:36px;color:var(--muted);font-weight:500;
+}
+.ftr .dot{width:12px;height:12px;border-radius:50%;background:var(--gold);flex:0 0 auto}
+.ftr .grow{flex:1}
+.ftr .count{font-variant-numeric:tabular-nums;font-weight:600;color:#7E6E5B}
+
+.progress{position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(123,30,40,.10)}
+.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--maroon));transition:width .1s linear}
+
+/* ---------- comparison grid ---------- */
+.stagebody{position:absolute;left:150px;right:150px;top:400px;bottom:190px;display:flex;flex-direction:column}
+.cmp{flex:1;display:grid;grid-template-columns:1fr auto 1fr;gap:70px;align-items:center}
+.cmp.solo{grid-template-columns:1fr}
+.panel{
+  height:100%;background:#fff;border:5px solid rgba(123,30,40,.14);border-radius:38px;
+  box-shadow:0 30px 70px -40px rgba(62,14,22,.45);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.panel .cap{
+  flex:0 0 auto;display:flex;align-items:center;gap:26px;
+  padding:34px 46px;background:var(--maroon);color:#fff;
+}
+.panel .cap .badge{
+  flex:0 0 auto;font-size:34px;font-weight:700;letter-spacing:.1em;
+  background:rgba(255,255,255,.16);border-radius:999px;padding:10px 28px;
+}
+.panel .cap .lbl{font-size:46px;font-weight:600;line-height:1.2}
+.panel.alt .cap{background:var(--gold)}
+.panel.alt .cap .lbl{color:#3A2A06}
+.panel.alt .cap .badge{background:rgba(0,0,0,.14);color:#3A2A06}
+.panel .body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px;padding:40px;background:var(--cream-2)}
+.panel .body img,.panel .body video{max-width:100%;max-height:100%;object-fit:contain;display:block;border-radius:12px}
+.panel .body.two img{max-width:48%}
+
+.arrow{font-size:170px;line-height:1;color:var(--gold);font-weight:700;user-select:none}
+.arrow small{display:block;font-size:34px;color:var(--muted);font-weight:600;text-align:center;margin-top:6px;letter-spacing:.08em}
+
+/* ---------- combine (poses + result) ---------- */
+.combine{flex:1;display:grid;grid-template-columns:1.15fr auto 1fr;gap:64px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:34px;align-items:stretch;justify-content:center}
+.chip{
+  width:calc(33.333% - 24px);min-width:300px;background:#fff;border:5px solid rgba(123,30,40,.14);
+  border-radius:30px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 22px 50px -34px rgba(62,14,22,.4);
+}
+.chips.n1 .chip{width:70%}
+.chips.n2 .chip{width:calc(50% - 18px)}
+.chips.n3 .chip{width:calc(33.333% - 24px);min-width:0}
+.chips.n4 .chip{width:calc(50% - 18px)}
+.chip .ph{flex:1;min-height:250px;display:grid;place-items:center;background:var(--cream-2);padding:22px}
+.chip .ph img{max-width:100%;max-height:420px;object-fit:contain}
+.chip .nm{padding:20px 24px;font-size:36px;font-weight:600;text-align:center;color:var(--maroon);background:#fff;line-height:1.25}
+.chip.newpose .nm{color:#8E651A}
+.chip.newpose .ph{background:repeating-linear-gradient(135deg,#F7EFDD 0 26px,#F1E4C9 26px 52px)}
+.newmark{font-size:96px;color:var(--gold);font-weight:800;line-height:1}
+.newmark span{display:block;font-size:32px;color:var(--muted);font-weight:600;margin-top:10px}
+
+/* ---------- placeholder ---------- */
+.ph-box{
+  width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  background:repeating-linear-gradient(135deg,#F4EBDA 0 30px,#EEE2CB 30px 60px);
+  border-radius:14px;padding:60px;text-align:center;
+}
+.ph-box .ic{font-size:120px;line-height:1;color:#C2922B}
+.ph-box .t1{font-size:52px;font-weight:700;color:var(--maroon)}
+.ph-box .t2{font-size:34px;color:#7A6A57;line-height:1.45;word-break:break-all;max-width:92%}
+.ph-box code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:30px;background:rgba(123,30,40,.08);padding:6px 14px;border-radius:10px;display:inline-block;margin-top:6px}
+
+/* ---------- title + section slides ---------- */
+.slide.dark::before{
+  background:
+    radial-gradient(120% 100% at 12% 0%, #93283A 0%, transparent 55%),
+    radial-gradient(120% 100% at 100% 100%, #5A1520 0%, transparent 60%),
+    linear-gradient(160deg,#7B1E28 0%,#4E121C 100%);
+}
+.slide.dark{color:#fff}
+.slide.dark h1.title{color:#fff}
+.slide.dark .sub{color:#F0D9A8}
+.slide.dark .ftr{color:rgba(255,255,255,.62)}
+.slide.dark .eyebrow{color:var(--gold-lt)}
+.slide.dark .eyebrow::before{background:var(--gold-lt)}
+.slide.dark .wordmark .org{color:rgba(255,255,255,.6)}
+.slide.dark .progress{background:rgba(255,255,255,.14)}
+.hero{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 300px;gap:40px}
+.hero .big{
+  font-family:"Noto Serif Thai",serif;font-weight:700;font-size:190px;line-height:1.08;
+  background:linear-gradient(178deg,#F3DFA6 0%,#DDB558 52%,#B98C2A 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero .lead{font-size:66px;line-height:1.35;color:#FBEFD6;font-weight:400;max-width:2700px}
+.hero .rule{width:260px;height:8px;background:var(--gold);border-radius:4px}
+.hero .meta{font-size:44px;color:rgba(255,255,255,.68);line-height:1.5}
+.secnum{
+  position:absolute;right:260px;bottom:200px;
+  font-family:"Noto Serif Thai",serif;font-size:520px;line-height:.8;font-weight:700;
+  color:rgba(255,255,255,.07);
+}
+
+/* ---------- controls ---------- */
+#ui{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-radius:999px;
+  background:rgba(20,10,14,.82);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14);
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;
+}
+#ui.show{opacity:1;pointer-events:auto}
+#ui button{
+  appearance:none;border:0;background:rgba(255,255,255,.10);color:#fff;
+  font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:999px;cursor:pointer;
+}
+#ui button:hover{background:rgba(255,255,255,.22)}
+#ui .info{color:#E4C468;font-size:13px;font-weight:600;padding:0 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#hint{
+  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+  background:rgba(20,10,14,.82);color:#F0D9A8;border:1px solid rgba(255,255,255,.14);
+  padding:9px 18px;border-radius:999px;font-size:13px;z-index:50;
+  opacity:0;transition:opacity .3s;backdrop-filter:blur(14px);pointer-events:none;
+}
+#hint.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage"></div></div>
+
+<div id="ui">
+  <button data-act="prev">◀</button>
+  <button data-act="toggle">⏸ หยุด</button>
+  <button data-act="next">▶</button>
+  <span class="info" id="uiInfo">–</span>
+  <button data-act="full">⛶ เต็มจอ</button>
+  <button data-act="restart">↻ เริ่มใหม่</button>
+</div>
+<div id="hint">Space = เล่น/หยุด · ← → = เปลี่ยนสไลด์ · F = เต็มจอ · R = เริ่มใหม่ · เลื่อนเมาส์เพื่อแสดงปุ่ม</div>
+
+<script>
+/* ================================================================
+   1. CONFIG — แก้ได้ตรงนี้
+   ================================================================ */
+const CONFIG = {
+  SHOW_DIVIDERS : true,   // false = เอาสไลด์ปกหมวดออก (เหลือ 74 หน้าตามสเปกเป๊ะ)
+  SEC_COMPARE   : 3,      // วินาที/สไลด์ หมวดเปรียบเทียบภาพ
+  SEC_TITLE     : 6,      // วินาที สไลด์ปก
+  SEC_DIVIDER   : 3,      // วินาที สไลด์ปกหมวด
+  SEC_STILL     : 5,      // วินาที สไลด์ที่ไม่มีวิดีโอเล่นจริง
+  SEC_VIDEO_MAX : 20,     // เพดานเวลาสไลด์วิดีโอ (กันวิดีโอยาวเกิน)
+  SEC_VIDEO_DEF : 8,      // เวลาสำรองถ้าอ่านความยาววิดีโอไม่ได้
+  AINORA_BASE   : '',     // '' = โฮสต์บนโดเมนเดียวกับ ainora.psu.ac.th
+                          // ถ้าเปิดจากเครื่องอื่น ให้ใส่ 'https://ainora.psu.ac.th'
+  DIR_COMPARE   : 'assets/compare/',   // ภาพต้นฉบับ/ซ่อมแซม (จากโฟลเดอร์ เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม)
+  DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
+  DIR_COLOR     : 'assets/color/',     // วิดีโอที่ใส่สีแล้ว
+  DIR_STUDENT   : 'assets/students/',  // วิดีโอ/ภาพ นักศึกษา-นักเรียนรำ
+};
+const FOOT = 'สนับสนุนโดย สำนักงานศิลปวัฒนธรรมร่วมสมัย · มหาวิทยาลัยสงขลานครินทร์ · มหาวิทยาลัยทักษิณ';
+
+/* ================================================================
+   2. DATA
+   ================================================================ */
+
+/* --- 2.1 คู่ภาพ ต้นฉบับ (จากหนังสือ) / ซ่อมแซม  — 12 ท่า -------------
+   ชื่อไฟล์ตรงตามโฟลเดอร์ Nora/เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/
+   ท่า 13 (ท่าแมลงมุมชักใย) ยังไม่มีภาพซ่อมแซม จึงไม่รวม            */
+const PAIRS = [
+  { n:'01', book:'ท่าขี้หนูร่อนรำ', fixName:'ท่าขี้หนอน',        note:'ภาพซ่อมแซมเป็นชายหนุ่มไม่มีหนวด ต่างจากต้นฉบับ' },
+  { n:'02', book:'ท่าขุนศรัทธา',    fixName:'ท่าขุนศรัทธา',       note:'ใบหน้าตรงกับต้นฉบับ (ชายมีหนวด)' },
+  { n:'03', book:'ท่าจับระบำ',      fixName:'ท่าจับระบำ ซ้าย+ขวา', note:'ต้นฉบับเป็นภาพคู่ 2 คน ภาพซ่อมแซมแยกเป็น 2 ไฟล์', two:true },
+  { n:'04', book:'ท่าจีบหน้า',      fixName:'ท่าจีบหน้า',          note:'ใบหน้าตรงกับต้นฉบับ' },
+  { n:'05', book:'ท่าฉากน้อย',      fixName:'ท่าย่างสามขุม',       note:'ชื่อไฟล์ 2 ฝั่งไม่ตรงกัน แต่เป็นท่าเดียวกัน' },
+  { n:'06', book:'ท่าฉากใหญ่',      fixName:'ท่าลงฉากน้อย เล็บฟ้อน', note:'ชื่อไฟล์ 2 ฝั่งไม่ตรงกัน แต่เป็นท่าเดียวกัน' },
+  { n:'07', book:'ท่าพรหมสี่หน้า',  fixName:'ท่าพรหมสี่หน้า',      note:'ใบหน้าตรงกับต้นฉบับ (ชายหนุ่ม)' },
+  { n:'08', book:'ท่าวงอก',         fixName:'ท่าซัดหวางอก',        note:'ชื่อไฟล์ 2 ฝั่งไม่ตรงกัน แต่เป็นท่าเดียวกัน' },
+  { n:'09', book:'ท่าสามย่าง',      fixName:'ท่าพรหมสี่หน้า (ไฟล์ล่าสุด)', note:'ชื่อไฟล์ 2 ฝั่งไม่ตรงกัน แต่เป็นท่าเดียวกัน' },
+  { n:'10', book:'ท่าหน้าไม้',      fixName:'ท่าครู',              note:'ไฟล์ความละเอียดสูงสุดในชุด' },
+  { n:'11', book:'ท่าเขาควาย',      fixName:'ท่าเขาควาย',          note:'ใบหน้าตรงกับต้นฉบับ' },
+  { n:'12', book:'ท่าเหาะเหิน',     fixName:'ท่าเหาะเหิน',         note:'ใบหน้าตรงกับต้นฉบับ' },
+];
+const imgOrig = p => CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_A-ต้นฉบับ.png';
+const imgFix  = p => p.two
+  ? [CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_B-ซ่อมแซม-ซ้าย.png',
+     CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_B-ซ่อมแซม-ขวา.png']
+  : [CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_B-ซ่อมแซม.png'];
+
+/* --- 2.2 ชื่อท่าในวิดีโอ → ไฟล์ภาพซ่อมแซม -------------------------
+   อ้างจาก README-การจับคู่.md (ยึดท่าทางในภาพ ไม่ยึดชื่อไฟล์)      */
+const POSE_IMG = {
+  'ท่าขี้หนอน'     : '01_ท่าขี้หนูร่อนรำ_B-ซ่อมแซม.png',
+  'ท่าขุนศรัทธา'   : '02_ท่าขุนศรัทธา_B-ซ่อมแซม.png',
+  'ท่าจับระบำ'     : '03_ท่าจับระบำ_B-ซ่อมแซม-ขวา.png',
+  'ท่าจีบหน้า'     : '04_ท่าจีบหน้า_B-ซ่อมแซม.png',
+  'ท่าย่างสามขุม'  : '05_ท่าฉากน้อย_B-ซ่อมแซม.png',
+  'ท่าลงฉากน้อย'   : '06_ท่าฉากใหญ่_B-ซ่อมแซม.png',
+  'ท่าพรหมสี่หน้า' : '07_ท่าพรหมสี่หน้า_B-ซ่อมแซม.png',
+  'ท่าซัดหวางอก'   : '08_ท่าวงอก_B-ซ่อมแซม.png',
+  'ท่าครู'         : '10_ท่าหน้าไม้_B-ซ่อมแซม.png',
+  'ท่าเขาควาย'     : '11_ท่าเขาควาย_B-ซ่อมแซม.png',
+  'เขาควาย'        : '11_ท่าเขาควาย_B-ซ่อมแซม.png',
+  'ท่าเหาะเหิน'    : '12_ท่าเหาะเหิน_B-ซ่อมแซม.png',
+  // ยังไม่ได้จับคู่: ท่าเทวดา, ท่าพนมมือ, ท่าจีบปรกหน้า  → แสดงเป็นการ์ดชื่อท่า
+};
+
+/* --- 2.3 วิดีโอ 22 คลิปบน ainora.psu.ac.th (เฉพาะที่เปิดใช้งาน) --- */
+const VIDEOS = [
+  ['6a7b4e69a8615dbe0af2672e','ท่าพรหมสี่หน้า → ท่าเทวดา → ท่าใหม่ (A)'],
+  ['6a791869a8615dbe0af2670b','ท่าใหม่ (B) → ท่าใหม่ (C) → เขาควาย → ท่าใหม่ (C) → ท่าใหม่ (B)'],
+  ['6a6d8a98e8c21f9b2fa12ae4','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า'],
+  ['6a6d8ae44e74c6635728add3','ท่าครู → ท่าพรหมสี่หน้า'],
+  ['6a6d8b34c262c1cc3e46a496','ท่าครู → ท่าเหาะเหิน'],
+  ['6a6d8b704e74c6635728adda','ท่าซัดหวางอก → ท่าขี้หนอน'],
+  ['6a6d8ba1e8c21f9b2fa12ae9','ท่าพรหมสี่หน้า → ท่าเทวดา'],
+  ['6a6d8bdec262c1cc3e46a49e','ท่าย่างสามขุม → ท่าขี้หนอน'],
+  ['6a7488164e74c6635728adf4','ท่าย่างสามขุม → ท่าลงฉากน้อย'],
+  ['6a6d8d43eab1361e29e3045e','ท่าขุนศรัทธา → ท่าครู'],
+  ['6a6d8d9dc262c1cc3e46a4a6','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า → ท่าเทวดา'],
+  ['6a6d8dfce8c21f9b2fa12af4','ท่าจีบปรกหน้า → ท่าเทวดา → ท่าเขาควาย'],
+  ['6a6d8e374e74c6635728ade0','ท่าย่างสามขุม → ท่าย่างสามขุม'],
+  ['6a6d8e6fc262c1cc3e46a4ab','ท่าเขาควาย → ท่าจีบหน้า → ท่าพนมมือ → ท่าเขาควาย'],
+  ['6a6d8eadc262c1cc3e46a4bc','ท่าขุนศรัทธา → ท่าเขาควาย → ท่าใหม่ (D)'],
+  ['6a6d8ef1eab1361e29e30466','ท่าย่างสามขุม → ท่าใหม่ (D)'],
+  ['6a6d8f23e8c21f9b2fa12afb','ท่าเขาควาย → ท่าใหม่ (A)'],
+  ['6a74a210e8c21f9b2fa12b24','ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย'],
+  ['6a74c9cac262c1cc3e46a4ce','ท่าใหม่ (A) → ท่าเขาควาย → ท่าขุนศรัทธา'],
+  ['6a74d6c5eab1361e29e304e5','ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย → ท่าขุนศรัทธา'],
+  ['6a77fb5aeab1361e29e304fe','ท่าจีบหน้า → ท่าใหม่ (E)'],
+  ['6a783c54e8c21f9b2fa12b3c','ท่าใหม่ (F) → ท่าใหม่ (G) → ท่าเขาควาย'],
+];
+const vurl = id => CONFIG.AINORA_BASE + '/videos/' + id + '/file';
+
+/* --- 2.4 จับคู่วิดีโอที่เจนได้ ↔ ไฟล์ใน Google Drive (12 คลิป) ---- */
+const DRIVE_PAIRS = [
+  ['6a791869a8615dbe0af2670b','ท่าใหม่ → ท่าใหม่ → เขาควาย → ท่าใหม่ → ท่าใหม่.mp4'],
+  ['6a6d8d9dc262c1cc3e46a4a6','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า → ท่าเทวดา.mp4'],
+  ['6a6d8d43eab1361e29e3045e','ท่าขุนศรัทธา → ท่าครู.mp4'],
+  ['6a7488164e74c6635728adf4','ท่าย่างสามขุม → ท่าลงฉากน้อย.mp4'],
+  ['6a6d8bdec262c1cc3e46a49e','ท่าย่างสามขุม → ท่าขี้หนอน.mp4'],
+  ['6a6d8ba1e8c21f9b2fa12ae9','ท่าพรหมสี่หน้า → ท่าเทวดา.mp4'],
+  ['6a6d8b704e74c6635728adda','ท่าซัดหวางอก → ท่าขี้หนอน.mp4'],
+  ['6a6d8b34c262c1cc3e46a496','ท่าครู → ท่าเหาะเหิน.mp4'],
+  ['6a6d8ae44e74c6635728add3','ท่าครู → ท่าพรหมสี่หน้า.mp4'],
+  ['6a6d8e374e74c6635728ade0','ท่าย่างสามขุม → ท่าย่างสามขุม.mp4'],
+  ['6a6d8dfce8c21f9b2fa12af4','ท่าจีบปรกหน้า → ท่าเทวดา → ท่าเขาควาย.mp4'],
+  ['6a6d8a98e8c21f9b2fa12ae4','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า.mp4'],
+];
+
+/* --- 2.5 หมวด D / E : 4 คลิปเด่น + 2 ภาพท่า ----------------------- */
+const STUDENT_VIDEOS = [
+  '6a7b4e69a8615dbe0af2672e',
+  '6a791869a8615dbe0af2670b',
+  '6a6d8a98e8c21f9b2fa12ae4',
+  '6a6d8ae44e74c6635728add3',
+];
+const STUDENT_STILLS = [
+  { img:'11_ท่าเขาควาย_B-ซ่อมแซม.png',    name:'ท่าเขาควาย' },
+  { img:'07_ท่าพรหมสี่หน้า_B-ซ่อมแซม.png', name:'ท่าพรหมสี่หน้า' },
+];
+
+/* ================================================================
+   3. BUILDERS
+   ================================================================ */
+const E = (tag, cls, html) => { const n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const enc = p => p.split('/').map(encodeURIComponent).join('/');
+
+function phBox(kind, file){
+  return `<div class="ph-box"><div class="ic">${kind==='video'?'▶':'▧'}</div>
+    <div class="t1">รอไฟล์${kind==='video'?'วิดีโอ':'ภาพ'}</div>
+    <div class="t2">วางไฟล์ไว้ที่<code>${esc(file)}</code></div></div>`;
+}
+/* media builders — เก็บรายการไฟล์สำรองไว้ใน data-srcs
+   ถ้าไฟล์แรกโหลดไม่ได้จะไล่ลองไฟล์ถัดไป ถ้าหมดแล้วจึงขึ้นกล่อง "รอไฟล์" */
+const alt = p => [p, p.replace(/\.mp4$/i, '.webm')];
+function mediaImg(paths){
+  const L = Array.isArray(paths) ? paths : [paths];
+  return `<img alt="" data-srcs='${esc(JSON.stringify(L))}' data-i="0" src="${enc(L[0])}">`;
+}
+function mediaVid(paths, extraClass){
+  const L = Array.isArray(paths) ? paths : [paths];
+  return `<video class="v ${extraClass||''}" muted playsinline preload="metadata"
+    data-srcs='${esc(JSON.stringify(L))}' data-i="0" src="${enc(L[0])}"></video>`;
+}
+function panel(label, badge, inner, alt, twoUp){
+  return `<div class="panel${alt?' alt':''}">
+    <div class="cap">${badge?`<span class="badge">${esc(badge)}</span>`:''}<span class="lbl">${esc(label)}</span></div>
+    <div class="body${twoUp?' two':''}">${inner}</div></div>`;
+}
+
+const SLIDES = [];
+function push(s){ SLIDES.push(s); }
+
+function frame(o){
+  const sec = o.section ? `<span>${esc(o.section)}</span><span class="dot"></span>` : '';
+  return `
+    <div class="hdr">
+      <div class="hdr-txt">
+        ${o.eyebrow?`<div class="eyebrow">${esc(o.eyebrow)}</div>`:''}
+        <h1 class="title">${o.title}</h1>
+        ${o.sub?`<div class="sub">${o.sub}</div>`:''}
+      </div>
+      <div class="wordmark"><div class="wm">AI NORA</div><div class="org">ainora.psu.ac.th</div></div>
+    </div>
+    <div class="stagebody">${o.body}</div>
+    <div class="ftr">${sec}<span>${esc(FOOT)}</span><span class="grow"></span><span class="count" data-count></span></div>
+    <div class="progress"><i data-bar></i></div>`;
+}
+
+/* ---- ปกใหญ่ ---- */
+push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', html:`
+  <div class="hero">
+    <div class="eyebrow">Breath of Nora · AI NORA</div>
+    <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี<br>สู่ลมหายใจของโนรา</div>
+    <div class="rule"></div>
+    <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์ — ฟื้นฟูภาพจากตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖ แล้วเชื่อมท่ารำให้กลับมาเคลื่อนไหวอีกครั้ง</div>
+    <div class="meta">อ้างอิงท่ารำครูธรรมนิตย์ นิคมรัตน์ · โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)<br>${esc(FOOT)}</div>
+  </div>
+  <div class="progress"><i data-bar></i></div>`});
+
+function divider(num, title, lead){
+  if(!CONFIG.SHOW_DIVIDERS) return;
+  push({ dur:CONFIG.SEC_DIVIDER, dark:true, kind:'still', html:`
+    <div class="hero">
+      <div class="eyebrow">ขั้นตอนที่ ${esc(num)}</div>
+      <div class="big" style="font-size:150px">${title}</div>
+      <div class="rule"></div>
+      <div class="lead">${lead}</div>
+    </div>
+    <div class="secnum">${esc(num)}</div>
+    <div class="progress"><i data-bar></i></div>`});
+}
+
+/* ---- A. เปรียบเทียบภาพจากหนังสือ vs ภาพที่ซ่อมแล้ว (12) ---- */
+divider('01','ฟื้นฟูภาพจากหนังสือ','ภาพฮาล์ฟโทนอายุกว่า ๑๐๐ ปี ถูกฟื้นฟูรายละเอียดเครื่องแต่งกาย ท่ามือ และใบหน้า ทีละท่า รวม ๑๒ ท่า');
+PAIRS.forEach((p,i)=>{
+  const fixed = imgFix(p).map(mediaImg).join('');
+  push({ dur:CONFIG.SEC_COMPARE, kind:'still', section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length, html: frame({
+    eyebrow:'เปรียบเทียบภาพ',
+    section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
+    title:`${esc(p.book)} <span class="thin">/ ${esc(p.fixName)}</span>`,
+    sub:esc(p.note),
+    body:`<div class="cmp">
+      ${panel('ภาพจากหนังสือ (ต้นฉบับ)', p.n, mediaImg(imgOrig(p)))}
+      <div class="arrow">»<small>ฟื้นฟู</small></div>
+      ${panel('ภาพที่ซ่อมแซมแล้ว', p.n, fixed, true, p.two)}
+    </div>`
+  })});
+});
+
+/* ---- B. ภาพท่า + ภาพท่า → วิดีโอ (22) ---- */
+divider('02','เชื่อมท่ารำให้เคลื่อนไหว','นำภาพท่ารำมาประกอบกัน แล้วให้ AI สร้างช่วงเชื่อมต่อระหว่างท่า จนได้เป็นวิดีโอการรำที่ต่อเนื่อง');
+VIDEOS.forEach(([id,title],i)=>{
+  const poses = title.split('→').map(s=>s.trim());
+  const chips = poses.map(nm=>{
+    const isNew = /ท่าใหม่/.test(nm);
+    const file = POSE_IMG[nm];
+    const inner = isNew
+      ? `<div class="newmark">✦<span>ท่าที่ AI สร้างใหม่</span></div>`
+      : (file ? `<img alt="" data-chip="1" data-srcs='${esc(JSON.stringify([CONFIG.DIR_COMPARE+file]))}' data-i="0" src="${enc(CONFIG.DIR_COMPARE+file)}">`
+              : `<div class="newmark">▧<span>ยังไม่ได้จับคู่ภาพ</span></div>`);
+    return `<div class="chip${isNew?' newpose':''}"><div class="ph">${inner}</div><div class="nm">${esc(nm)}</div></div>`;
+  }).join('');
+  push({ kind:'video', section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length, html: frame({
+    eyebrow:'ภาพท่ารำ + ภาพท่ารำ = วิดีโอ',
+    section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
+    title:esc(title),
+    sub:`ประกอบจาก ${poses.length} ท่า`,
+    body:`<div class="combine">
+      <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
+      <div class="arrow">»<small>ได้เป็น</small></div>
+      ${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}
+    </div>`
+  })});
+});
+
+/* ---- C. วิดีโอขาวดำ vs วิดีโอที่ใส่สี (22) ---- */
+divider('03','ลงสีให้ท่ารำ','วิดีโอต้นทางเป็นภาพขาวดำตามต้นฉบับในหนังสือ ขั้นถัดไปคือการลงสีเครื่องแต่งกายและฉากให้สมบูรณ์');
+VIDEOS.forEach(([id,title],i)=>{
+  push({ kind:'video', section:'ลงสี · '+(i+1)+'/'+VIDEOS.length, html: frame({
+    eyebrow:'ขาวดำ / ใส่สี',
+    section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
+    title:esc(title),
+    body:`<div class="cmp">
+      ${panel('วิดีโอขาวดำ (ต้นทาง)','ก่อน', mediaVid(vurl(id)))}
+      <div class="arrow">»<small>ลงสี</small></div>
+      ${panel('วิดีโอที่ใส่สีแล้ว','หลัง', mediaVid(alt(CONFIG.DIR_COLOR+id+'.mp4')), true)}
+    </div>`
+  })});
+});
+
+/* ---- D. วิดีโอที่เจนได้ vs นักศึกษารำ (4) ---- */
+divider('04','จากจอสู่คนจริง','นำวิดีโอที่ AI สร้างไปให้นักศึกษาศิลปะการแสดงรำตาม เพื่อตรวจว่าท่ารำที่สร้างขึ้นรำได้จริงหรือไม่');
+STUDENT_VIDEOS.forEach((id,i)=>{
+  const title = (VIDEOS.find(v=>v[0]===id)||[,''])[1];
+  push({ kind:'video', section:'นักศึกษารำ · '+(i+1)+'/4', html: frame({
+    eyebrow:'AI / นักศึกษา',
+    section:'นักศึกษารำ · '+(i+1)+'/4',
+    title:esc(title),
+    body:`<div class="cmp">
+      ${panel('วิดีโอที่ AI สร้างได้','AI', mediaVid(vurl(id)))}
+      <div class="arrow">»<small>รำตาม</small></div>
+      ${panel('นักศึกษารำตามวิดีโอ','คนจริง', mediaVid(alt(CONFIG.DIR_STUDENT+'นักศึกษา-'+(i+1)+'.mp4')), true)}
+    </div>`
+  })});
+});
+
+/* ---- E. ภาพท่ารำ vs นักเรียนนำไปรำ (2) ---- */
+divider('05','ภาพท่ารำสู่ห้องเรียน','ใช้ภาพท่ารำที่ฟื้นฟูแล้วเป็นสื่อการสอน ให้นักเรียนฝึกรำตามภาพโดยตรง');
+STUDENT_STILLS.forEach((s,i)=>{
+  push({ kind:'video', section:'นักเรียนรำ · '+(i+1)+'/2', html: frame({
+    eyebrow:'ภาพท่ารำ / นักเรียน',
+    section:'นักเรียนรำ · '+(i+1)+'/2',
+    title:esc(s.name),
+    body:`<div class="cmp">
+      ${panel('ภาพท่ารำที่ฟื้นฟูแล้ว','สื่อการสอน', mediaImg(CONFIG.DIR_COMPARE+s.img))}
+      <div class="arrow">»<small>นำไปรำ</small></div>
+      ${panel('นักเรียนรำตามภาพ','ห้องเรียน', mediaVid(alt(CONFIG.DIR_STUDENT+'นักเรียน-'+(i+1)+'.mp4')), true)}
+    </div>`
+  })});
+});
+
+/* ---- F. วิดีโอที่เจนได้ vs วิดีโอชุด Google Drive (12) ---- */
+divider('06','เทียบผลสองรอบการสร้าง','เทียบวิดีโอชุดที่เผยแพร่บน ainora.psu.ac.th กับวิดีโอชุดเดียวกันจากคลังใน Google Drive');
+DRIVE_PAIRS.forEach(([id,file],i)=>{
+  const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
+  push({ kind:'video', section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length, html: frame({
+    eyebrow:'ชุดเผยแพร่ / ชุดในคลัง',
+    section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
+    title:esc(title),
+    body:`<div class="cmp">
+      ${panel('วิดีโอบน ainora.psu.ac.th','เผยแพร่', mediaVid(vurl(id)))}
+      <div class="arrow">»<small>เทียบกับ</small></div>
+      ${panel('วิดีโอชุดในคลัง (Google Drive)','คลัง', mediaVid(alt(CONFIG.DIR_DRIVE+file)), true)}
+    </div>`
+  })});
+});
+
+/* ================================================================
+   4. RENDER + PLAYER
+   ================================================================ */
+const stage = document.getElementById('stage');
+SLIDES.forEach((s,i)=>{
+  const el = E('section','slide'+(s.dark?' dark':''));
+  el.innerHTML = s.html;
+  const c = el.querySelector('[data-count]');
+  if(c) c.textContent = (i+1) + ' / ' + SLIDES.length;
+  s.el = el; s.bar = el.querySelector('[data-bar]');
+  stage.appendChild(el);
+});
+
+/* fallback chain สำหรับไฟล์ที่หาไม่เจอ */
+function attachFallback(node, kind){
+  node.addEventListener('error', () => {
+    const srcs = JSON.parse(node.dataset.srcs || '[]');
+    const next = (+node.dataset.i || 0) + 1;
+    if(next < srcs.length){ node.dataset.i = next; node.src = enc(srcs[next]); if(node.load) node.load(); return; }
+
+    if(node.dataset.chip){
+      node.parentNode.innerHTML = '<div class="newmark">▧<span>ยังไม่มีภาพท่านี้</span></div>';
+    } else {
+      node.parentNode.innerHTML = phBox(kind, srcs[0] || '');
+    }
+  });
+}
+stage.querySelectorAll('img[data-srcs]').forEach(n => attachFallback(n, 'image'));
+stage.querySelectorAll('video[data-srcs]').forEach(n => {
+  attachFallback(n, 'video');
+  // ถ้าไฟล์พร้อมเล่นตอนที่สไลด์นี้กำลังแสดงอยู่ ให้เริ่มเล่นทันที
+  n.addEventListener('loadeddata', () => {
+    const sl = n.closest('.slide');
+    if(playing && sl && sl.classList.contains('on')){ n.muted = true; n.play().catch(()=>{}); }
+    const s = SLIDES[cur];
+    if(s && s.el === sl) durMs = slideDuration(s);
+  });
+});
+
+function fit(){
+  const k = Math.min(innerWidth/3840, innerHeight/2160);
+  stage.style.transform = 'translate(-50%,-50%) scale('+k+')';
+}
+addEventListener('resize', fit); fit();
+
+let cur = -1, playing = true, t0 = 0, durMs = 0, raf = 0;
+
+function slideDuration(s){
+  if(s.kind !== 'video') return (s.dur || CONFIG.SEC_STILL) * 1000;
+  const vids = [...s.el.querySelectorAll('video')];
+  const durs = vids.map(v => (isFinite(v.duration) && v.duration > 0) ? v.duration : 0).filter(Boolean);
+  const d = durs.length ? Math.max(...durs) : CONFIG.SEC_VIDEO_DEF;
+  return Math.min(d, CONFIG.SEC_VIDEO_MAX) * 1000 + 500;
+}
+
+function show(i){
+  if(cur >= 0){
+    const p = SLIDES[cur];
+    p.el.classList.remove('on');
+    p.el.querySelectorAll('video').forEach(v => { try{ v.pause(); v.currentTime = 0; }catch(e){} });
+  }
+  cur = (i + SLIDES.length) % SLIDES.length;
+  const s = SLIDES[cur];
+  s.el.classList.add('on');
+  const vids = [...s.el.querySelectorAll('video')];
+  vids.forEach(v => {
+    v.muted = true;
+    v.addEventListener('loadedmetadata', () => { durMs = slideDuration(s); }, { once:true });
+    const pr = v.play(); if(pr && pr.catch) pr.catch(()=>{});
+  });
+  t0 = performance.now();
+  durMs = slideDuration(s);
+  // preload next slide's media
+  const nx = SLIDES[(cur+1) % SLIDES.length];
+  nx.el.querySelectorAll('video').forEach(v => { if(v.preload!=='auto'){ v.preload='auto'; try{v.load();}catch(e){} } });
+  document.getElementById('uiInfo').textContent = (cur+1) + ' / ' + SLIDES.length;
+}
+
+function tick(now){
+  raf = requestAnimationFrame(tick);
+  const s = SLIDES[cur];
+  if(!s) return;
+  if(!playing){ t0 = now - Math.min(now - t0, durMs); return; }
+  const p = Math.min(1, (now - t0) / durMs);
+  if(s.bar) s.bar.style.width = (p*100).toFixed(2) + '%';
+  if(p >= 1) show(cur + 1);
+}
+
+function setPlaying(v){
+  playing = v;
+  document.querySelector('[data-act="toggle"]').textContent = v ? '⏸ หยุด' : '▶ เล่น';
+  const s = SLIDES[cur];
+  if(s) s.el.querySelectorAll('video').forEach(x => v ? x.play().catch(()=>{}) : x.pause());
+}
+
+/* controls */
+const ui = document.getElementById('ui');
+const hint = document.getElementById('hint');
+const KIOSK = new URLSearchParams(location.search).get('kiosk') === '1';
+let uiTimer;
+addEventListener('mousemove', ()=>{
+  if(KIOSK) return;
+  ui.classList.add('show'); hint.classList.add('show');
+  clearTimeout(uiTimer);
+  uiTimer = setTimeout(()=>{ ui.classList.remove('show'); hint.classList.remove('show'); }, 3000);
+});
+ui.addEventListener('click', e=>{
+  const a = e.target.closest('button')?.dataset.act;
+  if(a==='prev') show(cur-1);
+  if(a==='next') show(cur+1);
+  if(a==='toggle') setPlaying(!playing);
+  if(a==='restart') show(0);
+  if(a==='full'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+addEventListener('keydown', e=>{
+  if(e.code==='Space'){ e.preventDefault(); setPlaying(!playing); }
+  if(e.code==='ArrowRight'||e.code==='PageDown') show(cur+1);
+  if(e.code==='ArrowLeft' ||e.code==='PageUp')   show(cur-1);
+  if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  if(e.key==='r'||e.key==='R') show(0);
+});
+
+/* start (?slide=N to jump) */
+const start = Math.max(0, (parseInt(new URLSearchParams(location.search).get('slide'),10)||1) - 1);
+show(Math.min(start, SLIDES.length-1));
+raf = requestAnimationFrame(tick);
+</script>
+</body>
+</html>
