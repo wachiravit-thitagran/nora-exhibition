@@ -212,7 +212,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .slide.dark .progress{background:rgba(255,255,255,.14)}
 .hero{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 300px;gap:38px}
 .hero .big{
-  font-family:"Anuphan",sans-serif;font-weight:700;font-size:184px;line-height:1.06;letter-spacing:-.02em;
+  font-family:"Anuphan",sans-serif;font-weight:700;font-size:150px;line-height:1.06;letter-spacing:-.02em;
   background:linear-gradient(176deg,#F7E6B4 0%,#E3C468 48%,#C29B31 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
@@ -273,7 +273,7 @@ html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
 .wide-hero .herologo{width:1760px;height:auto}
 .wide-hero .eyebrow{margin-bottom:0}
 .wide-hero .big{
-  font-family:"Anuphan",sans-serif;font-weight:700;font-size:300px;line-height:1.02;
+  font-family:"Anuphan",sans-serif;font-weight:700;font-size:236px;line-height:1.02;
   letter-spacing:-.03em;
   background:linear-gradient(176deg,#F7E6B4 0%,#E3C468 48%,#C29B31 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
@@ -672,7 +672,7 @@ function logoStrip(){
 
 /* --- 2.1 คู่ภาพ ต้นฉบับ (จากหนังสือ) / ซ่อมแซม  — 12 ท่า -------------
    ชื่อไฟล์ตรงตามโฟลเดอร์ Nora/เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/
-   ท่า 13 (ท่าแมลงมุมชักใย) ยังไม่มีภาพซ่อมแซม จึงไม่รวม            */
+   ใช้ 12 ท่า ตามชุดภาพที่ฟื้นฟูเสร็จแล้ว                            */
 const PAIRS = [
   { n:'01', book:'ท่าขี้หนูร่อนรำ', fixName:'ท่าขี้หนอน',        note:'ภาพซ่อมแซมเป็นชายหนุ่มไม่มีหนวด ต่างจากต้นฉบับ' },
   { n:'02', book:'ท่าขุนศรัทธา',    fixName:'ท่าขุนศรัทธา',       note:'ใบหน้าตรงกับต้นฉบับ (ชายมีหนวด)' },
@@ -690,8 +690,13 @@ const PAIRS = [
 /* จุดฝังภาพแบบ data: URI — ใช้ตอนทำไฟล์พรีวิวก้อนเดียว (ปกติเป็น {} เฉย ๆ) */
 const INLINE = (typeof window !== 'undefined' && window.__INLINE) || {};
 
-/* cmp(ชื่อไฟล์) → รายการที่หาไฟล์ [ที่ฝังไว้, assets/compare/, โฟลเดอร์พี่น้องใน Nora/] */
+/* cmp(ชื่อไฟล์) → ลำดับที่ไล่หาไฟล์
+   1) ภาพที่ฝังในไฟล์ (ตอนทำพรีวิวก้อนเดียว)
+   2) assets/compare/<ชื่อ>.jpg   ← ชุดย่อขนาดสำหรับขึ้นเว็บ (เล็กกว่า PNG ~7 เท่า)
+   3) assets/compare/<ชื่อ>.png   ← ไฟล์ต้นฉบับ ถ้าก็อปมาทั้งดุ้น
+   4) ../เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/  ← โฟลเดอร์พี่น้องใน Nora/ (ตอนเปิดจากเครื่อง) */
 const cmp = f => (INLINE[f] ? [INLINE[f]] : [])
+  .concat(/\.png$/i.test(f) ? [CONFIG.DIR_COMPARE + f.replace(/\.png$/i, '.jpg')] : [])
   .concat([CONFIG.DIR_COMPARE + f])
   .concat(CONFIG.ALT_COMPARE ? [CONFIG.ALT_COMPARE + f] : []);
 const drv = f => [CONFIG.DIR_DRIVE   + f].concat(CONFIG.ALT_DRIVE   ? [CONFIG.ALT_DRIVE   + f] : []);
@@ -820,7 +825,7 @@ function panel(label, badge, inner, alt, twoUp){
 /* กระบวนการ 5 ขั้นตอนของโครงการ — ใช้ทั้งสไลด์ปกขั้นตอนและบันไดขั้นตอนบนจอซ้าย
    ลำดับนี้คือลำดับการแสดงจริงในนิทรรศการ                                     */
 const SECTIONS = [
-  { n:'01', t:'สแกนภาพจากหนังสือ',   d:'ภาพฮาล์ฟโทนในตำรา ๒๔๖๖',        c:'๑๓ ภาพ',
+  { n:'01', t:'สแกนภาพจากหนังสือ',   d:'ภาพฮาล์ฟโทนในตำรา ๒๔๖๖',        c:'๑๒ ภาพ',
     longd:'เริ่มจากภาพท่ารำในตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ '
         + 'ภาพฮาล์ฟโทนขาวดำอายุกว่า ๑๐๐ ปี ถูกสแกนเก็บไว้ทั้งชุด' },
   { n:'02', t:'ฟื้นฟูภาพ',            d:'ภาพฮาล์ฟโทน → ภาพคมชัด',        c:'๑๒ ท่า',
@@ -886,10 +891,9 @@ function wideTitle(){
   return `<div class="wide-hero">
       <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
       <div class="eyebrow">Breath of Nora</div>
-      <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี สู่ลมหายใจของโนรา</div>
+      <div class="big">ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
       <div class="rule"></div>
-      <div class="lead">ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
-      <div class="meta">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
+      <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
       ${logoStrip()}
     </div>`;
 }
@@ -1011,7 +1015,7 @@ function divider(step){
 
 /* ---- ปกใหญ่ ---- */
 push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
-  head:'เกี่ยวกับนิทรรศการ', title:'Breath of Nora — ลมหายใจของโนรา',
+  head:'เกี่ยวกับนิทรรศการ', title:'ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง',
   rows:[['ความยาวรอบ','30 นาที แล้ววนซ้ำ'],
         ['ท่ารำต้นแบบ','12 ท่า จากตำราฟ้อนรำ พ.ศ. ๒๔๖๖'],
         ['วิดีโอที่สร้างได้','22 คลิป'],
@@ -1022,10 +1026,9 @@ push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
   <div class="hero">
     <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
     <div class="eyebrow">Breath of Nora</div>
-    <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี<br>สู่ลมหายใจของโนรา</div>
+    <div class="big">ท่าที่นิ่งในหนังสือมากว่า 100 ปี<br>กลับมาเคลื่อนไหวอีกครั้ง</div>
     <div class="rule"></div>
-    <div class="lead">ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
-    <div class="meta">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
+    <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
     ${logoStrip()}
   </div>`});
 
@@ -1066,8 +1069,7 @@ push({ dur:D.poses12, step:0, span:true, section:SECTIONS[0].n+' '+SECTIONS[0].t
   head:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำรา',
   rows:[['ที่มา','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
         ['ผู้แสดงในภาพ','โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)'],
-        ['ในตำรามีทั้งหมด','๑๓ ท่า'],
-        ['ที่ฟื้นฟูแล้ว','๑๒ ท่า']],
+        ['จำนวนท่าที่นำมาใช้','๑๒ ท่า']],
   note:'แถวบนคือภาพสแกนจากตำราซึ่งเป็นจุดเริ่มของขั้นตอนนี้ '
      + 'แถวล่างคือผลการฟื้นฟูที่จะเห็นทีละท่าในขั้นตอนถัดไป',
   },
@@ -1092,7 +1094,7 @@ PAIRS.forEach((p,i)=>{
     </div>`;
   const W = { head:stepEB(1), title:p.book,
       rows:[['ชื่อท่า', p.book],
-            ['ลำดับในตำรา', p.n + ' จาก ๑๓ ท่า'],
+            ['ลำดับในชุด', p.n + ' จาก ๑๒ ท่า'],
             ['ชุดท่า', 'ท่าครู สิบสองท่า']]
             .concat(p.two ? [['ลักษณะภาพต้นฉบับ', 'ภาพคู่ ๒ คน — ฟื้นฟูแยกเป็นซ้ายและขวา']] : []),
       note:'ภาพขวาคือภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่จากภาพซ้าย ไม่ใช่การกู้คืนฟิล์มต้นฉบับ '
@@ -1273,13 +1275,13 @@ const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟู
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
 push({ dur:D.summary, dark:true, step:-1, span:true, wall:{
   head:'สรุป', title:'ผลงานทั้งโครงการ',
-  rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','12 จาก 13 ท่าในตำรา'],
+  rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','12 ท่า'],
         ['วิดีโอที่สร้างได้','22 คลิป'],
         ['ท่าใหม่ที่เกิดขึ้น','7 ท่า (A–G)'],
         ['ขั้นตอนของกระบวนการ','5 ขั้นตอน']],
-  note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๓ ภาพ' },
+  note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๒ ภาพ' },
   wide:()=> `<div class="bgimg"></div>` + band({
-    eyebrow:'สรุปผลงาน', title:'จาก ๑๓ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
+    eyebrow:'สรุปผลงาน', title:'จาก ๑๒ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
     body:`<div class="sumgrid">${KPI}</div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'สรุปผลงาน', title:'ผลงานทั้งโครงการ',
     body:`<div class="sumgrid">${KPI}</div>` })});
