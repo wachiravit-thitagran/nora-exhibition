@@ -18,3 +18,5 @@ node_modules/
 
 # ไฟล์ที่ถูกสร้างโดย make-standalone.py
 standalone.html
+# ไฟล์พรีวิวก้อนเดียว (standalone + ภาพฝังเป็น data URI ~3.4 MB) สร้างใหม่ได้เสมอ
+preview-full.html
