@@ -607,7 +607,6 @@ const CONFIG = {
     divider   : 10,   // ปกขั้นตอน (5 ใบ)
     poses12   : 30,   // ท่าครู ๑๒ ท่า เรียงเดียวจบ
     compare   : 18,   // เปรียบเทียบ ต้นฉบับ/ซ่อมแซม (12)
-    facecheck : 30,   // ตรวจใบหน้า
     combine   : 25,   // ภาพท่า + ภาพท่า = วิดีโอ (22)
     colorize  : 19,   // ขาวดำ/ใส่สี (22)
     student   : 30,   // AI/นักศึกษารำ (4)
@@ -837,8 +836,9 @@ const SECTIONS = [
     longd:'ขั้นสุดท้ายคือการคืนท่ารำให้คน — นักศึกษาและนักเรียนรำตามวิดีโอและภาพที่ได้ '
         + 'เพื่อยืนยันว่าท่ารำเหล่านี้รำได้จริงด้วยร่างกายมนุษย์' },
 ];
-const SRC_BOOK = 'ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ · '
-               + 'การรำท่าครู (สิบสองท่า) โดยโนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน) จ.นครศรีธรรมราช';
+/* ป้ายขั้นตอน — ใช้เป็น eyebrow / หัวจอขวา / บรรทัดล่าง ให้ทุกหน้าบอกได้ว่าอยู่ขั้นไหน */
+const stepEB   = i => 'ขั้นตอนที่ ' + SECTIONS[i].n + ' · ' + SECTIONS[i].t;
+const stepFoot = (i, k, n) => SECTIONS[i].n + ' ' + SECTIONS[i].t + ' · ' + k + '/' + n;
 
 /* ---------- จอซ้าย (เสริม): บอกว่าตอนนี้อยู่ขั้นตอนไหนของกระบวนการ ---------- */
 function paneL(step){
@@ -868,7 +868,6 @@ function paneR(w){
       <h2>${esc(w.title || '')}</h2>
       ${rows ? `<dl class="wr-rows">${rows}</dl>` : ''}
       ${w.note ? `<div class="wr-note">${esc(w.note)}</div>` : ''}
-      ${w.src  ? `<div class="wr-src">ที่มา — ${esc(w.src)}</div>` : ''}
       <div class="wr-tail">
         <div class="wr-url">ainora.psu.ac.th</div>
         <div class="wr-count" data-count2></div>
@@ -998,7 +997,7 @@ function divider(step){
     cr:()=> wideSection(step), wall:{
     head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
     rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['ผลงานในขั้นนี้', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 05']],
-    note:sc.longd || sc.d, src:SRC_BOOK }, html:`
+    note:sc.longd || sc.d }, html:`
     <div class="bgimg"></div>
     <div class="hero">
       <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)}</div>
@@ -1018,7 +1017,7 @@ push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
         ['วิดีโอที่สร้างได้','22 คลิป'],
         ['เครื่องมือ','ฟื้นฟูภาพ + สร้างวิดีโอด้วยปัญญาประดิษฐ์']],
   note:'ภาพและวิดีโอทั้งหมดสร้างขึ้นใหม่ด้วย AI จากภาพในตำราอายุกว่า ๑๐๐ ปี ไม่ใช่การกู้คืนภาพต้นฉบับ',
-  src:SRC_BOOK }, html:`
+  }, html:`
   <div class="bgimg"></div>
   <div class="hero">
     <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
@@ -1063,19 +1062,21 @@ const STRIP12 = PAIRS.map((p,i)=>{
       <div class="nm">${esc(p.n)} ${esc(p.book)}</div>
     </div>`;
 }).join('');
-push({ dur:D.poses12, step:0, span:true, wall:{
-  head:'ชุดท่ารำต้นแบบ', title:'ท่าครู ๑๒ ท่า',
+push({ dur:D.poses12, step:0, span:true, section:SECTIONS[0].n+' '+SECTIONS[0].t, wall:{
+  head:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำรา',
   rows:[['ที่มา','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
         ['ผู้แสดงในภาพ','โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)'],
-        ['ในตำรามีทั้งหมด','13 ท่า'],
-        ['ฟื้นฟูเสร็จแล้ว','12 ท่า — เหลือท่าแมลงมุมชักใย']],
-  note:'ทั้งชุดวางเรียงในแถวเดียวให้เห็นพร้อมกัน แถวบนคือภาพสแกนจากตำรา แถวล่างคือภาพที่ฟื้นฟูแล้ว',
-  src:SRC_BOOK },
-  wide:()=> band({ eyebrow:'ชุดท่ารำต้นแบบ', title:'ท่าครู ๑๒ ท่า — ต้นฉบับจากตำรา / ภาพที่ฟื้นฟูแล้ว',
-    sub:'ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖',
+        ['ในตำรามีทั้งหมด','๑๓ ท่า'],
+        ['ที่ฟื้นฟูแล้ว','๑๒ ท่า']],
+  note:'แถวบนคือภาพสแกนจากตำราซึ่งเป็นจุดเริ่มของขั้นตอนนี้ '
+     + 'แถวล่างคือผลการฟื้นฟูที่จะเห็นทีละท่าในขั้นตอนถัดไป',
+  },
+  wide:()=> band({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำราฟ้อนรำ พ.ศ. ๒๔๖๖',
+    sub:'แถวบน ภาพสแกนจากตำรา · แถวล่าง ผลการฟื้นฟูในขั้นตอนที่ 02',
     body:`<div class="strip">${STRIP12}</div>` }),
-  html: frame({ eyebrow:'ชุดท่ารำต้นแบบ', title:'ท่าครู ๑๒ ท่า',
-    sub:'แถวบน ภาพจากตำรา · แถวล่าง ภาพที่ฟื้นฟูแล้ว',
+  html: frame({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำรา',
+    section:SECTIONS[0].n+' '+SECTIONS[0].t,
+    sub:'แถวบน ภาพสแกนจากตำรา · แถวล่าง ผลการฟื้นฟูในขั้นตอนที่ 02',
     body:`<div class="strip" style="flex-wrap:wrap">${STRIP12}</div>` })});
 
 /* ---- ขั้นที่ 02 ฟื้นฟูภาพ ---- */
@@ -1089,49 +1090,23 @@ PAIRS.forEach((p,i)=>{
       <div class="arrow">»<small>ฟื้นฟู</small></div>
       ${panel('ภาพที่ฟื้นฟูแล้ว', p.n, fixed, true, p.two)}
     </div>`;
-  const W = { head:'ท่าที่ ' + p.n + ' / 12', title:p.book,
+  const W = { head:stepEB(1), title:p.book,
       rows:[['ชื่อท่า', p.book],
             ['ลำดับในตำรา', p.n + ' จาก ๑๓ ท่า'],
             ['ชุดท่า', 'ท่าครู สิบสองท่า']]
             .concat(p.two ? [['ลักษณะภาพต้นฉบับ', 'ภาพคู่ ๒ คน — ฟื้นฟูแยกเป็นซ้ายและขวา']] : []),
       note:'ภาพขวาคือภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่จากภาพซ้าย ไม่ใช่การกู้คืนฟิล์มต้นฉบับ '
          + 'สิ่งที่ยึดไว้คือท่าทาง สัดส่วนร่างกาย และเครื่องแต่งกายตามที่ปรากฏในตำรา',
-      src:SRC_BOOK };
-  const SUB = 'ภาพสแกนจากตำรา ๒๔๖๖ / ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์';
+      };
+  const SUB = 'ท่าที่ ' + p.n + ' จาก ๑๒ · ภาพสแกนจากตำรา ๒๔๖๖ / ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์';
   push({ dur:D.compare, step:1, spanLC:true, wall:W,
-    lc:()=> band({ eyebrow:'ท่าที่ ' + p.n + ' จาก 12',
+    lc:()=> band({ eyebrow:stepEB(1),
       title:esc(p.book), sub:SUB, body:cmpBody }),
-    section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
-    html: frame({ eyebrow:'ท่าที่ ' + p.n + ' จาก 12',
-      section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
+    section:stepFoot(1, i+1, PAIRS.length),
+    html: frame({ eyebrow:stepEB(1),
+      section:stepFoot(1, i+1, PAIRS.length),
       title:esc(p.book), sub:SUB, body:cmpBody })});
 });
-
-/* ใบหน้าที่ AI สร้างขึ้นใหม่ — แผ่นชี้แจงเชิงจริยธรรม (รวม 3 จอ) */
-const FACE = cmp('ตรวจใบหน้า-ต้นฉบับ-vs-ซ่อมแซม.jpg');
-const FACE_LEGEND = [
-  ['AI','ใบหน้าในภาพที่ฟื้นฟู เป็นภาพที่สร้างขึ้นใหม่ ไม่ใช่การกู้คืนใบหน้าจริง'],
-  ['๒','ในตำรามีผู้แสดงอย่างน้อย ๒ คน — ชายสูงอายุไว้หนวด และชายหนุ่มหน้าเกลี้ยง'],
-  ['๑๒','ทุกท่าถูกครอปใบหน้ามาขยายเทียบกับต้นฉบับ ก่อนนำไปใช้']]
-  .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
-push({ dur:D.facecheck, dark:true, step:1, span:true, wall:{
-  head:'ข้อชี้แจง', title:'ใบหน้าในภาพที่ฟื้นฟู เป็นภาพที่ AI สร้างขึ้นใหม่',
-  rows:[['สิ่งที่ยึดจากต้นฉบับ','ท่าทาง สัดส่วนร่างกาย เครื่องแต่งกาย และเครื่องประดับ'],
-        ['สิ่งที่สร้างขึ้นใหม่','รายละเอียดใบหน้า และผิวสัมผัสของภาพ'],
-        ['การตรวจสอบ','ครอปใบหน้าทุกท่ามาขยายเทียบกับต้นฉบับ'],
-        ['สิ่งที่พบ','ในตำรามีผู้แสดงอย่างน้อย ๒ คน สังเกตจากหนวดและรูปหน้า']],
-  note:'โครงการนี้ไม่ได้อ้างว่าฟื้นคืนอัตลักษณ์ใบหน้าของผู้แสดงในตำรา สิ่งที่ฟื้นคือ “ท่ารำ” ไม่ใช่ “ตัวบุคคล”' },
-  wide:()=> `<div class="bgimg"></div>` + band({
-    eyebrow:'ข้อชี้แจงเรื่องใบหน้า', title:'สิ่งที่ฟื้นคือท่ารำ ไม่ใช่ตัวบุคคล',
-    sub:'ใบหน้าในภาพที่ฟื้นฟูเป็นภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่ — ท่าทางและเครื่องแต่งกายยึดตามต้นฉบับในตำรา',
-    body:`<div class="wb-body" style="gap:70px;padding:0">
-        <div class="facebox">${mediaImg(FACE)}</div>
-        <div class="sumgrid facecol" style="flex:1;min-width:0">${FACE_LEGEND}</div>
-      </div>` }),
-  html:`<div class="bgimg"></div>` + frame({
-    eyebrow:'ข้อชี้แจงเรื่องใบหน้า', title:'สิ่งที่ฟื้นคือท่ารำ ไม่ใช่ตัวบุคคล',
-    sub:'ใบหน้าในภาพที่ฟื้นฟูเป็นภาพที่ AI สร้างขึ้นใหม่ · ท่าทางและเครื่องแต่งกายยึดตามต้นฉบับ',
-    body:`<div class="cmp solo">${panel('ใบหน้าทุกท่า เทียบต้นฉบับกับภาพที่ฟื้นฟู','ข้อชี้แจง', mediaImg(FACE))}</div>` })});
 
 /* ---- ขั้นที่ 03 สร้างการเคลื่อนไหว — โหมด 1｜2 ---- */
 divider(2);
@@ -1158,22 +1133,24 @@ VIDEOS.forEach(([id,title],i)=>{
   }).join('');
   const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
   push({ dur:D.combine, step:2, vids:[id], spanCR:true,
-    section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
-    wall:{ head:'คลิปที่ ' + (i+1) + ' / ' + VIDEOS.length, title:title,
+    section:stepFoot(2, i+1, VIDEOS.length),
+    wall:{ head:stepEB(2), title:title,
       rows:[['จำนวนท่าที่ใช้', poses.length + ' ท่า'],
             ['ลำดับท่า', poses.join('  →  ')],
             ['ท่าที่ AI สร้างใหม่', nNew ? nNew + ' ท่า' : 'ไม่มี — ใช้ท่าดั้งเดิมทั้งหมด'],
             ['ที่มาของภาพท่า', 'ภาพท่ารำที่ฟื้นฟูจากตำรา ๒๔๖๖']],
       note:'นำภาพท่ารำมาต่อกันเป็นลำดับ แล้วให้ AI สร้างช่วงเชื่อมระหว่างท่า จนได้การเคลื่อนไหวที่ต่อเนื่องจากภาพนิ่ง',
-      src:SRC_BOOK },
+      },
     left:()=> band({ eyebrow:'ท่าที่นำมาต่อกัน · ' + poses.length + ' ท่า', h2:70,
       title:esc(title), body:`<div class="strip" style="flex-direction:column">${cells}</div>` }),
-    cr:()=> band({ eyebrow:'ภาพท่ารำ + ภาพท่ารำ = วิดีโอ', title:esc(title),
-      sub:'ประกอบจาก ' + poses.length + ' ท่า — AI สร้างช่วงเชื่อมระหว่างท่า',
+    cr:()=> band({ eyebrow:stepEB(2), title:esc(title),
+      sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ประกอบจาก ' + poses.length
+        + ' ท่า — ปัญญาประดิษฐ์สร้างช่วงเชื่อมระหว่างท่า',
       body:`<div class="cmp solo">${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}</div>` }),
-    html: frame({ eyebrow:'ภาพท่ารำ + ภาพท่ารำ = วิดีโอ',
-      section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
-      title:esc(title), sub:`ประกอบจาก ${poses.length} ท่า`,
+    html: frame({ eyebrow:stepEB(2),
+      section:stepFoot(2, i+1, VIDEOS.length),
+      title:esc(title),
+      sub:`คลิปที่ ${i+1} จาก ${VIDEOS.length} · ประกอบจาก ${poses.length} ท่า`,
       body:`<div class="combine">
         <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
         <div class="arrow">»<small>ได้เป็น</small></div>
@@ -1183,15 +1160,18 @@ VIDEOS.forEach(([id,title],i)=>{
 
 /* ลงสี (อยู่ในขั้นที่ 03) — โหมด 1｜1｜1 (ค่าเริ่มต้น) */
 if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
-  push({ dur:D.colorize, step:2, vids:[id], section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
-    wall:{ head:'ลงสี ' + (i+1) + ' / ' + VIDEOS.length, title:title,
+  push({ dur:D.colorize, step:2, vids:[id],
+    section:stepFoot(2, i+1, VIDEOS.length) + ' (ลงสี)',
+    wall:{ head:stepEB(2) + ' — ลงสี', title:title,
       rows:[['ต้นทาง', 'วิดีโอขาวดำ สร้างจากภาพขาวดำในตำรา'],
             ['สิ่งที่เพิ่มเข้ามา', 'สีเครื่องแต่งกาย เครื่องประดับ และฉาก']],
       note:'ภาพในตำราเป็นภาพขาวดำ วิดีโอที่สร้างจึงเป็นขาวดำตามต้นฉบับ '
          + 'การลงสีอ้างอิงสีเครื่องแต่งกายโนราตามธรรมเนียมจริง ไม่ใช่การเดาสีเอง',
-      src:SRC_BOOK },
-    html: frame({ eyebrow:'ขาวดำ / ใส่สี', section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
+      },
+    html: frame({ eyebrow:stepEB(2) + ' — ลงสี',
+      section:stepFoot(2, i+1, VIDEOS.length) + ' (ลงสี)',
       title:esc(title),
+      sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ขาวดำตามต้นฉบับ → ลงสีเครื่องแต่งกายและฉาก',
       body:`<div class="cmp">
         ${panel('วิดีโอขาวดำ (ต้นทาง)','ก่อน', mediaVid(vurl(id)))}
         <div class="arrow">»<small>ลงสี</small></div>
@@ -1209,8 +1189,8 @@ if(CONFIG.SHOW_TWOSETS) DRIVE_PAIRS.forEach(([id,file],i)=>{
   const poseSrcs = [CONFIG.DIR_POSES + id + '-0.jpg', CONFIG.DIR_POSES + id + '-0.png']
                    .concat(pf ? cmp(pf) : []);
   push({ dur:D.threeway, step:3, vids:[id], spanCU:true,
-    section:'สร้างซ้ำจากข้อมูลเดิม · '+(i+1)+'/'+DRIVE_PAIRS.length,
-    wall:{ head:'สร้างซ้ำ ' + (i+1) + ' / ' + DRIVE_PAIRS.length, title:title,
+    section:stepFoot(3, i+1, DRIVE_PAIRS.length),
+    wall:{ head:stepEB(3), title:title,
       rows:[['จอซ้าย', 'ภาพท่าต้นทาง — ' + first],
             ['จอกลาง', 'ผลการสร้างรอบที่ ๑'],
             ['จอขวา', 'ผลการสร้างรอบที่ ๒'],
@@ -1228,8 +1208,10 @@ if(CONFIG.SHOW_TWOSETS) DRIVE_PAIRS.forEach(([id,file],i)=>{
     right:()=> band({ eyebrow:'ผลการสร้างรอบที่ ๒', h2:74, title:'ลำดับท่าเดิม สร้างใหม่อีกรอบ',
       sub:'อินพุตเดียวกัน — ผลลัพธ์ต่างกันในรายละเอียด',
       body:`<div class="cmp solo">${panel('วิดีโอรอบที่ ๒','รอบ ๒', mediaVid(drv(file).flatMap(alt)), true)}</div>` }),
-    html: frame({ eyebrow:'ลำดับท่าเดิม สร้างใหม่ได้อีก',
-      section:'สร้างซ้ำจากข้อมูลเดิม · '+(i+1)+'/'+DRIVE_PAIRS.length, title:esc(title),
+    html: frame({ eyebrow:stepEB(3),
+      section:stepFoot(3, i+1, DRIVE_PAIRS.length), title:esc(title),
+      sub:'คลิปที่ ' + (i+1) + ' จาก ' + DRIVE_PAIRS.length
+        + ' · ลำดับท่าเดียวกันที่บันทึกไว้ สั่งสร้างใหม่ได้อีกรอบ',
       body:`<div class="cmp">
         ${panel('ผลการสร้างรอบที่ ๑','รอบ ๑', mediaVid(vurl(id)))}
         <div class="arrow">»<small>เทียบกับ</small></div>
@@ -1246,16 +1228,20 @@ if(CONFIG.SHOW_STUDENT) STUDENT_VIDEOS.forEach((id,i)=>{
       <div class="arrow">»<small>รำตาม</small></div>
       ${panel('นักศึกษารำตามวิดีโอ','คนจริง', mediaVid(alt(CONFIG.DIR_STUDENT+'นักศึกษา-'+(i+1)+'.mp4')), true)}
     </div>`;
-  push({ dur:D.student, step:4, vids:[id], spanLC:true, section:'นักศึกษารำ · '+(i+1)+'/4',
-    wall:{ head:'นักศึกษารำ ' + (i+1) + ' / 4', title:title,
+  push({ dur:D.student, step:4, vids:[id], spanLC:true,
+    section:stepFoot(4, i+1, 4) + ' (นักศึกษา)',
+    wall:{ head:stepEB(4) + ' — นักศึกษา', title:title,
       rows:[['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง'],
             ['สิ่งที่ตรวจ', 'ท่ารำที่ AI สร้างขึ้น รำได้จริงหรือไม่']],
       note:'ขั้นตอนนี้เป็นการตรวจสอบกลับ ถ้าคนรำตามได้จริง แปลว่าท่ารำที่ AI ออกแบบ '
          + 'ยังอยู่ในหลักการเคลื่อนไหวของโนรา ไม่ใช่ท่าที่เป็นไปไม่ได้ทางกายภาพ' },
-    lc:()=> band({ eyebrow:'AI / นักศึกษา', title:esc(title),
-      sub:'นำวิดีโอที่ AI สร้างไปให้นักศึกษารำตาม เพื่อตรวจว่ารำได้จริง', body }),
-    html: frame({ eyebrow:'AI / นักศึกษา', section:'นักศึกษารำ · '+(i+1)+'/4',
-      title:esc(title), body })});
+    lc:()=> band({ eyebrow:stepEB(4) + ' — นักศึกษา', title:esc(title),
+      sub:'คลิปที่ ' + (i+1) + ' จาก 4 · นำวิดีโอที่ AI สร้างไปให้นักศึกษารำตาม เพื่อตรวจว่ารำได้จริง',
+      body }),
+    html: frame({ eyebrow:stepEB(4) + ' — นักศึกษา',
+      section:stepFoot(4, i+1, 4) + ' (นักศึกษา)',
+      title:esc(title),
+      sub:'คลิปที่ ' + (i+1) + ' จาก 4 · นักศึกษารำตามวิดีโอที่ AI สร้าง', body })});
 });
 
 /* ---- ขั้นที่ 05 (ต่อ) ถ่ายทอดสู่ผู้รำ — นักเรียนในชั้นเรียน (1｜2) ---- */
@@ -1265,17 +1251,20 @@ if(CONFIG.SHOW_CLASSROOM) STUDENT_STILLS.forEach((st,i)=>{
       <div class="arrow">»<small>นำไปรำ</small></div>
       ${panel('นักเรียนรำตามภาพ','ห้องเรียน', mediaVid(alt(CONFIG.DIR_STUDENT+'นักเรียน-'+(i+1)+'.mp4')), true)}
     </div>`;
-  push({ dur:D.classroom, step:4, spanCR:true, section:'นักเรียนรำ · '+(i+1)+'/2',
-    wall:{ head:'สื่อการสอน ' + (i+1) + ' / 2', title:st.name,
+  push({ dur:D.classroom, step:4, spanCR:true,
+    section:stepFoot(4, i+1, 2) + ' (ห้องเรียน)',
+    wall:{ head:stepEB(4) + ' — ห้องเรียน', title:st.name,
       rows:[['สื่อที่ใช้', 'ภาพท่ารำที่ฟื้นฟูแล้ว'],
             ['ผู้ใช้', 'นักเรียนในชั้นเรียน']],
       note:'ภาพที่ฟื้นฟูแล้วคมชัดพอที่จะใช้เป็นสื่อการสอนได้โดยตรง '
          + 'นักเรียนดูภาพแล้วฝึกรำตามได้ทันทีโดยไม่ต้องมีครูสาธิต',
-      src:SRC_BOOK },
-    cr:()=> band({ eyebrow:'ภาพท่ารำ / นักเรียน', title:esc(st.name),
-      sub:'ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body }),
-    html: frame({ eyebrow:'ภาพท่ารำ / นักเรียน', section:'นักเรียนรำ · '+(i+1)+'/2',
-      title:esc(st.name), body })});
+      },
+    cr:()=> band({ eyebrow:stepEB(4) + ' — ห้องเรียน', title:esc(st.name),
+      sub:'ท่าที่ ' + (i+1) + ' จาก 2 · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body }),
+    html: frame({ eyebrow:stepEB(4) + ' — ห้องเรียน',
+      section:stepFoot(4, i+1, 2) + ' (ห้องเรียน)',
+      title:esc(st.name),
+      sub:'ท่าที่ ' + (i+1) + ' จาก 2 · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body })});
 });
 
 /* ---- ปิดท้าย: สรุปผลงาน + เครดิต (รวม 3 จอ) ---- */
