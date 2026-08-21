@@ -45,7 +45,8 @@ def main() -> int:
         print("เตือน: ไม่พบ brand/Anuphan-var.woff2 — ข้ามการฝังฟอนต์")
 
     # 2) ฝังโลโก้
-    for name in ("logo-dark.png", "logo-light.png"):
+    for name in ("logo-dark.png", "logo-light.png",
+                 "logo-ocac.png", "logo-moc.png", "logo-psu.png"):
         p = HERE / "brand" / name
         if p.exists():
             html = html.replace(f'src="brand/{name}"', f'src="{data_uri(p, "image/png")}"')

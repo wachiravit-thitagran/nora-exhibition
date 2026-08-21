@@ -142,8 +142,8 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .panel.alt .cap .badge{background:rgba(0,0,0,.16);color:#2E2405}
 .panel .body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px;
   padding:40px;background:var(--paper-2);overflow:hidden}
-.panel .body img,.panel .body video{max-width:100%;max-height:100%;object-fit:contain;display:block;border-radius:14px}
-.panel .body.two img{max-width:48%}
+.panel .body img,.panel .body video{width:100%;height:100%;object-fit:contain;display:block;border-radius:14px}
+.panel .body.two img{width:48%}
 
 .arrow{font-size:150px;line-height:1;color:var(--gold);font-weight:700;user-select:none}
 .arrow small{display:block;font-size:32px;color:var(--muted);font-weight:600;text-align:center;margin-top:8px;letter-spacing:.08em}
@@ -160,8 +160,8 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .chips.n2 .chip{width:calc(50% - 18px)}
 .chips.n3 .chip{width:calc(33.333% - 22px);min-width:0}
 .chips.n4 .chip{width:calc(50% - 18px)}
-.chip .ph{flex:1;min-height:250px;display:grid;place-items:center;background:var(--paper-2);padding:20px;overflow:hidden}
-.chip .ph img{max-width:100%;max-height:420px;object-fit:contain}
+.chip .ph{flex:1;min-height:250px;display:grid;place-items:stretch;background:var(--paper-2);padding:20px;overflow:hidden}
+.chip .ph img{width:100%;height:100%;max-height:460px;object-fit:contain}
 .chip .nm{padding:18px 22px;font-size:34px;font-weight:600;text-align:center;color:var(--ink);background:var(--card);line-height:1.25}
 .chip.newpose .nm{color:var(--gold-dk)}
 .chip.newpose .ph{background:repeating-linear-gradient(135deg,#FBF5E4 0 26px,#F5EDD6 26px 52px)}
@@ -311,6 +311,7 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
 .slide.dark .wideband .wb-sub{color:#EFE3CB}
 .wideband .wb-body{flex:1;min-height:0;display:flex;align-items:stretch;gap:80px}
 .wideband .wb-body > *{min-height:0}
+.wideband .wb-body > .duowide{max-width:5800px;margin:0 auto}
 .wideband .wb-body > .cmp{flex:1;min-width:0;height:100%}
 .wideband .wb-ft{margin-top:40px;display:flex;align-items:center;gap:40px;
   font-size:34px;color:var(--muted);font-weight:500}
@@ -321,13 +322,13 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
 .strip .cell{flex:1;min-width:0;background:var(--card);border:3px solid var(--line);border-radius:26px;
   overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 50px -36px rgba(17,24,39,.4)}
 .strip .cell .im{flex:1;min-height:0;display:grid;place-items:center;background:var(--paper-2);padding:18px;overflow:hidden}
-.strip .cell .im img{max-width:100%;max-height:100%;object-fit:contain}
+.strip .cell .im img{width:100%;height:100%;object-fit:contain}
 .strip .cell .nm{padding:16px 12px;font-size:30px;font-weight:600;text-align:center;color:var(--ink);line-height:1.2}
 .strip .cell .no{position:absolute}
 .strip.two .cell{display:flex}
 .strip .cell .duo{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--paper-2)}
 .strip .cell .duo > div{flex:1;min-height:0;display:grid;place-items:center;position:relative;overflow:hidden}
-.strip .cell .duo > div img{max-width:100%;max-height:100%;object-fit:contain}
+.strip .cell .duo > div img{width:100%;height:100%;object-fit:contain}
 .strip .cell .duo > div i{position:absolute;left:8px;top:6px;font-style:normal;font-size:22px;font-weight:700;
   color:var(--muted);background:rgba(255,255,255,.85);border-radius:8px;padding:2px 10px}
 
@@ -363,6 +364,9 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
 /* คู่ภาพ/วิดีโอในผืนกว้าง */
 .duowide{flex:1;min-width:0;height:100%;display:grid;grid-template-columns:1fr auto 1fr;gap:70px;align-items:stretch}
 .trio{flex:1;display:flex;flex-direction:column;gap:0}
+.facebox{flex:0 0 auto;min-width:0;height:100%;display:flex;align-items:stretch;justify-content:center;
+  background:rgba(255,255,255,.06);border:3px solid rgba(255,255,255,.16);border-radius:28px;padding:26px}
+.facebox img{height:100%;width:auto;max-width:100%;object-fit:contain;border-radius:12px}
 
 html.motion .slide.on .wideband h2      {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .06s both}
 html.motion .slide.on .wideband .wb-sub {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .14s both}
@@ -514,6 +518,8 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
   font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:999px;cursor:pointer;
 }
 #ui button:hover{background:rgba(255,255,255,.22)}
+#ui button.on{background:var(--gold);color:#2E2405}
+#ui .sep{width:1px;height:22px;background:rgba(255,255,255,.18)}
 #ui .info{color:var(--gold);font-size:13px;font-weight:600;padding:0 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
 #hint{
   position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
@@ -532,10 +538,17 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
   <button data-act="toggle">⏸ หยุด</button>
   <button data-act="next">▶</button>
   <span class="info" id="uiInfo">–</span>
+  <span class="sep"></span>
+  <button data-mode="0" title="จอเดียว 16:9">16:9</button>
+  <button data-mode="w" title="จอยาว 48:9 ทั้ง 3 จอ">48:9</button>
+  <button data-mode="1" title="เฉพาะจอซ้าย">จอ 1</button>
+  <button data-mode="2" title="เฉพาะจอกลาง">จอ 2</button>
+  <button data-mode="3" title="เฉพาะจอขวา">จอ 3</button>
+  <span class="sep"></span>
   <button data-act="full">⛶ เต็มจอ</button>
   <button data-act="restart">↻ เริ่มใหม่</button>
 </div>
-<div id="hint">Space = เล่น/หยุด · ← → = เปลี่ยนสไลด์ · F = เต็มจอ · U = จอยาว 48:9 · R = เริ่มใหม่ · เลื่อนเมาส์เพื่อแสดงปุ่ม</div>
+<div id="hint">Space = เล่น/หยุด · ← → = เปลี่ยนสไลด์ · F = เต็มจอ · U = วนโหมดจอ · R = เริ่มใหม่ · เลื่อนเมาส์เพื่อแสดงปุ่ม</div>
 
 <script>
 /* ================================================================
@@ -579,6 +592,12 @@ const CONFIG = {
   SYNC_EPOCH    : Date.UTC(2026, 0, 1),  // จุดเริ่มนับเวลาที่ทุกเครื่องใช้ร่วมกัน
   HERO_BG       : '/static/images/background.png',  // ภาพพื้นหลังลายไทยจากหน้าเว็บ
   DIR_COMPARE   : 'assets/compare/',   // ภาพต้นฉบับ/ซ่อมแซม (จากโฟลเดอร์ เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม)
+  /* ---- ที่หาไฟล์สำรอง: โฟลเดอร์พี่น้องใน Nora/ ----
+     ถ้าวางโปรเจกต์เป็น Nora/exhibition_web/ จะหาไฟล์จากโฟลเดอร์เดิมได้เลย
+     ไม่ต้องก็อปอะไรเข้า assets/ ก่อน — เปิด index.html จากเครื่องก็เห็นภาพครบ
+     พอ deploy ขึ้นเซิร์ฟเวอร์แล้วค่อยก็อปเข้า assets/ (ตัวแรกในลิสต์ชนะ)  */
+  ALT_COMPARE   : '../เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/',
+  ALT_DRIVE     : '../วิดีโอ/',
   DIR_POSES     : 'assets/poses/',     // เฟรมท่ารำที่ตัดจากวิดีโอ ด้วย frame-picker.html
                                        // ตั้งชื่อ <videoId>-<ลำดับท่าเริ่มจาก 0>.jpg
   DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
@@ -627,11 +646,20 @@ const PAIRS = [
   { n:'11', book:'ท่าเขาควาย',      fixName:'ท่าเขาควาย',          note:'ใบหน้าตรงกับต้นฉบับ' },
   { n:'12', book:'ท่าเหาะเหิน',     fixName:'ท่าเหาะเหิน',         note:'ใบหน้าตรงกับต้นฉบับ' },
 ];
-const imgOrig = p => CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_A-ต้นฉบับ.png';
+/* จุดฝังภาพแบบ data: URI — ใช้ตอนทำไฟล์พรีวิวก้อนเดียว (ปกติเป็น {} เฉย ๆ) */
+const INLINE = (typeof window !== 'undefined' && window.__INLINE) || {};
+
+/* cmp(ชื่อไฟล์) → รายการที่หาไฟล์ [ที่ฝังไว้, assets/compare/, โฟลเดอร์พี่น้องใน Nora/] */
+const cmp = f => (INLINE[f] ? [INLINE[f]] : [])
+  .concat([CONFIG.DIR_COMPARE + f])
+  .concat(CONFIG.ALT_COMPARE ? [CONFIG.ALT_COMPARE + f] : []);
+const drv = f => [CONFIG.DIR_DRIVE   + f].concat(CONFIG.ALT_DRIVE   ? [CONFIG.ALT_DRIVE   + f] : []);
+
+const imgOrig = p => cmp(p.n + '_' + p.book + '_A-ต้นฉบับ.png');
 const imgFix  = p => p.two
-  ? [CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_B-ซ่อมแซม-ซ้าย.png',
-     CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_B-ซ่อมแซม-ขวา.png']
-  : [CONFIG.DIR_COMPARE + p.n + '_' + p.book + '_B-ซ่อมแซม.png'];
+  ? [cmp(p.n + '_' + p.book + '_B-ซ่อมแซม-ซ้าย.png'),
+     cmp(p.n + '_' + p.book + '_B-ซ่อมแซม-ขวา.png')]
+  : [cmp(p.n + '_' + p.book + '_B-ซ่อมแซม.png')];
 
 /* --- 2.2 ชื่อท่าในวิดีโอ → ไฟล์ภาพซ่อมแซม -------------------------
    อ้างจาก README-การจับคู่.md (ยึดท่าทางในภาพ ไม่ยึดชื่อไฟล์)      */
@@ -715,12 +743,15 @@ const STUDENT_STILLS = [
    ================================================================ */
 const E = (tag, cls, html) => { const n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; };
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const enc = p => p.split('/').map(encodeURIComponent).join('/');
+const enc = p => /^data:/.test(p) ? p : p.split('/').map(encodeURIComponent).join('/');
 
 function phBox(kind, file){
+  let f = String(file || '');
+  if(/^data:/.test(f)) f = '(ภาพที่ฝังในไฟล์)';
+  else if(f.length > 90) f = f.slice(0, 88) + '…';
   return `<div class="ph-box"><div class="ic">${kind==='video'?'▶':'▧'}</div>
     <div class="t1">รอไฟล์${kind==='video'?'วิดีโอ':'ภาพ'}</div>
-    <div class="t2">วางไฟล์ไว้ที่<code>${esc(file)}</code></div></div>`;
+    <div class="t2">วางไฟล์ไว้ที่<code>${esc(f)}</code></div></div>`;
 }
 /* media builders — เก็บรายการไฟล์สำรองไว้ใน data-srcs
    ถ้าไฟล์แรกโหลดไม่ได้จะไล่ลองไฟล์ถัดไป ถ้าหมดแล้วจึงขึ้นกล่อง "รอไฟล์" */
@@ -959,9 +990,9 @@ const STRIP12 = PAIRS.map((p,i)=>{
   return `<div class="cell" style="--i:${i}">
       <div class="duo">
         <div><i>ต้นฉบับ</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ต้นฉบับ']))}'
-          data-srcs='${esc(JSON.stringify([o]))}' data-i="0" src="${enc(o)}"></div>
+          data-srcs='${esc(JSON.stringify(o))}' data-i="0" src="${enc(o[0])}"></div>
         <div><i>ซ่อมแซม</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ซ่อมแซม']))}'
-          data-srcs='${esc(JSON.stringify([f]))}' data-i="0" src="${enc(f)}"></div>
+          data-srcs='${esc(JSON.stringify(f))}' data-i="0" src="${enc(f[0])}"></div>
       </div>
       <div class="nm">${esc(p.n)} ${esc(p.book)}</div>
     </div>`;
@@ -1009,7 +1040,7 @@ PAIRS.forEach((p,i)=>{
 });
 
 /* ตรวจใบหน้า — รวม 3 จอ */
-const FACE = CONFIG.DIR_COMPARE + 'ตรวจใบหน้า-ต้นฉบับ-vs-ซ่อมแซม.jpg';
+const FACE = cmp('ตรวจใบหน้า-ต้นฉบับ-vs-ซ่อมแซม.jpg');
 const FACE_LEGEND = [['6','คู่ที่ใบหน้าตรงกัน'],['5','คู่ที่เป็นคนละคน'],
                      ['1','คู่ที่ตรงครึ่งเดียว'],['1','คู่ที่ตรวจไม่ได้']]
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
@@ -1024,10 +1055,8 @@ push({ dur:D.facecheck, dark:true, step:0, span:true, wall:{
     eyebrow:'ตรวจสอบความถูกต้อง', title:'ภาพที่ซ่อมแซมเป็นครูคนเดียวกับในตำราหรือไม่',
     sub:'ครอปเฉพาะใบหน้าทุกคู่มาขยายเทียบ — พบว่าในตำรามีนักแสดงอย่างน้อย 2 คน',
     body:`<div class="wb-body" style="gap:70px;padding:0">
-        <div style="flex:2.2;min-width:0;height:100%;display:grid;place-items:center">
-          ${mediaImg(FACE)}
-        </div>
-        <div class="sumgrid" style="flex:1">${FACE_LEGEND}</div>
+        <div class="facebox">${mediaImg(FACE)}</div>
+        <div class="sumgrid" style="flex:1;min-width:0">${FACE_LEGEND}</div>
       </div>` }),
   html:`<div class="bgimg"></div>` + frame({
     eyebrow:'ตรวจสอบความถูกต้อง', title:'เป็นครูคนเดียวกันหรือไม่',
@@ -1042,7 +1071,7 @@ VIDEOS.forEach(([id,title],i)=>{
     const isNew = /ท่าใหม่/.test(nm);
     const file  = POSE_IMG[nm];
     const srcs  = [CONFIG.DIR_POSES + id + '-' + k + '.jpg', CONFIG.DIR_POSES + id + '-' + k + '.png']
-                  .concat(!isNew && file ? [CONFIG.DIR_COMPARE + file] : []);
+                  .concat(!isNew && file ? cmp(file) : []);
     const fb    = isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ยังไม่มีภาพท่านี้'];
     return `<div class="chip${isNew?' newpose':''}" style="--i:${k}">
         <div class="ph"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb))}'
@@ -1054,7 +1083,7 @@ VIDEOS.forEach(([id,title],i)=>{
     const file  = POSE_IMG[nm];
     return poseCell(k, nm,
       [CONFIG.DIR_POSES + id + '-' + k + '.jpg', CONFIG.DIR_POSES + id + '-' + k + '.png']
-        .concat(!isNew && file ? [CONFIG.DIR_COMPARE + file] : []),
+        .concat(!isNew && file ? cmp(file) : []),
       isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ยังไม่มีภาพท่านี้']);
   }).join('');
   const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
@@ -1128,7 +1157,7 @@ STUDENT_VIDEOS.forEach((id,i)=>{
 divider(4);
 STUDENT_STILLS.forEach((st,i)=>{
   const body = `<div class="duowide">
-      ${panel('ภาพท่ารำที่ฟื้นฟูแล้ว','สื่อการสอน', mediaImg(CONFIG.DIR_COMPARE+st.img))}
+      ${panel('ภาพท่ารำที่ฟื้นฟูแล้ว','สื่อการสอน', mediaImg(cmp(st.img)))}
       <div class="arrow">»<small>นำไปรำ</small></div>
       ${panel('นักเรียนรำตามภาพ','ห้องเรียน', mediaVid(alt(CONFIG.DIR_STUDENT+'นักเรียน-'+(i+1)+'.mp4')), true)}
     </div>`;
@@ -1154,7 +1183,7 @@ DRIVE_PAIRS.forEach(([id,file],i)=>{
   const first = poses[0];
   const pf = POSE_IMG[first];
   const poseSrcs = [CONFIG.DIR_POSES + id + '-0.jpg', CONFIG.DIR_POSES + id + '-0.png']
-                   .concat(pf ? [CONFIG.DIR_COMPARE + pf] : []);
+                   .concat(pf ? cmp(pf) : []);
   push({ dur:D.threeway, step:5, vids:[id], spanCU:true,
     section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
     wall:{ head:'เทียบ 3 ทาง ' + (i+1) + ' / ' + DRIVE_PAIRS.length, title:title,
@@ -1174,13 +1203,13 @@ DRIVE_PAIRS.forEach(([id,file],i)=>{
       body:`<div class="cmp solo">${panel('วิดีโอชุดเผยแพร่','เผยแพร่', mediaVid(vurl(id)), true)}</div>` }),
     right:()=> band({ eyebrow:'ชุดในคลัง', h2:74, title:'ไฟล์ต้นฉบับใน Google Drive',
       sub:esc(file.replace(/\.mp4$/,'')),
-      body:`<div class="cmp solo">${panel('วิดีโอชุดในคลัง','คลัง', mediaVid(alt(CONFIG.DIR_DRIVE+file)), true)}</div>` }),
+      body:`<div class="cmp solo">${panel('วิดีโอชุดในคลัง','คลัง', mediaVid(drv(file).flatMap(alt)), true)}</div>` }),
     html: frame({ eyebrow:'ชุดเผยแพร่ / ชุดในคลัง',
       section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length, title:esc(title),
       body:`<div class="cmp">
         ${panel('วิดีโอบน ainora.psu.ac.th','เผยแพร่', mediaVid(vurl(id)))}
         <div class="arrow">»<small>เทียบกับ</small></div>
-        ${panel('วิดีโอชุดในคลัง (Google Drive)','คลัง', mediaVid(alt(CONFIG.DIR_DRIVE+file)), true)}
+        ${panel('วิดีโอชุดในคลัง (Google Drive)','คลัง', mediaVid(drv(file).flatMap(alt)), true)}
       </div>` })});
 });
 
@@ -1232,6 +1261,7 @@ const QS = new URLSearchParams(location.search);
 /* โหมดจอยาว 48:9 — panel=1|2|3 คือแสดงเฉพาะจอซ้าย/กลาง/ขวา (กรณีแยกเครื่องต่อจอ) */
 const PANEL = Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0));
 let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0;
+let PANEL_ON = PANEL;      // จอที่กำลังแสดง (0 = ไม่ครอป) เปลี่ยนได้ด้วยปุ่มโหมด
 if(ULTRA_ON) document.documentElement.classList.add('ultra');
 if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
 
@@ -1262,7 +1292,9 @@ SLIDES.forEach((s,i)=>{
   mid = mid.replace(PROG, '');                     // ย้ายไปไว้ระดับสไลด์
   // แยกเครื่องต่อจอ: สร้างแค่ pane ของจอนั้น ไม่ต้องถอดรหัสวิดีโอที่มองไม่เห็น
   const want = n => !PANEL || PANEL === n;
-  const U = ULTRA_ON || PANEL;              // อยู่ในโหมดจอยาวรูปแบบใดรูปแบบหนึ่ง
+  // สร้าง pane ของทุกโหมดไว้เสมอ ปุ่มสลับโหมดจึงทำงานสดได้
+  // (ไฟล์เดียวกันที่ถูกอ้างซ้ำ เบราว์เซอร์โหลดครั้งเดียวจากแคช และวิดีโอใน pane ที่ซ่อนถูกหยุดไว้)
+  const U = true;
   el.innerHTML =
       (hasBg ? '<div class="bgimg"></div>' : '')
     + (want(1) ? '<div class="pane pL">' + (s.left ? s.left() : paneL(s.step)) + '</div>' : '')
@@ -1323,9 +1355,10 @@ stage.querySelectorAll('video[data-srcs]').forEach(n => {
 
 function fit(){
   const W = ULTRA_ON ? 11520 : 3840;        // ความกว้างเวทีจริง
-  const vis = PANEL ? 3840 : W;             // ส่วนที่ต้องให้พอดีจอ
+  const pn = PANEL_ON;
+  const vis = pn ? 3840 : W;                // ส่วนที่ต้องให้พอดีจอ
   const k = Math.min(innerWidth/vis, innerHeight/2160);
-  const dx = PANEL ? (W/2 - (PANEL - 0.5) * 3840) : 0;   // เลื่อนให้จอที่เลือกมาอยู่กลาง
+  const dx = pn ? (W/2 - (pn - 0.5) * 3840) : 0;   // เลื่อนให้จอที่เลือกมาอยู่กลาง
   stage.style.transform =
     'translate(-50%,-50%) scale(' + k + ') translateX(' + dx + 'px)';
 }
@@ -1446,7 +1479,19 @@ addEventListener('mousemove', ()=>{
   clearTimeout(uiTimer);
   uiTimer = setTimeout(()=>{ ui.classList.remove('show'); hint.classList.remove('show'); }, 3000);
 });
+/* ปุ่มสลับโหมดจอ — ทำงานสด ไม่ต้องแก้ URL */
+function setMode(m){
+  const root = document.documentElement;
+  PANEL_ON = (m === '1' || m === '2' || m === '3') ? +m : 0;
+  ULTRA_ON = (m !== '0');
+  root.classList.toggle('ultra', ULTRA_ON);
+  ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x.dataset.mode === m));
+  fit();
+  const c = cur; cur = -1; show(c);       // สร้าง/หยุดวิดีโอตาม pane ที่เห็น
+}
 ui.addEventListener('click', e=>{
+  const m = e.target.closest('button')?.dataset.mode;
+  if(m !== undefined){ setMode(m); return; }
   const a = e.target.closest('button')?.dataset.act;
   if(a==='prev' && !SYNC) show(cur-1);
   if(a==='next' && !SYNC) show(cur+1);
@@ -1460,11 +1505,10 @@ addEventListener('keydown', e=>{
   if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   if((e.key==='r'||e.key==='R') && !SYNC) show(0);
-  if((e.key==='u'||e.key==='U') && !PANEL){          // สลับ 16:9 <-> 48:9 สด ๆ
-    document.documentElement.classList.toggle('ultra');
-    ULTRA_ON = document.documentElement.classList.contains('ultra');
-    fit();
-    const c = cur; cur = -1; show(c);      // สร้าง/หยุดวิดีโอตาม pane ที่เปลี่ยนไป
+  if(e.key==='u'||e.key==='U'){                      // วนโหมด 16:9 → 48:9 → จอ1 → จอ2 → จอ3
+    const order = ['0','w','1','2','3'];
+    const now = PANEL_ON ? String(PANEL_ON) : (ULTRA_ON ? 'w' : '0');
+    setMode(order[(order.indexOf(now) + 1) % order.length]);
   }
 });
 
@@ -1481,6 +1525,8 @@ function boot(){
     const n = Math.max(0, (parseInt(QS.get('slide'), 10) || 1) - 1);
     show(Math.min(n, SLIDES.length - 1));
   }
+  ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on',
+    x.dataset.mode === (PANEL ? String(PANEL) : (ULTRA_ON ? 'w' : '0'))));
   raf = requestAnimationFrame(tick);
 }
 boot();
