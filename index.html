@@ -36,11 +36,21 @@
   --stage-h:2160px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#0A0C10;overflow:hidden}
+/* ล็อกความสูงไว้เท่าหน้าจอ ไม่ให้มีแถบเลื่อนหรือการสกรอลล์เด็ดขาด
+   (dvh เผื่อกรณีเปิดใน iframe หรือเบราว์เซอร์ที่มีแถบเครื่องมือซ่อน/โผล่) */
+html,body{
+  height:100vh;height:100dvh;
+  min-height:100vh;min-height:100dvh;
+  max-height:100vh;max-height:100dvh;
+  width:100%;max-width:100%;
+  background:#0A0C10;overflow:hidden;
+  overscroll-behavior:none;touch-action:none;
+}
+body{position:fixed;inset:0}
 body{font-family:"Anuphan","Noto Sans Thai",system-ui,-apple-system,sans-serif;
      color:var(--body);font-variant-numeric:tabular-nums}
 
-#viewport{position:fixed;inset:0;overflow:hidden;background:#0A0C10}
+#viewport{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0A0C10}
 #stage{
   width:var(--stage-w);height:var(--stage-h);
   position:absolute;left:50%;top:50%;
@@ -227,6 +237,13 @@ html.ultra .pC{left:3840px}
 html.ultra .pR{display:block;left:7680px}
 /* เส้นแบ่งจอ (เปิดด้วย ?seam=1 ตอนจัดวาง) */
 html.ultra.seam .pC,html.ultra.seam .pR{box-shadow:inset 3px 0 0 rgba(212,175,55,.55)}
+
+/* ---------- โหมดจอเดียวยาว (จอ LED ผืนเดียว ไม่มีขอบจอคั่น) ----------
+   ต่างจากโหมดแบ่ง 3 จอที่ตรงนี้: องค์ประกอบที่ควรมี "อันเดียวต่อจอ"
+   เช่นแถบโลโก้ผู้สนับสนุนและโลโก้ AI NORA จะไม่ซ้ำ 3 ชุด
+   เหลือแถบโลโก้ไว้ซ้ายสุด และโลโก้ AI NORA ไว้ขวาสุด ของผืนทั้งหมด   */
+/* จัดการจริงใน wallDedupe() เพราะบาง pane ไม่มีโลโก้/wordmark
+   จึงต้องดูจากลำดับซ้าย-ขวาของ pane ที่แสดงอยู่จริง */
 
 /* ---------- pane รวมทุกจอ (span) — ใช้ผืนเดียวยาว 11520px ---------- */
 .pW,.pLC,.pCR,.pCU{display:none}
@@ -540,7 +557,8 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
   <span class="info" id="uiInfo">–</span>
   <span class="sep"></span>
   <button data-mode="0" title="จอเดียว 16:9">16:9</button>
-  <button data-mode="w" title="จอยาว 48:9 ทั้ง 3 จอ">48:9</button>
+  <button data-mode="wall" title="จอเดียวยาว 48:9 ไม่มีขอบจอคั่น (จอ LED ผืนเดียว)">48:9 ยาว</button>
+  <button data-mode="w" title="จอ 3 จอเรียงกัน จอละ 16:9">48:9 แบ่ง 3</button>
   <button data-mode="1" title="เฉพาะจอซ้าย">จอ 1</button>
   <button data-mode="2" title="เฉพาะจอกลาง">จอ 2</button>
   <button data-mode="3" title="เฉพาะจอขวา">จอ 3</button>
@@ -1260,8 +1278,10 @@ const QS = new URLSearchParams(location.search);
 
 /* โหมดจอยาว 48:9 — panel=1|2|3 คือแสดงเฉพาะจอซ้าย/กลาง/ขวา (กรณีแยกเครื่องต่อจอ) */
 const PANEL = Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0));
-let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0;
+let WALL_ON  = QS.get('wall') === '1';                       // จอเดียวยาวเท่า 3 จอ
+let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0 || WALL_ON;
 let PANEL_ON = PANEL;      // จอที่กำลังแสดง (0 = ไม่ครอป) เปลี่ยนได้ด้วยปุ่มโหมด
+if(WALL_ON) document.documentElement.classList.add('wall');
 if(ULTRA_ON) document.documentElement.classList.add('ultra');
 if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
 
@@ -1395,6 +1415,20 @@ function clockPos(){
 /* ทุกหน้าใช้เวลาคงที่ตามตาราง DWELL — โหมดปกติกับโหมดซิงก์จึงเดินเหมือนกันเป๊ะ */
 function slideDuration(s){ return fixedDur(SLIDES.indexOf(s)); }
 
+/* โหมดจอเดียวยาว: ของที่ควรมี "อันเดียวต่อจอ" ต้องไม่ซ้ำ 3 ชุดบนผืนเดียว
+   เหลือแถบโลโก้ผู้สนับสนุนไว้ซ้ายสุด · โลโก้ AI NORA และเลขหน้าไว้ขวาสุด */
+function wallDedupe(el){
+  el.querySelectorAll('.logos,.wordmark,.ftr .count').forEach(n => { n.style.display = ''; });
+  if(!WALL_ON) return;
+  const panes = [...el.querySelectorAll('.pane')]
+    .filter(p => p.offsetWidth > 0)
+    .sort((a,b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  const pick = sel => panes.map(p => p.querySelector(sel)).filter(Boolean);
+  pick('.logos').slice(1).forEach(n => { n.style.display = 'none'; });          // เหลือซ้ายสุด
+  pick('.wordmark').slice(0, -1).forEach(n => { n.style.display = 'none'; });   // เหลือขวาสุด
+  pick('.ftr .count').slice(0, -1).forEach(n => { n.style.display = 'none'; });
+}
+
 function show(i, seekMs){
   if(cur >= 0){
     const p = SLIDES[cur];
@@ -1404,6 +1438,7 @@ function show(i, seekMs){
   cur = (i + SLIDES.length) % SLIDES.length;
   const s = SLIDES[cur];
   s.el.classList.add('on');
+  wallDedupe(s.el);
   const seek = Math.max(0, (seekMs || 0) / 1000);
   // เล่นเฉพาะวิดีโอใน pane ที่แสดงอยู่จริง (pane ที่ซ่อนมี offsetWidth = 0)
   const all = [...s.el.querySelectorAll('video')];
@@ -1483,8 +1518,10 @@ addEventListener('mousemove', ()=>{
 function setMode(m){
   const root = document.documentElement;
   PANEL_ON = (m === '1' || m === '2' || m === '3') ? +m : 0;
+  WALL_ON  = (m === 'wall');
   ULTRA_ON = (m !== '0');
   root.classList.toggle('ultra', ULTRA_ON);
+  root.classList.toggle('wall', WALL_ON);
   ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x.dataset.mode === m));
   fit();
   const c = cur; cur = -1; show(c);       // สร้าง/หยุดวิดีโอตาม pane ที่เห็น
@@ -1506,8 +1543,8 @@ addEventListener('keydown', e=>{
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   if((e.key==='r'||e.key==='R') && !SYNC) show(0);
   if(e.key==='u'||e.key==='U'){                      // วนโหมด 16:9 → 48:9 → จอ1 → จอ2 → จอ3
-    const order = ['0','w','1','2','3'];
-    const now = PANEL_ON ? String(PANEL_ON) : (ULTRA_ON ? 'w' : '0');
+    const order = ['0','wall','w','1','2','3'];
+    const now = PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'));
     setMode(order[(order.indexOf(now) + 1) % order.length]);
   }
 });
@@ -1526,7 +1563,8 @@ function boot(){
     show(Math.min(n, SLIDES.length - 1));
   }
   ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on',
-    x.dataset.mode === (PANEL ? String(PANEL) : (ULTRA_ON ? 'w' : '0'))));
+    x.dataset.mode === (PANEL ? String(PANEL)
+                              : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')))));
   raf = requestAnimationFrame(tick);
 }
 boot();
