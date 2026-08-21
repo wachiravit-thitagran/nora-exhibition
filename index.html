@@ -214,6 +214,95 @@ h1.title .thin{color:var(--muted);font-weight:600}
 }
 
 /* ============================================================
+   ULTRA WIDE 48:9 — จอ 3 จอเรียงยาว จอละ 16:9 (3840x2160)
+   ซ้าย  = ตำแหน่งในกระบวนการ (เสริม)
+   กลาง = สไลด์หลัก เหมือนโหมดจอเดียวเป๊ะ ๆ
+   ขวา  = ป้ายกำกับนิทรรศการ รายละเอียดที่ไม่พอลงจอหลัก (เสริม)
+   ============================================================ */
+.pane{position:absolute;top:0;left:0;width:3840px;height:2160px;overflow:hidden}
+.pL,.pR{display:none}
+html.ultra #stage{width:11520px}
+html.ultra .pL{display:block;left:0}
+html.ultra .pC{left:3840px}
+html.ultra .pR{display:block;left:7680px}
+/* เส้นแบ่งจอ (เปิดด้วย ?seam=1 ตอนจัดวาง) */
+html.ultra.seam .pC,html.ultra.seam .pR{box-shadow:inset 3px 0 0 rgba(212,175,55,.55)}
+
+/* ---------- จอซ้าย: ตำแหน่งในกระบวนการ ---------- */
+.wl{position:absolute;inset:120px 150px 150px;display:flex;flex-direction:column;gap:44px}
+.wl-logo{width:520px;height:auto}
+.wl-head{font-size:44px;font-weight:700;letter-spacing:.16em;color:var(--gold-dk);text-transform:uppercase}
+.slide.dark .wl-head{color:var(--gold)}
+.ladder{list-style:none;display:flex;flex-direction:column;gap:26px;margin-top:6px}
+.ladder li{
+  display:flex;align-items:flex-start;gap:30px;padding:26px 34px;border-radius:26px;
+  border:3px solid var(--line);background:rgba(255,255,255,.72);
+}
+.slide.dark .ladder li{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+.ladder .no{
+  flex:0 0 auto;width:78px;height:78px;border-radius:20px;display:grid;place-items:center;
+  font-size:36px;font-weight:700;background:var(--paper-2);color:var(--muted);
+}
+.slide.dark .ladder .no{background:rgba(255,255,255,.10);color:rgba(255,255,255,.62)}
+.ladder .tx b{display:block;font-size:46px;font-weight:600;color:var(--ink);line-height:1.2}
+.ladder .tx span{display:block;font-size:32px;color:var(--muted);margin-top:6px;line-height:1.3}
+.slide.dark .ladder .tx b{color:#fff}
+.slide.dark .ladder .tx span{color:rgba(255,255,255,.6)}
+.ladder li.cur{border-color:var(--gold);background:var(--gold-soft);
+  box-shadow:0 20px 46px -30px rgba(166,132,31,.6)}
+.slide.dark .ladder li.cur{background:rgba(212,175,55,.16);border-color:var(--gold)}
+.ladder li.cur .no{background:var(--gold);color:#2E2405}
+.ladder li.cur .tx b{color:var(--gold-dk)}
+.slide.dark .ladder li.cur .tx b{color:var(--gold)}
+.wl .grow{flex:1}
+.wl-num{
+  position:absolute;right:150px;bottom:210px;font-size:430px;line-height:.8;font-weight:700;
+  color:rgba(17,24,39,.085);letter-spacing:-.04em;
+}
+.slide.dark .wl-num{color:rgba(255,255,255,.07)}
+
+/* ---------- จอขวา: ป้ายกำกับนิทรรศการ ---------- */
+.wr{position:absolute;inset:120px 150px 150px;display:flex;flex-direction:column;gap:34px}
+.wr h2{font-size:88px;font-weight:700;color:var(--ink);line-height:1.14;letter-spacing:-.015em}
+.slide.dark .wr h2{color:#fff}
+.wr-rows{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.wr-rows > div{display:flex;gap:40px;padding:30px 0;border-top:3px solid var(--line);align-items:baseline}
+.wr-rows > div:last-child{border-bottom:3px solid var(--line)}
+.slide.dark .wr-rows > div{border-color:rgba(255,255,255,.16)}
+.wr-rows dt{flex:0 0 520px;font-size:36px;font-weight:600;color:var(--muted);line-height:1.3}
+.wr-rows dd{flex:1;font-size:42px;font-weight:500;color:var(--ink);line-height:1.32}
+.slide.dark .wr-rows dd{color:#F4EEDF}
+.wr-note{
+  font-size:38px;line-height:1.45;color:var(--body);
+  border-left:8px solid var(--gold);padding:8px 0 8px 34px;
+}
+.slide.dark .wr-note{color:#EDE3CE}
+.wr-src{font-size:32px;color:var(--muted);line-height:1.4}
+.wr-tail{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
+.wr-count{
+  font-size:120px;font-weight:700;line-height:.9;letter-spacing:-.02em;
+  color:rgba(17,24,39,.14);font-variant-numeric:tabular-nums;
+}
+.slide.dark .wr-count{color:rgba(255,255,255,.16)}
+.wr-url{
+  display:inline-flex;align-items:center;gap:24px;
+  font-size:52px;font-weight:700;color:var(--gold-dk);letter-spacing:.02em;
+}
+.wr-url::before{content:"";width:80px;height:6px;background:var(--gold);border-radius:3px}
+.slide.dark .wr-url{color:var(--gold)}
+
+html.motion .slide.on .pL .wl-logo {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) both}
+html.motion .slide.on .pL .wl-head {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .08s both}
+html.motion .slide.on .ladder li   {animation:riseIn .6s cubic-bezier(.2,.7,.3,1) both;
+                                    animation-delay:calc(.14s + var(--i,0) * .07s)}
+html.motion .slide.on .wl-num      {animation:numIn 1.1s cubic-bezier(.2,.7,.3,1) .3s both}
+html.motion .slide.on .pR h2       {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .12s both}
+html.motion .slide.on .wr-rows > div{animation:riseIn .6s cubic-bezier(.2,.7,.3,1) both;
+                                    animation-delay:calc(.22s + var(--i,0) * .07s)}
+html.motion .slide.on .wr-note     {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .5s both}
+html.motion .slide.on .wr-url      {animation:fadeIn .8s ease .66s both}
+
+/* ============================================================
    ANIMATION — เล่นใหม่ทุกครั้งที่สไลด์ถูกแสดง
    ปิดทั้งหมดได้ด้วย ?nomotion=1
    ============================================================ */
@@ -294,7 +383,7 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
   <button data-act="full">⛶ เต็มจอ</button>
   <button data-act="restart">↻ เริ่มใหม่</button>
 </div>
-<div id="hint">Space = เล่น/หยุด · ← → = เปลี่ยนสไลด์ · F = เต็มจอ · R = เริ่มใหม่ · เลื่อนเมาส์เพื่อแสดงปุ่ม</div>
+<div id="hint">Space = เล่น/หยุด · ← → = เปลี่ยนสไลด์ · F = เต็มจอ · U = จอยาว 48:9 · R = เริ่มใหม่ · เลื่อนเมาส์เพื่อแสดงปุ่ม</div>
 
 <script>
 /* ================================================================
@@ -314,6 +403,9 @@ const CONFIG = {
                           // (ใช้ตอนอัดวิดีโอแบบ offline) ถ้าไม่มีไฟล์จะถอยไปใช้ URL บนเว็บเอง
   DIR_VIDEOS    : 'assets/videos/',
   ANIMATE       : true,   // false = ปิดอนิเมชันทั้งหมด (หรือใส่ ?nomotion=1 ที่ URL)
+  ULTRA         : false,  // true = เปิดโหมดจอยาว 48:9 เป็นค่าเริ่มต้น (หรือใส่ ?ultra=1)
+                          // ?panel=1|2|3 = แสดงเฉพาะจอซ้าย/กลาง/ขวา (ใช้เมื่อแยกเครื่องต่อจอ)
+                          // ?seam=1      = ขึ้นเส้นแบ่งจอ ใช้ตอนจัดวาง/ตรวจงาน
   HERO_BG       : '/static/images/background.png',  // ภาพพื้นหลังลายไทยจากหน้าเว็บ
   DIR_COMPARE   : 'assets/compare/',   // ภาพต้นฉบับ/ซ่อมแซม (จากโฟลเดอร์ เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม)
   DIR_POSES     : 'assets/poses/',     // เฟรมท่ารำที่ตัดจากวิดีโอ ด้วย frame-picker.html
@@ -477,8 +569,62 @@ function panel(label, badge, inner, alt, twoUp){
     <div class="body${twoUp?' two':''}">${inner}</div></div>`;
 }
 
+/* 6 ขั้นตอนของโครงการ — ใช้ทั้งสไลด์ปกหมวดและบันไดขั้นตอนบนจอซ้าย */
+const SECTIONS = [
+  { n:'01', t:'ฟื้นฟูภาพจากหนังสือ',      d:'ภาพฮาล์ฟโทน ๑๐๐ ปี → ภาพคมชัด',   c:'12 ท่า',
+    longd:'ภาพฮาล์ฟโทนอายุกว่า ๑๐๐ ปี ถูกฟื้นฟูรายละเอียดเครื่องแต่งกาย ท่ามือ และใบหน้า ทีละท่า รวม ๑๒ ท่า' },
+  { n:'02', t:'เชื่อมท่ารำให้เคลื่อนไหว', d:'ภาพนิ่ง → วิดีโอต่อเนื่อง',        c:'22 คลิป',
+    longd:'นำภาพท่ารำมาประกอบกัน แล้วให้ AI สร้างช่วงเชื่อมต่อระหว่างท่า จนได้เป็นวิดีโอการรำที่ต่อเนื่อง' },
+  { n:'03', t:'ลงสีให้ท่ารำ',             d:'ขาวดำ → เต็มสี',                  c:'22 คลิป',
+    longd:'วิดีโอต้นทางเป็นภาพขาวดำตามต้นฉบับในหนังสือ ขั้นถัดไปคือการลงสีเครื่องแต่งกายและฉากให้สมบูรณ์' },
+  { n:'04', t:'จากจอสู่คนจริง',           d:'นักศึกษารำตามวิดีโอที่ AI สร้าง',  c:'4 คลิป',
+    longd:'นำวิดีโอที่ AI สร้างไปให้นักศึกษาศิลปะการแสดงรำตาม เพื่อตรวจว่าท่ารำที่สร้างขึ้นรำได้จริงหรือไม่' },
+  { n:'05', t:'ภาพท่ารำสู่ห้องเรียน',     d:'ใช้เป็นสื่อการสอนในชั้นเรียน',     c:'2 ท่า',
+    longd:'ใช้ภาพท่ารำที่ฟื้นฟูแล้วเป็นสื่อการสอน ให้นักเรียนฝึกรำตามภาพโดยตรง' },
+  { n:'06', t:'เทียบผลสองรอบการสร้าง',    d:'ชุดเผยแพร่ ↔ ชุดในคลัง',          c:'12 คลิป',
+    longd:'เทียบวิดีโอชุดที่เผยแพร่บน ainora.psu.ac.th กับวิดีโอชุดเดียวกันจากคลังใน Google Drive' },
+];
+const SRC_BOOK = 'ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ · '
+               + 'การรำท่าครู (สิบสองท่า) โดยโนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน) จ.นครศรีธรรมราช';
+
+/* ---------- จอซ้าย (เสริม): บอกว่าตอนนี้อยู่ขั้นตอนไหนของกระบวนการ ---------- */
+function paneL(step){
+  const items = SECTIONS.map((sc,i)=>
+    `<li class="${i===step?'cur':''}" style="--i:${i}">
+       <div class="no">${esc(sc.n)}</div>
+       <div class="tx"><b>${esc(sc.t)}</b><span>${esc(sc.d)} · ${esc(sc.c)}</span></div>
+     </li>`).join('');
+  return `<div class="wl">
+      <img class="wl-logo lg-dark"  src="brand/logo-dark.png"  alt="AI NORA">
+      <img class="wl-logo lg-light" src="brand/logo-light.png" alt="AI NORA">
+      <div class="wl-head">กระบวนการทั้ง 6 ขั้นตอน</div>
+      <ol class="ladder">${items}</ol>
+      <div class="grow"></div>
+      ${logoStrip()}
+    </div>
+    ${step >= 0 ? `<div class="wl-num">${esc(SECTIONS[step].n)}</div>` : ''}`;
+}
+
+/* ---------- จอขวา (เสริม): ป้ายกำกับ รายละเอียดที่ไม่พอลงจอหลัก ---------- */
+function paneR(w){
+  if(!w) return '';
+  const rows = (w.rows||[]).map(([k,v],i)=>
+    `<div style="--i:${i}"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+  return `<div class="wr">
+      <div class="wl-head">${esc(w.head || 'ป้ายกำกับ')}</div>
+      <h2>${esc(w.title || '')}</h2>
+      ${rows ? `<dl class="wr-rows">${rows}</dl>` : ''}
+      ${w.note ? `<div class="wr-note">${esc(w.note)}</div>` : ''}
+      ${w.src  ? `<div class="wr-src">ที่มา — ${esc(w.src)}</div>` : ''}
+      <div class="wr-tail">
+        <div class="wr-url">ainora.psu.ac.th</div>
+        <div class="wr-count" data-count2></div>
+      </div>
+    </div>`;
+}
+
 const SLIDES = [];
-function push(s){ SLIDES.push(s); }
+function push(s){ if(s.step === undefined) s.step = -1; SLIDES.push(s); }
 
 function frame(o){
   const sec = o.section ? `<span>${esc(o.section)}</span><span class="dot"></span>` : '';
@@ -501,7 +647,15 @@ function frame(o){
 }
 
 /* ---- ปกใหญ่ ---- */
-push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', html:`
+push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', step:-1, wall:{
+  head:'เกี่ยวกับนิทรรศการ', title:'Breath of Nora — ลมหายใจของโนรา',
+  rows:[['ชุดผลงาน','74 หน้า · 6 ขั้นตอน'],
+        ['ท่ารำต้นแบบ','12 ท่า จากตำราฟ้อนรำ พ.ศ. ๒๔๖๖'],
+        ['วิดีโอที่สร้างได้','22 คลิป'],
+        ['เครื่องมือ','ฟื้นฟูภาพ + สร้างวิดีโอด้วยปัญญาประดิษฐ์']],
+  note:'ภาพและวิดีโอทั้งหมดสร้างขึ้นใหม่ด้วย AI จากภาพในตำราอายุกว่า ๑๐๐ ปี '
+     + 'ไม่ใช่การกู้คืนภาพต้นฉบับ',
+  src:SRC_BOOK }, html:`
   <div class="bgimg"></div>
   <div class="hero">
     <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
@@ -514,9 +668,13 @@ push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', html:`
   </div>
   <div class="progress"><i data-bar></i></div>`});
 
-function divider(num, title, lead){
+function divider(step){
+  const sc = SECTIONS[step], num = sc.n, title = sc.t, lead = sc.lead || sc.longd || sc.d;
   if(!CONFIG.SHOW_DIVIDERS) return;
-  push({ dur:CONFIG.SEC_DIVIDER, dark:true, kind:'still', html:`
+  push({ dur:CONFIG.SEC_DIVIDER, dark:true, kind:'still', step, wall:{
+    head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
+    rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['จำนวนผลงาน', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 06']],
+    note:sc.longd || sc.d, src:SRC_BOOK }, html:`
     <div class="bgimg"></div>
     <div class="hero">
       <div class="eyebrow">ขั้นตอนที่ ${esc(num)}</div>
@@ -530,10 +688,20 @@ function divider(num, title, lead){
 }
 
 /* ---- A. เปรียบเทียบภาพจากหนังสือ vs ภาพที่ซ่อมแล้ว (12) ---- */
-divider('01','ฟื้นฟูภาพจากหนังสือ','ภาพฮาล์ฟโทนอายุกว่า ๑๐๐ ปี ถูกฟื้นฟูรายละเอียดเครื่องแต่งกาย ท่ามือ และใบหน้า ทีละท่า รวม ๑๒ ท่า');
+divider(0);
 PAIRS.forEach((p,i)=>{
   const fixed = imgFix(p).map(mediaImg).join('');
-  push({ dur:CONFIG.SEC_COMPARE, kind:'still', section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length, html: frame({
+  push({ dur:CONFIG.SEC_COMPARE, kind:'still', step:0,
+    section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
+    wall:{ head:'เปรียบเทียบภาพ ' + p.n + ' / 12', title:p.book,
+      rows:[['ลำดับในตำรา', p.n + ' จาก 13 ท่า'],
+            ['ชื่อในชุดภาพซ่อมแซม', p.fixName],
+            ['จำนวนภาพที่ใช้', p.two ? 'ต้นฉบับ 1 ภาพ · ซ่อมแซม 2 ภาพ (ซ้าย+ขวา)' : 'ต้นฉบับ 1 ภาพ · ซ่อมแซม 1 ภาพ'],
+            ['ผลตรวจใบหน้า', p.note]],
+      note:'ใบหน้าในภาพซ่อมแซมเป็นภาพที่ AI สร้างขึ้นใหม่ ไม่ใช่การกู้คืนใบหน้าจริงจากฟิล์มเดิม '
+         + 'สิ่งที่ตรงกันคือลักษณะเด่น เช่น เพศ อายุโดยประมาณ และการมีหรือไม่มีหนวด',
+      src:SRC_BOOK },
+    html: frame({
     eyebrow:'เปรียบเทียบภาพ',
     section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
     title:`${esc(p.book)} <span class="thin">/ ${esc(p.fixName)}</span>`,
@@ -547,7 +715,7 @@ PAIRS.forEach((p,i)=>{
 });
 
 /* ---- B. ภาพท่า + ภาพท่า → วิดีโอ (22) ---- */
-divider('02','เชื่อมท่ารำให้เคลื่อนไหว','นำภาพท่ารำมาประกอบกัน แล้วให้ AI สร้างช่วงเชื่อมต่อระหว่างท่า จนได้เป็นวิดีโอการรำที่ต่อเนื่อง');
+divider(1);
 VIDEOS.forEach(([id,title],i)=>{
   const poses = title.split('→').map(s=>s.trim());
   const chips = poses.map((nm,k)=>{
@@ -562,7 +730,17 @@ VIDEOS.forEach(([id,title],i)=>{
         data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(srcs[0])}">`;
     return `<div class="chip${isNew?' newpose':''}" style="--i:${k}"><div class="ph">${inner}</div><div class="nm">${esc(nm)}</div></div>`;
   }).join('');
-  push({ kind:'video', section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length, html: frame({
+  const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
+  push({ kind:'video', step:1, section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
+    wall:{ head:'คลิปที่ ' + (i+1) + ' / ' + VIDEOS.length, title:title,
+      rows:[['จำนวนท่าที่ใช้', poses.length + ' ท่า'],
+            ['ลำดับท่า', poses.join('  →  ')],
+            ['ท่าที่ AI สร้างใหม่', nNew ? nNew + ' ท่า' : 'ไม่มี — ใช้ท่าดั้งเดิมทั้งหมด'],
+            ['ที่มาของภาพท่า', 'เฟรมที่ตัดจากวิดีโอ / ภาพซ่อมแซมจากตำรา']],
+      note:'นำภาพท่ารำมาต่อกันเป็นลำดับ แล้วให้ AI สร้างช่วงเชื่อมระหว่างท่า '
+         + 'จนได้การเคลื่อนไหวที่ต่อเนื่องจากภาพนิ่ง',
+      src:SRC_BOOK },
+    html: frame({
     eyebrow:'ภาพท่ารำ + ภาพท่ารำ = วิดีโอ',
     section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
     title:esc(title),
@@ -576,9 +754,17 @@ VIDEOS.forEach(([id,title],i)=>{
 });
 
 /* ---- C. วิดีโอขาวดำ vs วิดีโอที่ใส่สี (22) ---- */
-divider('03','ลงสีให้ท่ารำ','วิดีโอต้นทางเป็นภาพขาวดำตามต้นฉบับในหนังสือ ขั้นถัดไปคือการลงสีเครื่องแต่งกายและฉากให้สมบูรณ์');
+divider(2);
 VIDEOS.forEach(([id,title],i)=>{
-  push({ kind:'video', section:'ลงสี · '+(i+1)+'/'+VIDEOS.length, html: frame({
+  push({ kind:'video', step:2, section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
+    wall:{ head:'ลงสี ' + (i+1) + ' / ' + VIDEOS.length, title:title,
+      rows:[['ต้นทาง', 'วิดีโอขาวดำ สร้างจากภาพขาวดำในตำรา'],
+            ['ขั้นถัดไป', 'ลงสีเครื่องแต่งกาย เครื่องประดับ และฉาก'],
+            ['สถานะ', 'อยู่ระหว่างดำเนินการ']],
+      note:'ภาพในตำราเป็นภาพขาวดำ วิดีโอที่สร้างจึงเป็นขาวดำตามต้นฉบับ '
+         + 'การลงสีจะอ้างอิงสีเครื่องแต่งกายโนราตามธรรมเนียมจริง ไม่ใช่การเดาสีเอง',
+      src:SRC_BOOK },
+    html: frame({
     eyebrow:'ขาวดำ / ใส่สี',
     section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
     title:esc(title),
@@ -591,10 +777,17 @@ VIDEOS.forEach(([id,title],i)=>{
 });
 
 /* ---- D. วิดีโอที่เจนได้ vs นักศึกษารำ (4) ---- */
-divider('04','จากจอสู่คนจริง','นำวิดีโอที่ AI สร้างไปให้นักศึกษาศิลปะการแสดงรำตาม เพื่อตรวจว่าท่ารำที่สร้างขึ้นรำได้จริงหรือไม่');
+divider(3);
 STUDENT_VIDEOS.forEach((id,i)=>{
   const title = (VIDEOS.find(v=>v[0]===id)||[,''])[1];
-  push({ kind:'video', section:'นักศึกษารำ · '+(i+1)+'/4', html: frame({
+  push({ kind:'video', step:3, section:'นักศึกษารำ · '+(i+1)+'/4',
+    wall:{ head:'นักศึกษารำ ' + (i+1) + ' / 4', title:title,
+      rows:[['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง'],
+            ['สิ่งที่ตรวจ', 'ท่ารำที่ AI สร้างขึ้น รำได้จริงหรือไม่'],
+            ['สถานะ', 'รอคลิปการรำ']],
+      note:'ขั้นตอนนี้เป็นการตรวจสอบกลับ ถ้าคนรำตามได้จริง แปลว่าท่ารำที่ AI ออกแบบ '
+         + 'ยังอยู่ในหลักการเคลื่อนไหวของโนรา ไม่ใช่ท่าที่เป็นไปไม่ได้ทางกายภาพ' },
+    html: frame({
     eyebrow:'AI / นักศึกษา',
     section:'นักศึกษารำ · '+(i+1)+'/4',
     title:esc(title),
@@ -607,9 +800,17 @@ STUDENT_VIDEOS.forEach((id,i)=>{
 });
 
 /* ---- E. ภาพท่ารำ vs นักเรียนนำไปรำ (2) ---- */
-divider('05','ภาพท่ารำสู่ห้องเรียน','ใช้ภาพท่ารำที่ฟื้นฟูแล้วเป็นสื่อการสอน ให้นักเรียนฝึกรำตามภาพโดยตรง');
+divider(4);
 STUDENT_STILLS.forEach((s,i)=>{
-  push({ kind:'video', section:'นักเรียนรำ · '+(i+1)+'/2', html: frame({
+  push({ kind:'video', step:4, section:'นักเรียนรำ · '+(i+1)+'/2',
+    wall:{ head:'สื่อการสอน ' + (i+1) + ' / 2', title:s.name,
+      rows:[['สื่อที่ใช้', 'ภาพท่ารำที่ฟื้นฟูแล้ว'],
+            ['ผู้ใช้', 'นักเรียนในชั้นเรียน'],
+            ['สถานะ', 'รอคลิปการรำ']],
+      note:'ภาพที่ฟื้นฟูแล้วคมชัดพอที่จะใช้เป็นสื่อการสอนได้โดยตรง '
+         + 'นักเรียนดูภาพแล้วฝึกรำตามได้ทันทีโดยไม่ต้องมีครูสาธิต',
+      src:SRC_BOOK },
+    html: frame({
     eyebrow:'ภาพท่ารำ / นักเรียน',
     section:'นักเรียนรำ · '+(i+1)+'/2',
     title:esc(s.name),
@@ -622,10 +823,17 @@ STUDENT_STILLS.forEach((s,i)=>{
 });
 
 /* ---- F. วิดีโอที่เจนได้ vs วิดีโอชุด Google Drive (12) ---- */
-divider('06','เทียบผลสองรอบการสร้าง','เทียบวิดีโอชุดที่เผยแพร่บน ainora.psu.ac.th กับวิดีโอชุดเดียวกันจากคลังใน Google Drive');
+divider(5);
 DRIVE_PAIRS.forEach(([id,file],i)=>{
   const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
-  push({ kind:'video', section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length, html: frame({
+  push({ kind:'video', step:5, section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
+    wall:{ head:'เทียบสองชุด ' + (i+1) + ' / ' + DRIVE_PAIRS.length, title:title,
+      rows:[['ชุด ก', 'เผยแพร่บน ainora.psu.ac.th'],
+            ['ชุด ข', 'คลังต้นฉบับใน Google Drive'],
+            ['ชื่อไฟล์ในคลัง', file.replace(/\.mp4$/,'')]],
+      note:'ทั้งสองชุดสร้างจากลำดับท่าเดียวกัน แต่ต่างรอบการสร้าง '
+         + 'ใช้เทียบว่าผลลัพธ์ของ AI คงที่แค่ไหนเมื่อสร้างซ้ำด้วยอินพุตเดิม' },
+    html: frame({
     eyebrow:'ชุดเผยแพร่ / ชุดในคลัง',
     section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
     title:esc(title),
@@ -643,9 +851,21 @@ DRIVE_PAIRS.forEach(([id,file],i)=>{
 const stage = document.getElementById('stage');
 SLIDES.forEach((s,i)=>{
   const el = E('section','slide'+(s.dark?' dark':''));
-  el.innerHTML = s.html;
+  // ย้ายภาพพื้นหลังไปไว้ระดับสไลด์ ให้ต่อเนื่องข้ามทั้ง 3 จอในโหมด ultra wide
+  const PROG = '<div class="progress"><i data-bar></i></div>';
+  const hasBg = s.html.includes('<div class="bgimg"></div>');
+  let mid = hasBg ? s.html.replace('<div class="bgimg"></div>','') : s.html;
+  mid = mid.replace(PROG, '');                     // ย้ายไปไว้ระดับสไลด์
+  el.innerHTML =
+      (hasBg ? '<div class="bgimg"></div>' : '')
+    + '<div class="pane pL">' + paneL(s.step) + '</div>'
+    + '<div class="pane pC">' + mid + '</div>'
+    + '<div class="pane pR">' + paneR(s.wall) + '</div>'
+    + PROG;
   const c = el.querySelector('[data-count]');
   if(c) c.textContent = (i+1) + ' / ' + SLIDES.length;
+  const c2 = el.querySelector('[data-count2]');
+  if(c2) c2.textContent = String(i+1).padStart(2,'0') + ' / ' + SLIDES.length;
   s.el = el; s.bar = el.querySelector('[data-bar]');
   stage.appendChild(el);
 });
@@ -692,6 +912,13 @@ stage.querySelectorAll('video[data-srcs]').forEach(n => {
 
 /* อนิเมชัน: เติมคลาส motion ที่ <html> (ปิดด้วย ?nomotion=1 หรือ CONFIG.ANIMATE=false) */
 const QS = new URLSearchParams(location.search);
+
+/* โหมดจอยาว 48:9 — panel=1|2|3 คือแสดงเฉพาะจอซ้าย/กลาง/ขวา (กรณีแยกเครื่องต่อจอ) */
+const PANEL = Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0));
+let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0;
+if(ULTRA_ON) document.documentElement.classList.add('ultra');
+if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
+
 if(CONFIG.ANIMATE && QS.get('nomotion') !== '1' &&
    !matchMedia('(prefers-reduced-motion: reduce)').matches){
   document.documentElement.classList.add('motion');
@@ -703,8 +930,12 @@ if(CONFIG.HERO_BG){
 }
 
 function fit(){
-  const k = Math.min(innerWidth/3840, innerHeight/2160);
-  stage.style.transform = 'translate(-50%,-50%) scale('+k+')';
+  const W = ULTRA_ON ? 11520 : 3840;        // ความกว้างเวทีจริง
+  const vis = PANEL ? 3840 : W;             // ส่วนที่ต้องให้พอดีจอ
+  const k = Math.min(innerWidth/vis, innerHeight/2160);
+  const dx = PANEL ? (W/2 - (PANEL - 0.5) * 3840) : 0;   // เลื่อนให้จอที่เลือกมาอยู่กลาง
+  stage.style.transform =
+    'translate(-50%,-50%) scale(' + k + ') translateX(' + dx + 'px)';
 }
 addEventListener('resize', fit); fit();
 
@@ -738,7 +969,8 @@ function show(i){
   // preload next slide's media
   const nx = SLIDES[(cur+1) % SLIDES.length];
   nx.el.querySelectorAll('video').forEach(v => { if(v.preload!=='auto'){ v.preload='auto'; try{v.load();}catch(e){} } });
-  document.getElementById('uiInfo').textContent = (cur+1) + ' / ' + SLIDES.length;
+  document.getElementById('uiInfo').textContent = (cur+1) + ' / ' + SLIDES.length
+    + (ULTRA_ON ? (PANEL ? ' · จอ ' + PANEL : ' · 48:9') : '');
 }
 
 function tick(now){
@@ -783,6 +1015,11 @@ addEventListener('keydown', e=>{
   if(e.code==='ArrowLeft' ||e.code==='PageUp')   show(cur-1);
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   if(e.key==='r'||e.key==='R') show(0);
+  if((e.key==='u'||e.key==='U') && !PANEL){          // สลับ 16:9 <-> 48:9 สด ๆ
+    document.documentElement.classList.toggle('ultra');
+    ULTRA_ON = document.documentElement.classList.contains('ultra');
+    fit();
+  }
 });
 
 /* start (?slide=N to jump) */
