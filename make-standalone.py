@@ -44,12 +44,15 @@ def main() -> int:
     else:
         print("เตือน: ไม่พบ brand/Anuphan-var.woff2 — ข้ามการฝังฟอนต์")
 
-    # 2) ฝังโลโก้
+    # 2) ฝังโลโก้ — ทั้งที่เขียน src="brand/..." ตรง ๆ ใน HTML
+    #    และที่อยู่ในอาร์เรย์ SPONSORS ในสคริปต์ (file:'brand/...')
     for name in ("logo-dark.png", "logo-light.png",
                  "logo-ocac.png", "logo-moc.png", "logo-psu.png"):
         p = HERE / "brand" / name
         if p.exists():
-            html = html.replace(f'src="brand/{name}"', f'src="{data_uri(p, "image/png")}"')
+            uri = data_uri(p, "image/png")
+            html = html.replace(f'src="brand/{name}"', f'src="{uri}"')
+            html = html.replace(f"file:'brand/{name}'", f"file:'{uri}'")
         else:
             print(f"เตือน: ไม่พบ brand/{name} — ข้ามการฝังโลโก้")
 

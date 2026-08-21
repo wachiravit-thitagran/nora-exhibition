@@ -133,6 +133,8 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .stagebody{position:absolute;left:150px;right:150px;top:404px;bottom:230px;display:flex;flex-direction:column}
 .cmp{flex:1;display:grid;grid-template-columns:1fr auto 1fr;gap:70px;align-items:center}
 .cmp.solo{grid-template-columns:1fr}
+/* ภาพเดี่ยวแนวตั้งบนจอเสริม — บีบกรอบให้พอดีภาพ ไม่เหลือพื้นขาวกว้าง */
+.pL .cmp.solo,.pR .cmp.solo{grid-template-columns:minmax(0,1500px);justify-content:center}
 .panel{
   height:100%;background:var(--card);border:3px solid var(--line);border-radius:40px;
   box-shadow:0 34px 70px -44px rgba(17,24,39,.42);
@@ -150,10 +152,11 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .panel.alt .cap{background:var(--gold)}
 .panel.alt .cap .lbl{color:#2E2405}
 .panel.alt .cap .badge{background:rgba(0,0,0,.16);color:#2E2405}
-.panel .body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px;
+.panel .body{flex:1;min-height:0;display:flex;align-items:stretch;justify-content:center;gap:26px;
   padding:40px;background:var(--paper-2);overflow:hidden}
-.panel .body img,.panel .body video{width:100%;height:100%;object-fit:contain;display:block;border-radius:14px}
-.panel .body.two img{width:48%}
+.panel .body img,.panel .body video{flex:1 1 0;min-width:0;min-height:0;width:100%;height:auto;
+  object-fit:contain;display:block;border-radius:14px}
+.panel .body.two img{flex:0 1 48%}
 
 .arrow{font-size:150px;line-height:1;color:var(--gold);font-weight:700;user-select:none}
 .arrow small{display:block;font-size:32px;color:var(--muted);font-weight:600;text-align:center;margin-top:8px;letter-spacing:.08em}
@@ -170,8 +173,8 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .chips.n2 .chip{width:calc(50% - 18px)}
 .chips.n3 .chip{width:calc(33.333% - 22px);min-width:0}
 .chips.n4 .chip{width:calc(50% - 18px)}
-.chip .ph{flex:1;min-height:250px;display:grid;place-items:stretch;background:var(--paper-2);padding:20px;overflow:hidden}
-.chip .ph img{width:100%;height:100%;max-height:460px;object-fit:contain}
+.chip .ph{flex:1;min-height:250px;position:relative;background:var(--paper-2);overflow:hidden}
+.chip .ph img{position:absolute;inset:18px;width:calc(100% - 36px);height:calc(100% - 36px);object-fit:contain}
 .chip .nm{padding:18px 22px;font-size:34px;font-weight:600;text-align:center;color:var(--ink);background:var(--card);line-height:1.25}
 .chip.newpose .nm{color:var(--gold-dk)}
 .chip.newpose .ph{background:repeating-linear-gradient(135deg,#FBF5E4 0 26px,#F5EDD6 26px 52px)}
@@ -216,7 +219,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .hero .lead{font-size:62px;line-height:1.36;color:#F6EEDC;font-weight:400;max-width:2700px}
 .hero .rule{width:250px;height:8px;background:var(--gold);border-radius:4px;transform-origin:left center}
 .hero .meta{font-size:42px;color:rgba(255,255,255,.66);line-height:1.5}
-.hero .herologo{width:880px;height:auto;margin-bottom:6px}
+.hero .herologo{width:1320px;height:auto;margin-bottom:6px;margin-left:-26px}
 .secnum{
   position:absolute;right:250px;bottom:190px;
   font-family:"Anuphan",sans-serif;font-size:500px;line-height:.8;font-weight:700;
@@ -267,7 +270,7 @@ html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
 /* ปกใหญ่แบบรวมจอ */
 .wide-hero{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:52px;padding:0 420px;text-align:center}
-.wide-hero .herologo{width:1150px;height:auto}
+.wide-hero .herologo{width:1760px;height:auto}
 .wide-hero .eyebrow{margin-bottom:0}
 .wide-hero .big{
   font-family:"Anuphan",sans-serif;font-weight:700;font-size:300px;line-height:1.02;
@@ -292,6 +295,13 @@ html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
   letter-spacing:-.03em;color:#fff;
 }
 .wide-sec .tx .lead{font-size:80px;line-height:1.34;color:#F3E6C4;max-width:6600px}
+/* ปกขั้นตอนเมื่ออยู่บนสองจอ (กลาง+ขวา) — ย่อขนาดให้พอดีผืน 7680px */
+.pCR .wide-sec{inset:130px 200px 400px;gap:110px}
+.pCR .wide-sec .num{font-size:600px}
+.pCR .wide-sec .tx{gap:36px}
+.pCR .wide-sec .tx .big{font-size:172px}
+.pCR .wide-sec .tx .lead{font-size:64px;max-width:4400px}
+.pCR .wide-rail{left:200px;right:200px;bottom:130px}
 .wide-rail{
   position:absolute;left:260px;right:260px;bottom:150px;
   display:flex;align-items:stretch;gap:26px;
@@ -329,6 +339,8 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
 .wideband .wb-body{flex:1;min-height:0;display:flex;align-items:stretch;gap:80px}
 .wideband .wb-body > *{min-height:0}
 .wideband .wb-body > .duowide{max-width:5800px;margin:0 auto}
+/* คู่ภาพแนวตั้ง (ต้นฉบับ/ฟื้นฟู) — บีบให้แคบกว่าคู่วิดีโอ ไม่เหลือพื้นว่างสองข้าง */
+.wideband .wb-body > .duowide.portrait{max-width:4600px}
 .wideband .wb-body > .cmp{flex:1;min-width:0;height:100%}
 .wideband .wb-ft{margin-top:40px;display:flex;align-items:center;gap:40px;
   font-size:34px;color:var(--muted);font-weight:500}
@@ -338,14 +350,14 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
 .strip{flex:1;min-width:0;height:100%;display:flex;align-items:stretch;gap:22px}
 .strip .cell{flex:1;min-width:0;background:var(--card);border:3px solid var(--line);border-radius:26px;
   overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 50px -36px rgba(17,24,39,.4)}
-.strip .cell .im{flex:1;min-height:0;display:grid;place-items:center;background:var(--paper-2);padding:18px;overflow:hidden}
-.strip .cell .im img{width:100%;height:100%;object-fit:contain}
+.strip .cell .im{flex:1;min-height:0;position:relative;background:var(--paper-2);overflow:hidden}
+.strip .cell .im img{position:absolute;inset:16px;width:calc(100% - 32px);height:calc(100% - 32px);object-fit:contain}
 .strip .cell .nm{padding:16px 12px;font-size:30px;font-weight:600;text-align:center;color:var(--ink);line-height:1.2}
 .strip .cell .no{position:absolute}
 .strip.two .cell{display:flex}
 .strip .cell .duo{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--paper-2)}
 .strip .cell .duo > div{flex:1;min-height:0;display:grid;place-items:center;position:relative;overflow:hidden}
-.strip .cell .duo > div img{width:100%;height:100%;object-fit:contain}
+.strip .cell .duo > div img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain}
 .strip .cell .duo > div i{position:absolute;left:8px;top:6px;font-style:normal;font-size:22px;font-weight:700;
   color:var(--muted);background:rgba(255,255,255,.85);border-radius:8px;padding:2px 10px}
 
@@ -372,6 +384,10 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
   background:linear-gradient(176deg,#F7E6B4,#D9B658 55%,#A9821F);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .sumgrid .kpi span{font-size:46px;color:#F1E6CE;line-height:1.3;font-weight:500}
+/* แผ่นข้อชี้แจง — ข้อความยาวกว่าตัวเลขสรุป จัดชิดบนและขยายตัวอักษร */
+.sumgrid.facecol .kpi{gap:30px;padding:70px 60px}
+.sumgrid.facecol .kpi b{font-size:150px}
+.sumgrid.facecol .kpi span{font-size:62px}
 .credits{flex:1;height:100%;display:flex;gap:100px;align-items:center}
 .credits .col{flex:1;display:flex;flex-direction:column;gap:26px}
 .credits .col h3{font-size:44px;font-weight:700;color:var(--gold);letter-spacing:.06em}
@@ -383,7 +399,7 @@ html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,
 .trio{flex:1;display:flex;flex-direction:column;gap:0}
 .facebox{flex:0 0 auto;min-width:0;height:100%;display:flex;align-items:stretch;justify-content:center;
   background:rgba(255,255,255,.06);border:3px solid rgba(255,255,255,.16);border-radius:28px;padding:26px}
-.facebox img{height:100%;width:auto;max-width:100%;object-fit:contain;border-radius:12px}
+.facebox img{align-self:stretch;height:auto;width:auto;max-width:100%;object-fit:contain;border-radius:12px}
 
 html.motion .slide.on .wideband h2      {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .06s both}
 html.motion .slide.on .wideband .wb-sub {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .14s both}
@@ -573,14 +589,22 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
    1. CONFIG — แก้ได้ตรงนี้
    ================================================================ */
 const CONFIG = {
-  SHOW_DIVIDERS : true,   // false = เอาสไลด์ปกหมวดออก (เหลือ 74 หน้าตามสเปกเป๊ะ)
+  SHOW_DIVIDERS : true,   // false = เอาสไลด์ปกขั้นตอนออก
+  /* ---- เปิด/ปิดช่วงที่สื่อยังไม่พร้อม ----------------------------------
+     นิทรรศการเปิดให้คนนอกดู ถ้าไฟล์ยังไม่มา สไลด์จะขึ้นกล่อง "อยู่ระหว่างจัดเตรียม"
+     ซ้ำ ๆ หลายสิบหน้า ให้ตั้งเป็น false ปิดช่วงนั้นไปเลย
+     รอบการแสดงจะยืดหน้าที่เหลือให้ครบ 30 นาทีเองโดยอัตโนมัติ            */
+  SHOW_COLORIZE : true,   // 22 หน้า — ต้องมีไฟล์ใน assets/color/
+  SHOW_TWOSETS  : true,   // 12 หน้า — ต้องมีไฟล์ใน assets/drive/
+  SHOW_STUDENT  : true,   //  4 หน้า — ต้องมีไฟล์ assets/students/นักศึกษา-N.mp4
+  SHOW_CLASSROOM: true,   //  2 หน้า — ต้องมีไฟล์ assets/students/นักเรียน-N.mp4
   /* ---- ผังรายการ 30 นาที : วินาทีต่อหน้า (แก้ตัวเลขที่นี่ที่เดียว) ----
      ทุกหน้ามีเวลาคงที่ ไทม์ไลน์จึงคาดเดาได้ ทุกจอซิงก์กันได้แม้ไฟล์สื่อยังไม่ครบ
      คลิปวิดีโอตั้ง loop ไว้ ถ้าคลิปสั้นกว่าเวลาหน้าจะวนซ้ำในหน้าเดียว   */
   DWELL : {
     title     : 14,   // ปกใหญ่
     timeline  : 26,   // ไทม์ไลน์กระบวนการ
-    divider   :  8,   // ปกหมวด (6 ใบ)
+    divider   : 10,   // ปกขั้นตอน (5 ใบ)
     poses12   : 30,   // ท่าครู ๑๒ ท่า เรียงเดียวจบ
     compare   : 18,   // เปรียบเทียบ ต้นฉบับ/ซ่อมแซม (12)
     facecheck : 30,   // ตรวจใบหน้า
@@ -763,13 +787,18 @@ const E = (tag, cls, html) => { const n=document.createElement(tag); if(cls) n.c
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const enc = p => /^data:/.test(p) ? p : p.split('/').map(encodeURIComponent).join('/');
 
+/* ?dev=1 = โหมดผู้ดูแล เห็นชื่อไฟล์ที่ยังขาดบนกล่องว่าง
+   ค่าปกติ (ไม่ใส่) = โหมดนิทรรศการ ไม่โชว์ path ให้คนดูเห็น */
+const DEV = /[?&]dev=1/.test(location.search);
 function phBox(kind, file){
   let f = String(file || '');
   if(/^data:/.test(f)) f = '(ภาพที่ฝังในไฟล์)';
   else if(f.length > 90) f = f.slice(0, 88) + '…';
+  const dev = DEV ? `<div class="t2">วางไฟล์ไว้ที่<code>${esc(f)}</code></div>` : '';
   return `<div class="ph-box"><div class="ic">${kind==='video'?'▶':'▧'}</div>
-    <div class="t1">รอไฟล์${kind==='video'?'วิดีโอ':'ภาพ'}</div>
-    <div class="t2">วางไฟล์ไว้ที่<code>${esc(f)}</code></div></div>`;
+    <div class="t1">${kind==='video'?'วิดีโอ':'ภาพ'}ส่วนนี้อยู่ระหว่างจัดเตรียม</div>
+    ${dev || '<div class="t2">โครงการยังดำเนินอยู่ — ส่วนนี้จะเพิ่มเข้ามาในนิทรรศการเร็ว ๆ นี้</div>'}
+    </div>`;
 }
 /* media builders — เก็บรายการไฟล์สำรองไว้ใน data-srcs
    ถ้าไฟล์แรกโหลดไม่ได้จะไล่ลองไฟล์ถัดไป ถ้าหมดแล้วจึงขึ้นกล่อง "รอไฟล์" */
@@ -789,20 +818,24 @@ function panel(label, badge, inner, alt, twoUp){
     <div class="body${twoUp?' two':''}">${inner}</div></div>`;
 }
 
-/* 6 ขั้นตอนของโครงการ — ใช้ทั้งสไลด์ปกหมวดและบันไดขั้นตอนบนจอซ้าย */
+/* กระบวนการ 5 ขั้นตอนของโครงการ — ใช้ทั้งสไลด์ปกขั้นตอนและบันไดขั้นตอนบนจอซ้าย
+   ลำดับนี้คือลำดับการแสดงจริงในนิทรรศการ                                     */
 const SECTIONS = [
-  { n:'01', t:'ฟื้นฟูภาพจากหนังสือ',      d:'ภาพฮาล์ฟโทน ๑๐๐ ปี → ภาพคมชัด',   c:'12 ท่า',
-    longd:'ภาพฮาล์ฟโทนอายุกว่า ๑๐๐ ปี ถูกฟื้นฟูรายละเอียดเครื่องแต่งกาย ท่ามือ และใบหน้า ทีละท่า รวม ๑๒ ท่า' },
-  { n:'02', t:'เชื่อมท่ารำให้เคลื่อนไหว', d:'ภาพนิ่ง → วิดีโอต่อเนื่อง',        c:'22 คลิป',
-    longd:'นำภาพท่ารำมาประกอบกัน แล้วให้ AI สร้างช่วงเชื่อมต่อระหว่างท่า จนได้เป็นวิดีโอการรำที่ต่อเนื่อง' },
-  { n:'03', t:'ลงสีให้ท่ารำ',             d:'ขาวดำ → เต็มสี',                  c:'22 คลิป',
-    longd:'วิดีโอต้นทางเป็นภาพขาวดำตามต้นฉบับในหนังสือ ขั้นถัดไปคือการลงสีเครื่องแต่งกายและฉากให้สมบูรณ์' },
-  { n:'04', t:'จากจอสู่คนจริง',           d:'นักศึกษารำตามวิดีโอที่ AI สร้าง',  c:'4 คลิป',
-    longd:'นำวิดีโอที่ AI สร้างไปให้นักศึกษาศิลปะการแสดงรำตาม เพื่อตรวจว่าท่ารำที่สร้างขึ้นรำได้จริงหรือไม่' },
-  { n:'05', t:'ภาพท่ารำสู่ห้องเรียน',     d:'ใช้เป็นสื่อการสอนในชั้นเรียน',     c:'2 ท่า',
-    longd:'ใช้ภาพท่ารำที่ฟื้นฟูแล้วเป็นสื่อการสอน ให้นักเรียนฝึกรำตามภาพโดยตรง' },
-  { n:'06', t:'เทียบผลสองรอบการสร้าง',    d:'ชุดเผยแพร่ ↔ ชุดในคลัง',          c:'12 คลิป',
-    longd:'เทียบวิดีโอชุดที่เผยแพร่บน ainora.psu.ac.th กับวิดีโอชุดเดียวกันจากคลังใน Google Drive' },
+  { n:'01', t:'สแกนภาพจากหนังสือ',   d:'ภาพฮาล์ฟโทนในตำรา ๒๔๖๖',        c:'๑๓ ภาพ',
+    longd:'เริ่มจากภาพท่ารำในตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ '
+        + 'ภาพฮาล์ฟโทนขาวดำอายุกว่า ๑๐๐ ปี ถูกสแกนเก็บไว้ทั้งชุด' },
+  { n:'02', t:'ฟื้นฟูภาพ',            d:'ภาพฮาล์ฟโทน → ภาพคมชัด',        c:'๑๒ ท่า',
+    longd:'ฟื้นฟูรายละเอียดเครื่องแต่งกาย เครื่องประดับ และท่ามือ กลับมาทีละท่า '
+        + 'จนได้ภาพท่ารำที่คมชัดพอจะใช้งานต่อได้' },
+  { n:'03', t:'สร้างการเคลื่อนไหว',    d:'ภาพนิ่ง → วิดีโอต่อเนื่อง',      c:'๒๒ คลิป',
+    longd:'นำภาพท่ารำมาเรียงต่อกัน แล้วให้ปัญญาประดิษฐ์สร้างช่วงเชื่อมระหว่างท่า '
+        + 'ภาพนิ่งจึงกลายเป็นการรำที่เคลื่อนไหวต่อเนื่อง' },
+  { n:'04', t:'ถอดรหัสท่ารำสู่ตำแหน่งในคอมพิวเตอร์', d:'ท่ารำกลายเป็นข้อมูล สร้างซ้ำได้', c:'๑๒ คลิป',
+    longd:'เมื่อลำดับท่าถูกบันทึกเป็นข้อมูลตำแหน่งในคอมพิวเตอร์ ท่ารำชุดเดิมก็ถูกสร้างขึ้นใหม่ได้อีก '
+        + 'สองชุดนี้มาจากลำดับท่าเดียวกัน แต่ต่างรอบการสร้าง' },
+  { n:'05', t:'ถ่ายทอดสู่ผู้รำ',       d:'จากจอ กลับสู่คนจริง',            c:'๖ ชิ้น',
+    longd:'ขั้นสุดท้ายคือการคืนท่ารำให้คน — นักศึกษาและนักเรียนรำตามวิดีโอและภาพที่ได้ '
+        + 'เพื่อยืนยันว่าท่ารำเหล่านี้รำได้จริงด้วยร่างกายมนุษย์' },
 ];
 const SRC_BOOK = 'ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ · '
                + 'การรำท่าครู (สิบสองท่า) โดยโนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน) จ.นครศรีธรรมราช';
@@ -817,7 +850,7 @@ function paneL(step){
   return `<div class="wl">
       <img class="wl-logo lg-dark"  src="brand/logo-dark.png"  alt="AI NORA">
       <img class="wl-logo lg-light" src="brand/logo-light.png" alt="AI NORA">
-      <div class="wl-head">กระบวนการทั้ง 6 ขั้นตอน</div>
+      <div class="wl-head">กระบวนการทั้งหมดที่เกิดขึ้น</div>
       <ol class="ladder">${items}</ol>
       <div class="grow"></div>
       ${logoStrip()}
@@ -856,8 +889,8 @@ function wideTitle(){
       <div class="eyebrow">Breath of Nora</div>
       <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี สู่ลมหายใจของโนรา</div>
       <div class="rule"></div>
-      <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์ — ฟื้นฟูภาพจากตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖ แล้วเชื่อมท่ารำให้กลับมาเคลื่อนไหวอีกครั้ง</div>
-      <div class="meta">อ้างอิงท่ารำครูธรรมนิตย์ นิคมรัตน์ · โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)</div>
+      <div class="lead">ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
+      <div class="meta">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
       ${logoStrip()}
     </div>`;
 }
@@ -866,7 +899,7 @@ function wideSection(step){
   return `<div class="wide-sec">
       <div class="num">${esc(sc.n)}</div>
       <div class="tx">
-        <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)} จาก 06</div>
+        <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)} จาก 05</div>
         <div class="big">${esc(sc.t)}</div>
         <div class="lead">${esc(sc.longd || sc.d)}</div>
       </div>
@@ -934,25 +967,42 @@ function band(o){
 /* การ์ดท่ารำ (ใช้ทั้งแถบ ๑๒ ท่า และจอซ้ายขององก์ 2) */
 function poseCell(i, name, srcs, fb){
   return `<div class="cell" style="--i:${i}">
-      <div class="im"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb||['▧','ยังไม่มีภาพ']))}'
+      <div class="im"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb||['▧','อยู่ระหว่างจัดเตรียม']))}'
         data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(srcs[0])}"></div>
       <div class="nm">${esc(name)}</div>
     </div>`;
 }
 
-/* ปกหมวด — รวมทั้งผนังในโหมดจอยาว */
+/* ภาพตัวอย่างประจำแต่ละขั้นตอน — แสดงบนจอซ้ายของสไลด์ปกขั้นตอน */
+const STEP_SAMPLE = [
+  { srcs:imgOrig(PAIRS[9]),    lbl:'ต้นฉบับ',    cap:'ภาพสแกนจากตำรา',
+    eb:'ตัวอย่างภาพสแกน',      name:'ท่าหน้าไม้ — ภาพในตำรา พ.ศ. ๒๔๖๖' },
+  { srcs:imgFix(PAIRS[1])[0],  lbl:'ฟื้นฟูแล้ว', cap:'ภาพที่ฟื้นฟูรายละเอียดแล้ว',
+    eb:'ตัวอย่างภาพที่ฟื้นฟู', name:'ท่าขุนศรัทธา — หลังฟื้นฟู' },
+  { srcs:imgFix(PAIRS[10])[0], lbl:'ภาพต้นทาง',  cap:'ภาพท่าที่ป้อนให้ปัญญาประดิษฐ์',
+    eb:'จุดเริ่มของการเคลื่อนไหว', name:'ท่าเขาควาย — ภาพต้นทางของวิดีโอ' },
+  { srcs:imgFix(PAIRS[6])[0],  lbl:'ท่าในข้อมูล', cap:'ท่ารำที่ถูกเก็บเป็นข้อมูล',
+    eb:'ท่ารำในรูปของข้อมูล',  name:'ท่าพรหมสี่หน้า' },
+  { srcs:imgFix(PAIRS[11])[0], lbl:'สื่อการสอน', cap:'ภาพท่าที่ใช้สอนในชั้นเรียน',
+    eb:'ท่ารำที่คืนสู่ห้องเรียน', name:'ท่าเหาะเหิน — สื่อการสอน' },
+];
+
+/* ปกขั้นตอน — จอซ้ายเป็นภาพตัวอย่าง จอกลาง+จอขวารวมเป็นชื่อขั้นตอน */
 function divider(step){
   const sc = SECTIONS[step];
   if(!CONFIG.SHOW_DIVIDERS) return;
-  push({ dur:CONFIG.DWELL.divider, dark:true, step, span:true,
-    wide:()=>wideSection(step), wall:{
+  const sm = STEP_SAMPLE[step] || STEP_SAMPLE[0];
+  push({ dur:CONFIG.DWELL.divider, dark:true, step, spanCR:true,
+    left:()=> band({ eyebrow:sm.eb, h2:86, title:esc(sm.name),
+      body:`<div class="cmp solo">${panel(sm.cap, sm.lbl, mediaImg(sm.srcs))}</div>` }),
+    cr:()=> wideSection(step), wall:{
     head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
-    rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['จำนวนผลงาน', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 06']],
+    rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['ผลงานในขั้นนี้', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 05']],
     note:sc.longd || sc.d, src:SRC_BOOK }, html:`
     <div class="bgimg"></div>
     <div class="hero">
       <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)}</div>
-      <div class="big" style="font-size:150px">${esc(sc.t)}</div>
+      <div class="big" style="font-size:${sc.t.length > 20 ? 108 : 150}px">${esc(sc.t)}</div>
       <div class="rule"></div>
       <div class="lead">${esc(sc.longd || sc.d)}</div>
       ${logoStrip()}
@@ -975,8 +1025,8 @@ push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
     <div class="eyebrow">Breath of Nora</div>
     <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี<br>สู่ลมหายใจของโนรา</div>
     <div class="rule"></div>
-    <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์ — ฟื้นฟูภาพจากตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖ แล้วเชื่อมท่ารำให้กลับมาเคลื่อนไหวอีกครั้ง</div>
-    <div class="meta">อ้างอิงท่ารำครูธรรมนิตย์ นิคมรัตน์ · โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)</div>
+    <div class="lead">ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
+    <div class="meta">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
     ${logoStrip()}
   </div>`});
 
@@ -987,19 +1037,17 @@ const TLNODES = SECTIONS.map((sc,i)=>
      <div class="cap"><b>${esc(sc.t)}</b><span>${esc(sc.d)}<br>${esc(sc.c)}</span></div>
    </div>`).join('');
 push({ dur:D.timeline, dark:true, step:-1, span:true, wall:{
-  head:'ภาพรวม', title:'กระบวนการทั้ง 6 ขั้นตอน',
-  rows:SECTIONS.map(sc=>[sc.n + ' ' + sc.t, sc.d + ' · ' + sc.c]),
-  note:'นิทรรศการนี้เดินตามลำดับ 6 ขั้นตอนนี้ ใช้เวลา 30 นาทีต่อรอบ แล้ววนกลับมาเริ่มใหม่' },
+  head:'ภาพรวม', title:'กระบวนการทั้งหมดที่เกิดขึ้น',
+  rows:SECTIONS.map(sc=>[sc.n + ' ' + sc.t, sc.d]),
+  note:'นิทรรศการนี้เดินตามลำดับขั้นตอนนี้ ใช้เวลา 30 นาทีต่อรอบ แล้ววนกลับมาเริ่มใหม่' },
   wide:()=> `<div class="bgimg"></div>` + band({
-    eyebrow:'ภาพรวมโครงการ', title:'จากตำราฟ้อนรำ ๒๔๖๖ ถึงห้องเรียนวันนี้',
-    sub:'6 ขั้นตอน · 12 ท่ารำต้นแบบ · 22 วิดีโอ',
+    eyebrow:'ภาพรวมโครงการ', title:'กระบวนการทั้งหมดที่เกิดขึ้น',
     body:`<div class="tline2">${TLNODES}</div>` }),
   html:`<div class="bgimg"></div>` + frame({
-    eyebrow:'ภาพรวมโครงการ', title:'กระบวนการทั้ง 6 ขั้นตอน',
-    sub:'6 ขั้นตอน · 12 ท่ารำต้นแบบ · 22 วิดีโอ',
+    eyebrow:'ภาพรวมโครงการ', title:'กระบวนการทั้งหมดที่เกิดขึ้น',
     body:`<div class="tline2">${TLNODES}</div>` })});
 
-/* ---- A. ฟื้นฟูภาพจากหนังสือ ---- */
+/* ---- ขั้นที่ 01 สแกนภาพจากหนังสือ ---- */
 divider(0);
 
 /* แถบท่าครู ๑๒ ท่า เรียงเดียวจบ (รวม 3 จอ) */
@@ -1007,9 +1055,9 @@ const STRIP12 = PAIRS.map((p,i)=>{
   const o = imgOrig(p), f = imgFix(p)[0];
   return `<div class="cell" style="--i:${i}">
       <div class="duo">
-        <div><i>ต้นฉบับ</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ต้นฉบับ']))}'
+        <div><i>ภาพสแกน</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพสแกน']))}'
           data-srcs='${esc(JSON.stringify(o))}' data-i="0" src="${enc(o[0])}"></div>
-        <div><i>ซ่อมแซม</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ซ่อมแซม']))}'
+        <div><i>ฟื้นฟูแล้ว</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ฟื้นฟูแล้ว']))}'
           data-srcs='${esc(JSON.stringify(f))}' data-i="0" src="${enc(f[0])}"></div>
       </div>
       <div class="nm">${esc(p.n)} ${esc(p.book)}</div>
@@ -1030,59 +1078,63 @@ push({ dur:D.poses12, step:0, span:true, wall:{
     sub:'แถวบน ภาพจากตำรา · แถวล่าง ภาพที่ฟื้นฟูแล้ว',
     body:`<div class="strip" style="flex-wrap:wrap">${STRIP12}</div>` })});
 
+/* ---- ขั้นที่ 02 ฟื้นฟูภาพ ---- */
+divider(1);
+
 /* 12 คู่เปรียบเทียบ — โหมด 2｜1 */
 PAIRS.forEach((p,i)=>{
   const fixed = imgFix(p).map(mediaImg).join('');
-  const cmpBody = `<div class="duowide">
-      ${panel('ภาพจากหนังสือ (ต้นฉบับ)', p.n, mediaImg(imgOrig(p)))}
+  const cmpBody = `<div class="duowide portrait">
+      ${panel('ภาพสแกนจากตำรา', p.n, mediaImg(imgOrig(p)))}
       <div class="arrow">»<small>ฟื้นฟู</small></div>
-      ${panel('ภาพที่ซ่อมแซมแล้ว', p.n, fixed, true, p.two)}
+      ${panel('ภาพที่ฟื้นฟูแล้ว', p.n, fixed, true, p.two)}
     </div>`;
-  const W = { head:'เปรียบเทียบภาพ ' + p.n + ' / 12', title:p.book,
-      rows:[['ลำดับในตำรา', p.n + ' จาก 13 ท่า'],
-            ['ชื่อในชุดภาพซ่อมแซม', p.fixName],
-            ['จำนวนภาพที่ใช้', p.two ? 'ต้นฉบับ 1 ภาพ · ซ่อมแซม 2 ภาพ (ซ้าย+ขวา)' : 'ต้นฉบับ 1 ภาพ · ซ่อมแซม 1 ภาพ'],
-            ['ผลตรวจใบหน้า', p.note]],
-      note:'ใบหน้าในภาพซ่อมแซมเป็นภาพที่ AI สร้างขึ้นใหม่ ไม่ใช่การกู้คืนใบหน้าจริงจากฟิล์มเดิม '
-         + 'สิ่งที่ตรงกันคือลักษณะเด่น เช่น เพศ อายุโดยประมาณ และการมีหรือไม่มีหนวด',
+  const W = { head:'ท่าที่ ' + p.n + ' / 12', title:p.book,
+      rows:[['ชื่อท่า', p.book],
+            ['ลำดับในตำรา', p.n + ' จาก ๑๓ ท่า'],
+            ['ชุดท่า', 'ท่าครู สิบสองท่า']]
+            .concat(p.two ? [['ลักษณะภาพต้นฉบับ', 'ภาพคู่ ๒ คน — ฟื้นฟูแยกเป็นซ้ายและขวา']] : []),
+      note:'ภาพขวาคือภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่จากภาพซ้าย ไม่ใช่การกู้คืนฟิล์มต้นฉบับ '
+         + 'สิ่งที่ยึดไว้คือท่าทาง สัดส่วนร่างกาย และเครื่องแต่งกายตามที่ปรากฏในตำรา',
       src:SRC_BOOK };
-  push({ dur:D.compare, step:0, spanLC:true, wall:W,
-    lc:()=> band({ eyebrow:'เปรียบเทียบภาพ ' + p.n + ' / 12',
-      title:`${esc(p.book)} <span class="thin">/ ${esc(p.fixName)}</span>`,
-      sub:esc(p.note), body:cmpBody }),
+  const SUB = 'ภาพสแกนจากตำรา ๒๔๖๖ / ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์';
+  push({ dur:D.compare, step:1, spanLC:true, wall:W,
+    lc:()=> band({ eyebrow:'ท่าที่ ' + p.n + ' จาก 12',
+      title:esc(p.book), sub:SUB, body:cmpBody }),
     section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
-    html: frame({ eyebrow:'เปรียบเทียบภาพ',
+    html: frame({ eyebrow:'ท่าที่ ' + p.n + ' จาก 12',
       section:'ฟื้นฟูภาพ · '+(i+1)+'/'+PAIRS.length,
-      title:`${esc(p.book)} <span class="thin">/ ${esc(p.fixName)}</span>`,
-      sub:esc(p.note), body:cmpBody })});
+      title:esc(p.book), sub:SUB, body:cmpBody })});
 });
 
-/* ตรวจใบหน้า — รวม 3 จอ */
+/* ใบหน้าที่ AI สร้างขึ้นใหม่ — แผ่นชี้แจงเชิงจริยธรรม (รวม 3 จอ) */
 const FACE = cmp('ตรวจใบหน้า-ต้นฉบับ-vs-ซ่อมแซม.jpg');
-const FACE_LEGEND = [['6','คู่ที่ใบหน้าตรงกัน'],['5','คู่ที่เป็นคนละคน'],
-                     ['1','คู่ที่ตรงครึ่งเดียว'],['1','คู่ที่ตรวจไม่ได้']]
+const FACE_LEGEND = [
+  ['AI','ใบหน้าในภาพที่ฟื้นฟู เป็นภาพที่สร้างขึ้นใหม่ ไม่ใช่การกู้คืนใบหน้าจริง'],
+  ['๒','ในตำรามีผู้แสดงอย่างน้อย ๒ คน — ชายสูงอายุไว้หนวด และชายหนุ่มหน้าเกลี้ยง'],
+  ['๑๒','ทุกท่าถูกครอปใบหน้ามาขยายเทียบกับต้นฉบับ ก่อนนำไปใช้']]
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
-push({ dur:D.facecheck, dark:true, step:0, span:true, wall:{
-  head:'ตรวจสอบความถูกต้อง', title:'ภาพซ่อมแซมเป็นคนเดียวกับต้นฉบับหรือไม่',
-  rows:[['วิธีตรวจ','ครอปเฉพาะใบหน้าของทุกคู่มาขยายเทียบ'],
-        ['ตัวชี้วัดที่ชัดที่สุด','หนวด — ในตำรามีทั้งชายสูงอายุไว้หนวด และชายหนุ่มหน้าเกลี้ยง'],
-        ['ผลสรุป','ตรงกัน 6 · คนละคน 5 · ตรงครึ่งเดียว 1 · ตรวจไม่ได้ 1'],
-        ['ข้อสรุป','ไม่ใช่คนเดียวกันทั้งหมด ในตำรามีนักแสดงอย่างน้อย 2 คน']],
-  note:'แม้คู่ที่ขึ้นว่าตรงกัน ใบหน้าก็ยังเป็นภาพที่ AI สร้างใหม่ ไม่ใช่การกู้คืนอัตลักษณ์ใบหน้าจริง' },
+push({ dur:D.facecheck, dark:true, step:1, span:true, wall:{
+  head:'ข้อชี้แจง', title:'ใบหน้าในภาพที่ฟื้นฟู เป็นภาพที่ AI สร้างขึ้นใหม่',
+  rows:[['สิ่งที่ยึดจากต้นฉบับ','ท่าทาง สัดส่วนร่างกาย เครื่องแต่งกาย และเครื่องประดับ'],
+        ['สิ่งที่สร้างขึ้นใหม่','รายละเอียดใบหน้า และผิวสัมผัสของภาพ'],
+        ['การตรวจสอบ','ครอปใบหน้าทุกท่ามาขยายเทียบกับต้นฉบับ'],
+        ['สิ่งที่พบ','ในตำรามีผู้แสดงอย่างน้อย ๒ คน สังเกตจากหนวดและรูปหน้า']],
+  note:'โครงการนี้ไม่ได้อ้างว่าฟื้นคืนอัตลักษณ์ใบหน้าของผู้แสดงในตำรา สิ่งที่ฟื้นคือ “ท่ารำ” ไม่ใช่ “ตัวบุคคล”' },
   wide:()=> `<div class="bgimg"></div>` + band({
-    eyebrow:'ตรวจสอบความถูกต้อง', title:'ภาพที่ซ่อมแซมเป็นครูคนเดียวกับในตำราหรือไม่',
-    sub:'ครอปเฉพาะใบหน้าทุกคู่มาขยายเทียบ — พบว่าในตำรามีนักแสดงอย่างน้อย 2 คน',
+    eyebrow:'ข้อชี้แจงเรื่องใบหน้า', title:'สิ่งที่ฟื้นคือท่ารำ ไม่ใช่ตัวบุคคล',
+    sub:'ใบหน้าในภาพที่ฟื้นฟูเป็นภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่ — ท่าทางและเครื่องแต่งกายยึดตามต้นฉบับในตำรา',
     body:`<div class="wb-body" style="gap:70px;padding:0">
         <div class="facebox">${mediaImg(FACE)}</div>
-        <div class="sumgrid" style="flex:1;min-width:0">${FACE_LEGEND}</div>
+        <div class="sumgrid facecol" style="flex:1;min-width:0">${FACE_LEGEND}</div>
       </div>` }),
   html:`<div class="bgimg"></div>` + frame({
-    eyebrow:'ตรวจสอบความถูกต้อง', title:'เป็นครูคนเดียวกันหรือไม่',
-    sub:'ตรงกัน 6 · คนละคน 5 · ตรงครึ่งเดียว 1 · ตรวจไม่ได้ 1',
-    body:`<div class="cmp solo">${panel('ครอปใบหน้าทุกคู่มาเทียบกัน','ผลตรวจ', mediaImg(FACE))}</div>` })});
+    eyebrow:'ข้อชี้แจงเรื่องใบหน้า', title:'สิ่งที่ฟื้นคือท่ารำ ไม่ใช่ตัวบุคคล',
+    sub:'ใบหน้าในภาพที่ฟื้นฟูเป็นภาพที่ AI สร้างขึ้นใหม่ · ท่าทางและเครื่องแต่งกายยึดตามต้นฉบับ',
+    body:`<div class="cmp solo">${panel('ใบหน้าทุกท่า เทียบต้นฉบับกับภาพที่ฟื้นฟู','ข้อชี้แจง', mediaImg(FACE))}</div>` })});
 
-/* ---- B. เชื่อมท่ารำให้เคลื่อนไหว — โหมด 1｜2 ---- */
-divider(1);
+/* ---- ขั้นที่ 03 สร้างการเคลื่อนไหว — โหมด 1｜2 ---- */
+divider(2);
 VIDEOS.forEach(([id,title],i)=>{
   const poses = title.split('→').map(x=>x.trim());
   const chips = poses.map((nm,k)=>{
@@ -1090,7 +1142,7 @@ VIDEOS.forEach(([id,title],i)=>{
     const file  = POSE_IMG[nm];
     const srcs  = [CONFIG.DIR_POSES + id + '-' + k + '.jpg', CONFIG.DIR_POSES + id + '-' + k + '.png']
                   .concat(!isNew && file ? cmp(file) : []);
-    const fb    = isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ยังไม่มีภาพท่านี้'];
+    const fb    = isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม'];
     return `<div class="chip${isNew?' newpose':''}" style="--i:${k}">
         <div class="ph"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb))}'
           data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(srcs[0])}"></div>
@@ -1102,16 +1154,16 @@ VIDEOS.forEach(([id,title],i)=>{
     return poseCell(k, nm,
       [CONFIG.DIR_POSES + id + '-' + k + '.jpg', CONFIG.DIR_POSES + id + '-' + k + '.png']
         .concat(!isNew && file ? cmp(file) : []),
-      isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ยังไม่มีภาพท่านี้']);
+      isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม']);
   }).join('');
   const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
-  push({ dur:D.combine, step:1, vids:[id], spanCR:true,
+  push({ dur:D.combine, step:2, vids:[id], spanCR:true,
     section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
     wall:{ head:'คลิปที่ ' + (i+1) + ' / ' + VIDEOS.length, title:title,
       rows:[['จำนวนท่าที่ใช้', poses.length + ' ท่า'],
             ['ลำดับท่า', poses.join('  →  ')],
             ['ท่าที่ AI สร้างใหม่', nNew ? nNew + ' ท่า' : 'ไม่มี — ใช้ท่าดั้งเดิมทั้งหมด'],
-            ['ที่มาของภาพท่า', 'เฟรมที่ตัดจากวิดีโอ / ภาพซ่อมแซมจากตำรา']],
+            ['ที่มาของภาพท่า', 'ภาพท่ารำที่ฟื้นฟูจากตำรา ๒๔๖๖']],
       note:'นำภาพท่ารำมาต่อกันเป็นลำดับ แล้วให้ AI สร้างช่วงเชื่อมระหว่างท่า จนได้การเคลื่อนไหวที่ต่อเนื่องจากภาพนิ่ง',
       src:SRC_BOOK },
     left:()=> band({ eyebrow:'ท่าที่นำมาต่อกัน · ' + poses.length + ' ท่า', h2:70,
@@ -1129,16 +1181,14 @@ VIDEOS.forEach(([id,title],i)=>{
       </div>` })});
 });
 
-/* ---- C. ลงสี — โหมด 1｜1｜1 (ค่าเริ่มต้น) ---- */
-divider(2);
-VIDEOS.forEach(([id,title],i)=>{
+/* ลงสี (อยู่ในขั้นที่ 03) — โหมด 1｜1｜1 (ค่าเริ่มต้น) */
+if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
   push({ dur:D.colorize, step:2, vids:[id], section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
     wall:{ head:'ลงสี ' + (i+1) + ' / ' + VIDEOS.length, title:title,
       rows:[['ต้นทาง', 'วิดีโอขาวดำ สร้างจากภาพขาวดำในตำรา'],
-            ['ขั้นถัดไป', 'ลงสีเครื่องแต่งกาย เครื่องประดับ และฉาก'],
-            ['สถานะ', 'อยู่ระหว่างดำเนินการ']],
+            ['สิ่งที่เพิ่มเข้ามา', 'สีเครื่องแต่งกาย เครื่องประดับ และฉาก']],
       note:'ภาพในตำราเป็นภาพขาวดำ วิดีโอที่สร้างจึงเป็นขาวดำตามต้นฉบับ '
-         + 'การลงสีจะอ้างอิงสีเครื่องแต่งกายโนราตามธรรมเนียมจริง ไม่ใช่การเดาสีเอง',
+         + 'การลงสีอ้างอิงสีเครื่องแต่งกายโนราตามธรรมเนียมจริง ไม่ใช่การเดาสีเอง',
       src:SRC_BOOK },
     html: frame({ eyebrow:'ขาวดำ / ใส่สี', section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
       title:esc(title),
@@ -1149,20 +1199,57 @@ VIDEOS.forEach(([id,title],i)=>{
       </div>` })});
 });
 
-/* ---- D. AI / นักศึกษารำ — โหมด 2｜1 ---- */
+/* ---- ขั้นที่ 04 ถอดรหัสท่ารำสู่ตำแหน่งในคอมพิวเตอร์ — จอละชิ้น ---- */
 divider(3);
-STUDENT_VIDEOS.forEach((id,i)=>{
+if(CONFIG.SHOW_TWOSETS) DRIVE_PAIRS.forEach(([id,file],i)=>{
+  const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
+  const poses = title.split('→').map(x=>x.trim());
+  const first = poses[0];
+  const pf = POSE_IMG[first];
+  const poseSrcs = [CONFIG.DIR_POSES + id + '-0.jpg', CONFIG.DIR_POSES + id + '-0.png']
+                   .concat(pf ? cmp(pf) : []);
+  push({ dur:D.threeway, step:3, vids:[id], spanCU:true,
+    section:'สร้างซ้ำจากข้อมูลเดิม · '+(i+1)+'/'+DRIVE_PAIRS.length,
+    wall:{ head:'สร้างซ้ำ ' + (i+1) + ' / ' + DRIVE_PAIRS.length, title:title,
+      rows:[['จอซ้าย', 'ภาพท่าต้นทาง — ' + first],
+            ['จอกลาง', 'ผลการสร้างรอบที่ ๑'],
+            ['จอขวา', 'ผลการสร้างรอบที่ ๒'],
+            ['ข้อมูลตั้งต้น', 'ลำดับท่าเดียวกันทั้งสองรอบ']],
+      note:'เมื่อลำดับท่าถูกเก็บเป็นข้อมูลแล้ว ก็สั่งสร้างวิดีโอซ้ำได้อีก '
+         + 'สองจอนี้มาจากลำดับท่าเดียวกันแต่ต่างรอบการสร้าง ใช้ดูว่าผลลัพธ์คงที่แค่ไหน' },
+    left:()=> band({ eyebrow:'ข้อมูลตั้งต้น', h2:74, title:esc(first),
+      sub:'ภาพท่าที่ป้อนให้ปัญญาประดิษฐ์',
+      body:`<div class="cmp solo">${panel('ภาพท่าต้นทาง','ท่าแรก',
+        `<img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม']))}'
+           data-srcs='${esc(JSON.stringify(poseSrcs))}' data-i="0" src="${enc(poseSrcs[0])}">`)}</div>` }),
+    midU:()=> band({ eyebrow:'ผลการสร้างรอบที่ ๑', h2:74, title:esc(title),
+      sub:'สร้างจากลำดับท่าที่บันทึกไว้',
+      body:`<div class="cmp solo">${panel('วิดีโอรอบที่ ๑','รอบ ๑', mediaVid(vurl(id)), true)}</div>` }),
+    right:()=> band({ eyebrow:'ผลการสร้างรอบที่ ๒', h2:74, title:'ลำดับท่าเดิม สร้างใหม่อีกรอบ',
+      sub:'อินพุตเดียวกัน — ผลลัพธ์ต่างกันในรายละเอียด',
+      body:`<div class="cmp solo">${panel('วิดีโอรอบที่ ๒','รอบ ๒', mediaVid(drv(file).flatMap(alt)), true)}</div>` }),
+    html: frame({ eyebrow:'ลำดับท่าเดิม สร้างใหม่ได้อีก',
+      section:'สร้างซ้ำจากข้อมูลเดิม · '+(i+1)+'/'+DRIVE_PAIRS.length, title:esc(title),
+      body:`<div class="cmp">
+        ${panel('ผลการสร้างรอบที่ ๑','รอบ ๑', mediaVid(vurl(id)))}
+        <div class="arrow">»<small>เทียบกับ</small></div>
+        ${panel('ผลการสร้างรอบที่ ๒','รอบ ๒', mediaVid(drv(file).flatMap(alt)), true)}
+      </div>` })});
+});
+
+/* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — นักศึกษา (2｜1) ---- */
+divider(4);
+if(CONFIG.SHOW_STUDENT) STUDENT_VIDEOS.forEach((id,i)=>{
   const title = (VIDEOS.find(v=>v[0]===id)||[,''])[1];
   const body = `<div class="duowide">
       ${panel('วิดีโอที่ AI สร้างได้','AI', mediaVid(vurl(id)))}
       <div class="arrow">»<small>รำตาม</small></div>
       ${panel('นักศึกษารำตามวิดีโอ','คนจริง', mediaVid(alt(CONFIG.DIR_STUDENT+'นักศึกษา-'+(i+1)+'.mp4')), true)}
     </div>`;
-  push({ dur:D.student, step:3, vids:[id], spanLC:true, section:'นักศึกษารำ · '+(i+1)+'/4',
+  push({ dur:D.student, step:4, vids:[id], spanLC:true, section:'นักศึกษารำ · '+(i+1)+'/4',
     wall:{ head:'นักศึกษารำ ' + (i+1) + ' / 4', title:title,
       rows:[['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง'],
-            ['สิ่งที่ตรวจ', 'ท่ารำที่ AI สร้างขึ้น รำได้จริงหรือไม่'],
-            ['สถานะ', 'รอคลิปการรำ']],
+            ['สิ่งที่ตรวจ', 'ท่ารำที่ AI สร้างขึ้น รำได้จริงหรือไม่']],
       note:'ขั้นตอนนี้เป็นการตรวจสอบกลับ ถ้าคนรำตามได้จริง แปลว่าท่ารำที่ AI ออกแบบ '
          + 'ยังอยู่ในหลักการเคลื่อนไหวของโนรา ไม่ใช่ท่าที่เป็นไปไม่ได้ทางกายภาพ' },
     lc:()=> band({ eyebrow:'AI / นักศึกษา', title:esc(title),
@@ -1171,9 +1258,8 @@ STUDENT_VIDEOS.forEach((id,i)=>{
       title:esc(title), body })});
 });
 
-/* ---- E. ภาพท่ารำ / นักเรียนรำ — โหมด 1｜2 ---- */
-divider(4);
-STUDENT_STILLS.forEach((st,i)=>{
+/* ---- ขั้นที่ 05 (ต่อ) ถ่ายทอดสู่ผู้รำ — นักเรียนในชั้นเรียน (1｜2) ---- */
+if(CONFIG.SHOW_CLASSROOM) STUDENT_STILLS.forEach((st,i)=>{
   const body = `<div class="duowide">
       ${panel('ภาพท่ารำที่ฟื้นฟูแล้ว','สื่อการสอน', mediaImg(cmp(st.img)))}
       <div class="arrow">»<small>นำไปรำ</small></div>
@@ -1182,8 +1268,7 @@ STUDENT_STILLS.forEach((st,i)=>{
   push({ dur:D.classroom, step:4, spanCR:true, section:'นักเรียนรำ · '+(i+1)+'/2',
     wall:{ head:'สื่อการสอน ' + (i+1) + ' / 2', title:st.name,
       rows:[['สื่อที่ใช้', 'ภาพท่ารำที่ฟื้นฟูแล้ว'],
-            ['ผู้ใช้', 'นักเรียนในชั้นเรียน'],
-            ['สถานะ', 'รอคลิปการรำ']],
+            ['ผู้ใช้', 'นักเรียนในชั้นเรียน']],
       note:'ภาพที่ฟื้นฟูแล้วคมชัดพอที่จะใช้เป็นสื่อการสอนได้โดยตรง '
          + 'นักเรียนดูภาพแล้วฝึกรำตามได้ทันทีโดยไม่ต้องมีครูสาธิต',
       src:SRC_BOOK },
@@ -1193,54 +1278,16 @@ STUDENT_STILLS.forEach((st,i)=>{
       title:esc(st.name), body })});
 });
 
-/* ---- F. เทียบ 3 ทาง — จอละชิ้น (1｜1｜1 แบบกำหนดเอง) ---- */
-divider(5);
-DRIVE_PAIRS.forEach(([id,file],i)=>{
-  const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
-  const poses = title.split('→').map(x=>x.trim());
-  const first = poses[0];
-  const pf = POSE_IMG[first];
-  const poseSrcs = [CONFIG.DIR_POSES + id + '-0.jpg', CONFIG.DIR_POSES + id + '-0.png']
-                   .concat(pf ? cmp(pf) : []);
-  push({ dur:D.threeway, step:5, vids:[id], spanCU:true,
-    section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
-    wall:{ head:'เทียบ 3 ทาง ' + (i+1) + ' / ' + DRIVE_PAIRS.length, title:title,
-      rows:[['จอซ้าย', 'ภาพท่าต้นทาง — ' + first],
-            ['จอกลาง', 'วิดีโอชุดเผยแพร่บน ainora.psu.ac.th'],
-            ['จอขวา', 'วิดีโอชุดต้นฉบับในคลัง Google Drive'],
-            ['ชื่อไฟล์ในคลัง', file.replace(/\.mp4$/,'')]],
-      note:'ทั้งสองชุดสร้างจากลำดับท่าเดียวกันแต่ต่างรอบการสร้าง ใช้เทียบว่าผลลัพธ์ของ AI '
-         + 'คงที่แค่ไหนเมื่อสร้างซ้ำด้วยอินพุตเดิม' },
-    left:()=> band({ eyebrow:'จุดเริ่มต้น', h2:74, title:esc(first),
-      sub:'ภาพท่าต้นทางที่ป้อนให้ AI',
-      body:`<div class="cmp solo">${panel('ภาพท่าต้นทาง','ท่าแรก',
-        `<img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ยังไม่มีภาพท่านี้']))}'
-           data-srcs='${esc(JSON.stringify(poseSrcs))}' data-i="0" src="${enc(poseSrcs[0])}">`)}</div>` }),
-    midU:()=> band({ eyebrow:'ชุดเผยแพร่', h2:74, title:esc(title),
-      sub:'วิดีโอบน ainora.psu.ac.th',
-      body:`<div class="cmp solo">${panel('วิดีโอชุดเผยแพร่','เผยแพร่', mediaVid(vurl(id)), true)}</div>` }),
-    right:()=> band({ eyebrow:'ชุดในคลัง', h2:74, title:'ไฟล์ต้นฉบับใน Google Drive',
-      sub:esc(file.replace(/\.mp4$/,'')),
-      body:`<div class="cmp solo">${panel('วิดีโอชุดในคลัง','คลัง', mediaVid(drv(file).flatMap(alt)), true)}</div>` }),
-    html: frame({ eyebrow:'ชุดเผยแพร่ / ชุดในคลัง',
-      section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length, title:esc(title),
-      body:`<div class="cmp">
-        ${panel('วิดีโอบน ainora.psu.ac.th','เผยแพร่', mediaVid(vurl(id)))}
-        <div class="arrow">»<small>เทียบกับ</small></div>
-        ${panel('วิดีโอชุดในคลัง (Google Drive)','คลัง', mediaVid(drv(file).flatMap(alt)), true)}
-      </div>` })});
-});
-
 /* ---- ปิดท้าย: สรุปผลงาน + เครดิต (รวม 3 จอ) ---- */
 const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟูแล้ว'],['22','วิดีโอที่ AI สร้างได้'],
-             ['7','ท่าใหม่ที่เกิดในกระบวนการ'],['6','ขั้นตอนของกระบวนการ']]
+             ['7','ท่าใหม่ที่เกิดในกระบวนการ'],['5','ขั้นตอนของกระบวนการ']]
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
 push({ dur:D.summary, dark:true, step:-1, span:true, wall:{
   head:'สรุป', title:'ผลงานทั้งโครงการ',
   rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','12 จาก 13 ท่าในตำรา'],
         ['วิดีโอที่สร้างได้','22 คลิป'],
         ['ท่าใหม่ที่เกิดขึ้น','7 ท่า (A–G)'],
-        ['ขั้นตอนของกระบวนการ','6 ขั้นตอน']],
+        ['ขั้นตอนของกระบวนการ','5 ขั้นตอน']],
   note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๓ ภาพ' },
   wide:()=> `<div class="bgimg"></div>` + band({
     eyebrow:'สรุปผลงาน', title:'จาก ๑๓ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
@@ -1351,7 +1398,7 @@ function attachFallback(node, kind){
       return;
     }
     if(node.dataset.chip){
-      let fb = ['▧','ยังไม่มีภาพท่านี้'];
+      let fb = ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม'];
       try{ fb = JSON.parse(node.dataset.fb) || fb; }catch(e){}
       box.className = 'newmark';
       box.innerHTML = fb[0] + '<span>' + fb[1] + '</span>';
