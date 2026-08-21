@@ -104,6 +104,7 @@ video.src{display:none}
     <button id="dlZip" disabled>ดาวน์โหลด poses.zip</button>
     <button class="gh" id="dlJson" disabled>บันทึก poses.json</button>
     <button class="gh" id="ldJson">โหลด poses.json</button>
+    <button class="gh" id="dlDur">อ่าน+บันทึก durations.json</button>
     <button class="gh" id="dlVid">ดาวน์โหลดวิดีโอ 22 คลิป</button>
     <input type="file" id="jsonFile" accept=".json" hidden>
   </div>
@@ -120,6 +121,12 @@ video.src{display:none}
     <li>พอใจแล้วกด <b>ดาวน์โหลด poses.zip</b> — แตกไฟล์ที่โฟลเดอร์โปรเจกต์ ไฟล์จะลงที่ <code>assets/poses/</code> ให้เอง แล้วรีเฟรช <code>index.html</code></li>
     <li><b>บันทึก poses.json</b> เก็บเวลาที่เลือกไว้ ถ้าจะกลับมาแก้ทีหลังให้กด <b>โหลด poses.json</b> ก่อนเริ่ม</li>
   </ol>
+  <p style="margin-top:12px;color:var(--dim)">
+    <b style="color:var(--warn)">durations.json</b> — ถ้าจะเปิดนิทรรศการแบบ <b>จอ 3 จอแยกเครื่อง</b>
+    (<code>?panel=1|2|3</code>) ให้กด <b>อ่าน+บันทึก durations.json</b> แล้ววางไฟล์ที่
+    <code>assets/durations.json</code> ทุกเครื่องจะได้ไทม์ไลน์ยาวเท่ากันเป๊ะและเปลี่ยนหน้าพร้อมกัน
+    (ไฟล์นี้อยู่ใน <code>poses.zip</code> ให้ด้วยแล้ว)
+  </p>
 </div>
 
 <main id="cards"></main>
@@ -408,9 +415,33 @@ function save(blob, name){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
 }
+function durationsJson(){
+  const d = {};
+  items.forEach(it => { if(it.dur > 0) d[it.id] = Math.round(it.dur * 1000) / 1000; });
+  return JSON.stringify({
+    note: 'ความยาววิดีโอ (วินาที) ใช้ให้ index.html สร้างไทม์ไลน์ยาวเท่ากันทุกจอ '
+        + 'วางไฟล์นี้ที่ assets/durations.json',
+    count: Object.keys(d).length,
+    durations: d
+  }, null, 1);
+}
+async function readAllDurations(setStatus){
+  for(const it of items){
+    if(it.dur > 0) continue;
+    setStatus && setStatus('อ่านความยาวคลิป ' + (it.vi+1) + '/' + items.length);
+    try{
+      await loadVideo(it);
+      setState(it, it.dur.toFixed(2) + ' วิ', 'done');
+    }catch(err){ setState(it, 'อ่านไม่ได้', ''); }
+    it.video.removeAttribute('src'); it.video.load(); it.loaded = false;
+    it.el.querySelectorAll('[data-range]').forEach(r => { r.disabled = false; });
+  }
+}
+
 function timesJson(){
   const o = {};
-  items.forEach(it=>{ o[it.id] = { title: it.title, poses: it.poses, times: it.slots.map(s=>s.t) }; });
+  items.forEach(it=>{ o[it.id] = { title: it.title, poses: it.poses, dur: it.dur || null,
+                                    times: it.slots.map(s=>s.t) }; });
   return JSON.stringify(o, null, 1);
 }
 
@@ -427,6 +458,7 @@ document.getElementById('dlZip').onclick = async e=>{
   }
   const te = new TextEncoder();
   files.push({ name:'poses.json', data: te.encode(timesJson()) });
+  files.push({ name:'assets/durations.json', data: te.encode(durationsJson()) });
   files.push({ name:'README.txt', data: te.encode(
     'แตกไฟล์นี้ที่โฟลเดอร์ nora-exhibition/ ไฟล์ภาพจะลงที่ assets/poses/ ให้เอง\n'
     + 'แล้วรีเฟรช index.html สไลด์หมวด "ภาพท่า + ภาพท่า = วิดีโอ" จะใช้ภาพเหล่านี้ทันที\n'
@@ -448,6 +480,17 @@ document.getElementById('jsonFile').onchange = async e=>{
     setState(it,'โหลดเวลาแล้ว','');
   });
   document.getElementById('fstat').textContent = 'โหลด poses.json แล้ว — กด "จับเฟรมอัตโนมัติทั้งหมด" เพื่อจับตามเวลานั้น';
+};
+
+document.getElementById('dlDur').onclick = async e=>{
+  e.target.disabled = true;
+  const f = document.getElementById('fstat');
+  await queue(()=>readAllDurations(t=>f.textContent=t));
+  save(new Blob([durationsJson()],{type:'application/json'}), 'durations.json');
+  const n = items.filter(it=>it.dur>0).length;
+  f.textContent = 'บันทึก durations.json แล้ว (' + n + '/' + items.length + ' คลิป) '
+                + '→ วางที่ assets/durations.json';
+  e.target.disabled = false;
 };
 
 document.getElementById('dlVid').onclick = async e=>{

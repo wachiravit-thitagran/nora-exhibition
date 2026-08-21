@@ -228,6 +228,67 @@ html.ultra .pR{display:block;left:7680px}
 /* เส้นแบ่งจอ (เปิดด้วย ?seam=1 ตอนจัดวาง) */
 html.ultra.seam .pC,html.ultra.seam .pR{box-shadow:inset 3px 0 0 rgba(212,175,55,.55)}
 
+/* ---------- pane รวมทุกจอ (span) — ใช้ผืนเดียวยาว 11520px ---------- */
+.pW{display:none}
+html.ultra .slide.span .pL,
+html.ultra .slide.span .pC,
+html.ultra .slide.span .pR{display:none}
+html.ultra .slide.span .pW{display:block;left:0;width:11520px}
+
+/* ปกใหญ่แบบรวมจอ */
+.wide-hero{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:52px;padding:0 420px;text-align:center}
+.wide-hero .herologo{width:1150px;height:auto}
+.wide-hero .eyebrow{margin-bottom:0}
+.wide-hero .big{
+  font-family:"Anuphan",sans-serif;font-weight:700;font-size:300px;line-height:1.02;
+  letter-spacing:-.03em;
+  background:linear-gradient(176deg,#F7E6B4 0%,#E3C468 48%,#C29B31 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.wide-hero .lead{font-size:76px;line-height:1.34;color:#F6EEDC;font-weight:400;max-width:8200px}
+.wide-hero .meta{font-size:52px;color:rgba(255,255,255,.66);line-height:1.5}
+.wide-hero .logos{align-self:center}
+
+/* ปกหมวดแบบรวมจอ: เลขใหญ่ซ้าย · ชื่อขั้นกลาง · บันไดขั้นตอนเรียงยาวด้านล่าง */
+.wide-sec{position:absolute;inset:150px 260px 420px;display:flex;align-items:center;gap:150px}
+.wide-sec .num{
+  flex:0 0 auto;font-size:900px;line-height:.78;font-weight:700;letter-spacing:-.05em;
+  background:linear-gradient(176deg,#F7E6B4 0%,#D9B658 55%,#A9821F 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.wide-sec .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:44px}
+.wide-sec .tx .big{
+  font-family:"Anuphan",sans-serif;font-weight:700;font-size:260px;line-height:1.04;
+  letter-spacing:-.03em;color:#fff;
+}
+.wide-sec .tx .lead{font-size:80px;line-height:1.34;color:#F3E6C4;max-width:6600px}
+.wide-rail{
+  position:absolute;left:260px;right:260px;bottom:150px;
+  display:flex;align-items:stretch;gap:26px;
+}
+.wide-rail .st{
+  flex:1;display:flex;flex-direction:column;gap:14px;padding:34px 40px;border-radius:28px;
+  border:3px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+}
+.wide-rail .st i{font-style:normal;font-size:40px;font-weight:700;color:rgba(255,255,255,.5);
+  font-variant-numeric:tabular-nums}
+.wide-rail .st b{font-size:56px;font-weight:600;color:#fff;line-height:1.2}
+.wide-rail .st span{font-size:36px;color:rgba(255,255,255,.62);line-height:1.3}
+.wide-rail .st.cur{background:rgba(212,175,55,.18);border-color:var(--gold)}
+.wide-rail .st.cur i{color:var(--gold)}
+.wide-rail .st.cur b{color:var(--gold)}
+.wide-foot{position:absolute;left:260px;bottom:150px}
+
+html.motion .slide.on .wide-hero .herologo{animation:riseIn .9s cubic-bezier(.2,.7,.3,1) both}
+html.motion .slide.on .wide-hero .big     {animation:riseIn .9s cubic-bezier(.2,.7,.3,1) .14s both}
+html.motion .slide.on .wide-hero .lead    {animation:riseIn .9s cubic-bezier(.2,.7,.3,1) .3s both}
+html.motion .slide.on .wide-sec .num      {animation:riseIn 1s cubic-bezier(.2,.7,.3,1) both}
+html.motion .slide.on .wide-sec .tx .big  {animation:riseIn .9s cubic-bezier(.2,.7,.3,1) .16s both}
+html.motion .slide.on .wide-sec .tx .lead {animation:riseIn .9s cubic-bezier(.2,.7,.3,1) .3s both}
+html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) both;
+                                           animation-delay:calc(.3s + var(--i,0) * .08s)}
+
 /* ---------- จอซ้าย: ตำแหน่งในกระบวนการ ---------- */
 .wl{position:absolute;inset:120px 150px 150px;display:flex;flex-direction:column;gap:44px}
 .wl-logo{width:520px;height:auto}
@@ -404,8 +465,13 @@ const CONFIG = {
   DIR_VIDEOS    : 'assets/videos/',
   ANIMATE       : true,   // false = ปิดอนิเมชันทั้งหมด (หรือใส่ ?nomotion=1 ที่ URL)
   ULTRA         : false,  // true = เปิดโหมดจอยาว 48:9 เป็นค่าเริ่มต้น (หรือใส่ ?ultra=1)
-                          // ?panel=1|2|3 = แสดงเฉพาะจอซ้าย/กลาง/ขวา (ใช้เมื่อแยกเครื่องต่อจอ)
+                          // ?panel=1|2|3 = แสดงเฉพาะจอซ้าย/กลาง/ขวา (แยกเครื่องต่อจอละเครื่อง)
                           // ?seam=1      = ขึ้นเส้นแบ่งจอ ใช้ตอนจัดวาง/ตรวจงาน
+  SYNC          : 'auto', // 'auto' = เปิดเองเมื่อใช้ panel= (จอแยกเครื่อง) · true = เปิดตลอด
+                          // false = ปิด  |  ?sync=1 / ?sync=0 สั่งทับได้
+                          // โหมดนี้คำนวณว่า "ตอนนี้ควรอยู่หน้าไหน" จากนาฬิกาจริง
+                          // ทุกเครื่องจึงตรงกันเองโดยไม่ต้องเชื่อมต่อกัน
+  SYNC_EPOCH    : Date.UTC(2026, 0, 1),  // จุดเริ่มนับเวลาที่ทุกเครื่องใช้ร่วมกัน
   HERO_BG       : '/static/images/background.png',  // ภาพพื้นหลังลายไทยจากหน้าเว็บ
   DIR_COMPARE   : 'assets/compare/',   // ภาพต้นฉบับ/ซ่อมแซม (จากโฟลเดอร์ เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม)
   DIR_POSES     : 'assets/poses/',     // เฟรมท่ารำที่ตัดจากวิดีโอ ด้วย frame-picker.html
@@ -623,6 +689,37 @@ function paneR(w){
     </div>`;
 }
 
+/* ---------- เนื้อหาแบบรวมทุกจอ (ใช้เฉพาะโหมดจอยาว) ---------- */
+function railHTML(step){
+  return '<div class="wide-rail">' + SECTIONS.map((sc,i)=>
+    `<div class="st ${i===step?'cur':''}" style="--i:${i}">
+       <i>${esc(sc.n)}</i><b>${esc(sc.t)}</b><span>${esc(sc.d)} · ${esc(sc.c)}</span>
+     </div>`).join('') + '</div>';
+}
+function wideTitle(){
+  return `<div class="wide-hero">
+      <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
+      <div class="eyebrow">Breath of Nora</div>
+      <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี สู่ลมหายใจของโนรา</div>
+      <div class="rule"></div>
+      <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์ — ฟื้นฟูภาพจากตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖ แล้วเชื่อมท่ารำให้กลับมาเคลื่อนไหวอีกครั้ง</div>
+      <div class="meta">อ้างอิงท่ารำครูธรรมนิตย์ นิคมรัตน์ · โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)</div>
+      ${logoStrip()}
+    </div>`;
+}
+function wideSection(step){
+  const sc = SECTIONS[step];
+  return `<div class="wide-sec">
+      <div class="num">${esc(sc.n)}</div>
+      <div class="tx">
+        <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)} จาก 06</div>
+        <div class="big">${esc(sc.t)}</div>
+        <div class="lead">${esc(sc.longd || sc.d)}</div>
+      </div>
+    </div>
+    ${railHTML(step)}`;
+}
+
 const SLIDES = [];
 function push(s){ if(s.step === undefined) s.step = -1; SLIDES.push(s); }
 
@@ -647,7 +744,7 @@ function frame(o){
 }
 
 /* ---- ปกใหญ่ ---- */
-push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', step:-1, wall:{
+push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', step:-1, span:true, wide:wideTitle, wall:{
   head:'เกี่ยวกับนิทรรศการ', title:'Breath of Nora — ลมหายใจของโนรา',
   rows:[['ชุดผลงาน','74 หน้า · 6 ขั้นตอน'],
         ['ท่ารำต้นแบบ','12 ท่า จากตำราฟ้อนรำ พ.ศ. ๒๔๖๖'],
@@ -671,7 +768,8 @@ push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', step:-1, wall:{
 function divider(step){
   const sc = SECTIONS[step], num = sc.n, title = sc.t, lead = sc.lead || sc.longd || sc.d;
   if(!CONFIG.SHOW_DIVIDERS) return;
-  push({ dur:CONFIG.SEC_DIVIDER, dark:true, kind:'still', step, wall:{
+  push({ dur:CONFIG.SEC_DIVIDER, dark:true, kind:'still', step, span:true,
+    wide:()=>wideSection(step), wall:{
     head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
     rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['จำนวนผลงาน', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 06']],
     note:sc.longd || sc.d, src:SRC_BOOK }, html:`
@@ -731,7 +829,7 @@ VIDEOS.forEach(([id,title],i)=>{
     return `<div class="chip${isNew?' newpose':''}" style="--i:${k}"><div class="ph">${inner}</div><div class="nm">${esc(nm)}</div></div>`;
   }).join('');
   const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
-  push({ kind:'video', step:1, section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
+  push({ kind:'video', step:1, vids:[id], section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length,
     wall:{ head:'คลิปที่ ' + (i+1) + ' / ' + VIDEOS.length, title:title,
       rows:[['จำนวนท่าที่ใช้', poses.length + ' ท่า'],
             ['ลำดับท่า', poses.join('  →  ')],
@@ -756,7 +854,7 @@ VIDEOS.forEach(([id,title],i)=>{
 /* ---- C. วิดีโอขาวดำ vs วิดีโอที่ใส่สี (22) ---- */
 divider(2);
 VIDEOS.forEach(([id,title],i)=>{
-  push({ kind:'video', step:2, section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
+  push({ kind:'video', step:2, vids:[id], section:'ลงสี · '+(i+1)+'/'+VIDEOS.length,
     wall:{ head:'ลงสี ' + (i+1) + ' / ' + VIDEOS.length, title:title,
       rows:[['ต้นทาง', 'วิดีโอขาวดำ สร้างจากภาพขาวดำในตำรา'],
             ['ขั้นถัดไป', 'ลงสีเครื่องแต่งกาย เครื่องประดับ และฉาก'],
@@ -780,7 +878,7 @@ VIDEOS.forEach(([id,title],i)=>{
 divider(3);
 STUDENT_VIDEOS.forEach((id,i)=>{
   const title = (VIDEOS.find(v=>v[0]===id)||[,''])[1];
-  push({ kind:'video', step:3, section:'นักศึกษารำ · '+(i+1)+'/4',
+  push({ kind:'video', step:3, vids:[id], section:'นักศึกษารำ · '+(i+1)+'/4',
     wall:{ head:'นักศึกษารำ ' + (i+1) + ' / 4', title:title,
       rows:[['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง'],
             ['สิ่งที่ตรวจ', 'ท่ารำที่ AI สร้างขึ้น รำได้จริงหรือไม่'],
@@ -826,7 +924,7 @@ STUDENT_STILLS.forEach((s,i)=>{
 divider(5);
 DRIVE_PAIRS.forEach(([id,file],i)=>{
   const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
-  push({ kind:'video', step:5, section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
+  push({ kind:'video', step:5, vids:[id], section:'เทียบสองชุด · '+(i+1)+'/'+DRIVE_PAIRS.length,
     wall:{ head:'เทียบสองชุด ' + (i+1) + ' / ' + DRIVE_PAIRS.length, title:title,
       rows:[['ชุด ก', 'เผยแพร่บน ainora.psu.ac.th'],
             ['ชุด ข', 'คลังต้นฉบับใน Google Drive'],
@@ -848,19 +946,46 @@ DRIVE_PAIRS.forEach(([id,file],i)=>{
 /* ================================================================
    4. RENDER + PLAYER
    ================================================================ */
+/* อนิเมชัน: เติมคลาส motion ที่ <html> (ปิดด้วย ?nomotion=1 หรือ CONFIG.ANIMATE=false) */
+const QS = new URLSearchParams(location.search);
+
+/* โหมดจอยาว 48:9 — panel=1|2|3 คือแสดงเฉพาะจอซ้าย/กลาง/ขวา (กรณีแยกเครื่องต่อจอ) */
+const PANEL = Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0));
+let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0;
+if(ULTRA_ON) document.documentElement.classList.add('ultra');
+if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
+
+/* โหมดซิงก์ตามนาฬิกา — จอแยกเครื่องกันแต่คำนวณเวลาเดียวกัน จึงแสดงหน้าเดียวกันพร้อมกัน */
+const SYNC = QS.get('sync') === '1' ? true
+           : QS.get('sync') === '0' ? false
+           : (CONFIG.SYNC === 'auto' ? PANEL > 0 : !!CONFIG.SYNC);
+
+if(CONFIG.ANIMATE && QS.get('nomotion') !== '1' &&
+   !matchMedia('(prefers-reduced-motion: reduce)').matches){
+  document.documentElement.classList.add('motion');
+}
+/* ภาพพื้นหลังลายไทยจากหน้าเว็บ ainora.psu.ac.th (ถ้าโหลดไม่ได้ก็เหลือแค่ gradient) */
+if(CONFIG.HERO_BG){
+  document.head.insertAdjacentHTML('beforeend',
+    '<style>.bgimg{background-image:url("' + CONFIG.AINORA_BASE + CONFIG.HERO_BG + '")}</style>');
+}
+
 const stage = document.getElementById('stage');
 SLIDES.forEach((s,i)=>{
-  const el = E('section','slide'+(s.dark?' dark':''));
+  const el = E('section','slide'+(s.dark?' dark':'')+(s.span?' span':''));
   // ย้ายภาพพื้นหลังไปไว้ระดับสไลด์ ให้ต่อเนื่องข้ามทั้ง 3 จอในโหมด ultra wide
   const PROG = '<div class="progress"><i data-bar></i></div>';
   const hasBg = s.html.includes('<div class="bgimg"></div>');
   let mid = hasBg ? s.html.replace('<div class="bgimg"></div>','') : s.html;
   mid = mid.replace(PROG, '');                     // ย้ายไปไว้ระดับสไลด์
+  // แยกเครื่องต่อจอ: สร้างแค่ pane ของจอนั้น ไม่ต้องถอดรหัสวิดีโอที่มองไม่เห็น
+  const want = n => !PANEL || PANEL === n;
   el.innerHTML =
       (hasBg ? '<div class="bgimg"></div>' : '')
-    + '<div class="pane pL">' + paneL(s.step) + '</div>'
-    + '<div class="pane pC">' + mid + '</div>'
-    + '<div class="pane pR">' + paneR(s.wall) + '</div>'
+    + (want(1) ? '<div class="pane pL">' + paneL(s.step) + '</div>' : '')
+    + (want(2) ? '<div class="pane pC">' + mid + '</div>' : '')
+    + (want(3) ? '<div class="pane pR">' + paneR(s.wall) + '</div>' : '')
+    + (s.wide && (ULTRA_ON || PANEL) ? '<div class="pane pW">' + s.wide() + '</div>' : '')
     + PROG;
   const c = el.querySelector('[data-count]');
   if(c) c.textContent = (i+1) + ' / ' + SLIDES.length;
@@ -906,28 +1031,9 @@ stage.querySelectorAll('video[data-srcs]').forEach(n => {
     const sl = n.closest('.slide');
     if(playing && sl && sl.classList.contains('on')){ n.muted = true; n.play().catch(()=>{}); }
     const s = SLIDES[cur];
-    if(s && s.el === sl) durMs = slideDuration(s);
+    if(!SYNC && s && s.el === sl) durMs = slideDuration(s);
   });
 });
-
-/* อนิเมชัน: เติมคลาส motion ที่ <html> (ปิดด้วย ?nomotion=1 หรือ CONFIG.ANIMATE=false) */
-const QS = new URLSearchParams(location.search);
-
-/* โหมดจอยาว 48:9 — panel=1|2|3 คือแสดงเฉพาะจอซ้าย/กลาง/ขวา (กรณีแยกเครื่องต่อจอ) */
-const PANEL = Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0));
-let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0;
-if(ULTRA_ON) document.documentElement.classList.add('ultra');
-if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
-
-if(CONFIG.ANIMATE && QS.get('nomotion') !== '1' &&
-   !matchMedia('(prefers-reduced-motion: reduce)').matches){
-  document.documentElement.classList.add('motion');
-}
-/* ภาพพื้นหลังลายไทยจากหน้าเว็บ ainora.psu.ac.th (ถ้าโหลดไม่ได้ก็เหลือแค่ gradient) */
-if(CONFIG.HERO_BG){
-  document.head.insertAdjacentHTML('beforeend',
-    '<style>.bgimg{background-image:url("' + CONFIG.AINORA_BASE + CONFIG.HERO_BG + '")}</style>');
-}
 
 function fit(){
   const W = ULTRA_ON ? 11520 : 3840;        // ความกว้างเวทีจริง
@@ -941,6 +1047,35 @@ addEventListener('resize', fit); fit();
 
 let cur = -1, playing = true, t0 = 0, durMs = 0, raf = 0;
 
+/* ================================================================
+   ไทม์ไลน์คงที่ + นาฬิกาโลก (ใช้ในโหมด SYNC)
+   ทุกเครื่องคำนวณจากสูตรเดียวกันและนาฬิกาเดียวกัน จึงตรงกันเองโดยไม่ต้องคุยกัน
+   ความยาววิดีโออ่านจาก assets/durations.json (สร้างจาก frame-picker.html)
+   ถ้าไม่มีไฟล์นั้นจะใช้ SEC_VIDEO_DEF เท่ากันทุกคลิป ซึ่งก็ยังตรงกันทุกจอ
+   ================================================================ */
+let VID_DUR = {};
+const TL = [];            // เวลาเริ่มของแต่ละหน้า (ms) สะสม
+let CYCLE = 0;            // ความยาวรอบทั้งหมด (ms)
+
+function fixedDur(i){
+  const s = SLIDES[i];
+  if(s.kind !== 'video') return (s.dur || CONFIG.SEC_STILL) * 1000;
+  let d = 0;
+  (s.vids || []).forEach(id => { d = Math.max(d, +VID_DUR[id] || 0); });
+  if(!d) d = CONFIG.SEC_VIDEO_DEF;
+  return Math.min(d, CONFIG.SEC_VIDEO_MAX) * 1000 + 500;
+}
+function buildTimeline(){
+  TL.length = 0; CYCLE = 0;
+  for(let i = 0; i < SLIDES.length; i++){ TL.push(CYCLE); CYCLE += fixedDur(i); }
+}
+function clockPos(){
+  const t = (((Date.now() - CONFIG.SYNC_EPOCH) % CYCLE) + CYCLE) % CYCLE;
+  let i = TL.length - 1;
+  while(i > 0 && TL[i] > t) i--;
+  return { i, off: t - TL[i], dur: fixedDur(i) };
+}
+
 function slideDuration(s){
   if(s.kind !== 'video') return (s.dur || CONFIG.SEC_STILL) * 1000;
   const vids = [...s.el.querySelectorAll('video')];
@@ -949,7 +1084,7 @@ function slideDuration(s){
   return Math.min(d, CONFIG.SEC_VIDEO_MAX) * 1000 + 500;
 }
 
-function show(i){
+function show(i, seekMs){
   if(cur >= 0){
     const p = SLIDES[cur];
     p.el.classList.remove('on');
@@ -958,23 +1093,43 @@ function show(i){
   cur = (i + SLIDES.length) % SLIDES.length;
   const s = SLIDES[cur];
   s.el.classList.add('on');
+  const seek = Math.max(0, (seekMs || 0) / 1000);
   const vids = [...s.el.querySelectorAll('video')];
   vids.forEach(v => {
     v.muted = true;
-    v.addEventListener('loadedmetadata', () => { durMs = slideDuration(s); }, { once:true });
+    const align = () => {
+      if(seek > 0 && isFinite(v.duration) && v.duration > 0){
+        try{ v.currentTime = Math.min(seek, v.duration - 0.05); }catch(e){}
+      }
+    };
+    if(v.readyState >= 1) align();
+    v.addEventListener('loadedmetadata', () => {
+      align();
+      if(!SYNC) durMs = slideDuration(s);
+    }, { once:true });
     const pr = v.play(); if(pr && pr.catch) pr.catch(()=>{});
   });
-  t0 = performance.now();
-  durMs = slideDuration(s);
+  t0 = performance.now() - (seekMs || 0);
+  durMs = SYNC ? fixedDur(cur) : slideDuration(s);
   // preload next slide's media
   const nx = SLIDES[(cur+1) % SLIDES.length];
   nx.el.querySelectorAll('video').forEach(v => { if(v.preload!=='auto'){ v.preload='auto'; try{v.load();}catch(e){} } });
-  document.getElementById('uiInfo').textContent = (cur+1) + ' / ' + SLIDES.length
-    + (ULTRA_ON ? (PANEL ? ' · จอ ' + PANEL : ' · 48:9') : '');
+  const info = document.getElementById('uiInfo');
+  if(info) info.textContent = (cur+1) + ' / ' + SLIDES.length
+    + (ULTRA_ON ? (PANEL ? ' · จอ ' + PANEL : ' · 48:9') : '')
+    + (SYNC ? ' · sync' : '');
 }
 
 function tick(now){
   raf = requestAnimationFrame(tick);
+  if(SYNC){
+    if(!playing) return;                       // หยุดดูชั่วคราว พอเล่นต่อจะกระโดดกลับเข้าจังหวะเอง
+    const q = clockPos();
+    if(q.i !== cur) show(q.i, q.off);
+    const s = SLIDES[cur];
+    if(s && s.bar) s.bar.style.width = (Math.min(1, q.off / q.dur) * 100).toFixed(2) + '%';
+    return;
+  }
   const s = SLIDES[cur];
   if(!s) return;
   if(!playing){ t0 = now - Math.min(now - t0, durMs); return; }
@@ -1003,18 +1158,18 @@ addEventListener('mousemove', ()=>{
 });
 ui.addEventListener('click', e=>{
   const a = e.target.closest('button')?.dataset.act;
-  if(a==='prev') show(cur-1);
-  if(a==='next') show(cur+1);
+  if(a==='prev' && !SYNC) show(cur-1);
+  if(a==='next' && !SYNC) show(cur+1);
   if(a==='toggle') setPlaying(!playing);
-  if(a==='restart') show(0);
+  if(a==='restart' && !SYNC) show(0);
   if(a==='full'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
 });
 addEventListener('keydown', e=>{
   if(e.code==='Space'){ e.preventDefault(); setPlaying(!playing); }
-  if(e.code==='ArrowRight'||e.code==='PageDown') show(cur+1);
-  if(e.code==='ArrowLeft' ||e.code==='PageUp')   show(cur-1);
+  if(!SYNC && (e.code==='ArrowRight'||e.code==='PageDown')) show(cur+1);
+  if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
-  if(e.key==='r'||e.key==='R') show(0);
+  if((e.key==='r'||e.key==='R') && !SYNC) show(0);
   if((e.key==='u'||e.key==='U') && !PANEL){          // สลับ 16:9 <-> 48:9 สด ๆ
     document.documentElement.classList.toggle('ultra');
     ULTRA_ON = document.documentElement.classList.contains('ultra');
@@ -1022,10 +1177,29 @@ addEventListener('keydown', e=>{
   }
 });
 
-/* start (?slide=N to jump) */
-const start = Math.max(0, (parseInt(new URLSearchParams(location.search).get('slide'),10)||1) - 1);
-show(Math.min(start, SLIDES.length-1));
-raf = requestAnimationFrame(tick);
+/* ---------- เริ่มทำงาน ---------- */
+async function boot(){
+  // ความยาววิดีโอจริง ใช้ให้ไทม์ไลน์ของทุกจอยาวเท่ากันเป๊ะ
+  try{
+    const r = await fetch(CONFIG.DIR_VIDEOS.replace(/videos\/$/, '') + 'durations.json',
+                          { cache:'no-store' });
+    if(r.ok){
+      const j = await r.json();
+      VID_DUR = j.durations || j;
+    }
+  }catch(e){ /* ไม่มีไฟล์ก็ใช้ค่าเริ่มต้นเท่ากันทุกคลิป ยังตรงกันทุกจอ */ }
+  buildTimeline();
+
+  if(SYNC){
+    const q = clockPos();
+    show(q.i, q.off);
+  } else {
+    const n = Math.max(0, (parseInt(QS.get('slide'), 10) || 1) - 1);
+    show(Math.min(n, SLIDES.length - 1));
+  }
+  raf = requestAnimationFrame(tick);
+}
+boot();
 </script>
 </body>
 </html>
