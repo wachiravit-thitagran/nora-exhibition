@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI NORA — เลือกเฟรมท่ารำจากวิดีโอ</title>
+<style>
+@font-face{
+  font-family:'Anuphan';
+  src:url('brand/Anuphan-var.woff2') format('woff2-variations'),
+      url('brand/Anuphan-var.woff2') format('woff2');
+  font-weight:100 700;font-style:normal;font-display:swap;
+}
+:root{
+  --bg:#161014; --bg2:#1F1620; --line:#33262E;
+  --maroon:#7B1E28; --saffron:#E88B00; --cream:#FBF6EC;
+  --txt:#EFE4DA; --dim:#A79488; --ok:#4FA96B; --warn:#D8A13A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);
+     font-family:'Anuphan','Noto Sans Thai',system-ui,sans-serif;font-size:15px;line-height:1.5;
+     padding-bottom:120px}
+a{color:var(--saffron)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;background:#000;padding:2px 6px;border-radius:5px}
+
+/* ---------- top bar ---------- */
+header{position:sticky;top:0;z-index:20;background:rgba(22,16,20,.96);backdrop-filter:blur(12px);
+       border-bottom:1px solid var(--line);padding:14px 22px}
+.hrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hrow img{height:38px;width:auto}
+h1{font-size:19px;font-weight:700;letter-spacing:-.01em}
+h1 small{display:block;font-size:13px;font-weight:400;color:var(--dim);letter-spacing:0}
+.grow{flex:1}
+button{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--line);
+       background:#2A1F27;color:var(--txt);padding:9px 15px;border-radius:9px;cursor:pointer}
+button:hover{background:#3A2B34;border-color:#4A3742}
+button.pri{background:var(--saffron);border-color:var(--saffron);color:#2B1A00}
+button.pri:hover{background:#FFA21C}
+button.gh{background:transparent}
+button:disabled{opacity:.4;cursor:not-allowed}
+.pill{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#2A1F27;border:1px solid var(--line)}
+.pill b{color:var(--saffron)}
+
+/* ---------- notices ---------- */
+.notice{margin:16px 22px;padding:14px 18px;border-radius:12px;border:1px solid var(--line);
+        background:var(--bg2);font-size:14px}
+.notice.bad{border-color:#7B2A2A;background:#2A1416}
+.notice.warn{border-color:#6A5220;background:#241C0C}
+.notice h3{font-size:15px;margin-bottom:6px;color:var(--warn)}
+.notice.bad h3{color:#F09090}
+.notice ol{margin:8px 0 0 20px}
+.notice li{margin:3px 0}
+
+/* ---------- cards ---------- */
+main{padding:8px 22px 40px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.chead{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.num{flex:0 0 auto;width:34px;height:34px;border-radius:9px;background:var(--maroon);
+     display:grid;place-items:center;font-weight:700;font-size:14px}
+.ctitle{flex:1;min-width:0}
+.ctitle b{display:block;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctitle span{font-size:12px;color:var(--dim)}
+.state{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:#2A1F27;color:var(--dim)}
+.state.done{color:var(--ok)}
+.state.busy{color:var(--warn)}
+
+.slots{display:flex;gap:12px;padding:14px 16px;overflow-x:auto}
+.slot{flex:0 0 auto;width:210px;background:#140F13;border:1px solid var(--line);border-radius:11px;
+      padding:10px;display:flex;flex-direction:column;gap:8px}
+.slot.sel{border-color:var(--saffron);box-shadow:0 0 0 2px rgba(232,139,0,.22)}
+.thumb{width:100%;height:190px;border-radius:8px;background:
+        repeating-linear-gradient(135deg,#1C151A 0 8px,#221A20 8px 16px);
+       display:grid;place-items:center;overflow:hidden;cursor:pointer}
+.thumb img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.thumb .empty{font-size:12px;color:#6B5A64}
+.pname{font-size:13px;font-weight:600;text-align:center;color:var(--cream);
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pname.newp{color:var(--saffron)}
+.tline{display:flex;align-items:center;gap:6px}
+.tline input[type=range]{flex:1;min-width:0;accent-color:var(--saffron)}
+.tnum{font-size:12px;font-variant-numeric:tabular-nums;color:var(--dim);width:52px;text-align:right}
+.nudge{display:flex;gap:4px}
+.nudge button{flex:1;padding:5px 0;font-size:12px;border-radius:7px}
+
+footer{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(22,16,20,.97);
+       backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:12px 22px;
+       display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.bar{flex:1;min-width:180px;height:8px;border-radius:5px;background:#2A1F27;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--saffron),var(--maroon))}
+.kbd{font-size:12px;color:var(--dim)}
+.kbd b{background:#2A1F27;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-weight:600}
+video.src{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <img src="brand/logo-light.png" alt="AI NORA">
+    <h1>เลือกเฟรมท่ารำจากวิดีโอ<small>ตัดภาพท่ารำจากวิดีโอทั้ง 22 คลิป เพื่อใช้ในสไลด์หมวด "ภาพท่า + ภาพท่า = วิดีโอ"</small></h1>
+    <div class="grow"></div>
+    <span class="pill" id="stat">จับแล้ว <b>0</b> / 0</span>
+    <button class="pri" id="autoAll">จับเฟรมอัตโนมัติทั้งหมด</button>
+    <button id="dlZip" disabled>ดาวน์โหลด poses.zip</button>
+    <button class="gh" id="dlJson" disabled>บันทึก poses.json</button>
+    <button class="gh" id="ldJson">โหลด poses.json</button>
+    <button class="gh" id="dlVid">ดาวน์โหลดวิดีโอ 22 คลิป</button>
+    <input type="file" id="jsonFile" accept=".json" hidden>
+  </div>
+</header>
+
+<div class="notice" id="originNote" hidden></div>
+
+<div class="notice">
+  <h3>วิธีใช้</h3>
+  <ol>
+    <li>กด <b>จับเฟรมอัตโนมัติทั้งหมด</b> — เครื่องมือจะไล่เปิดวิดีโอทีละคลิป แล้วตัดเฟรมตามจำนวนท่าในชื่อคลิป (ท่าแรกที่ต้นคลิป ท่าสุดท้ายที่ท้ายคลิป ที่เหลือแบ่งเท่า ๆ กัน)</li>
+    <li>ดูภาพที่ได้ ถ้าเฟรมไหนยังไม่ตรงท่า ให้เลื่อน slider หรือกดปุ่ม <code>−0.1</code> / <code>+0.1</code> วินาที ภาพจะอัปเดตทันที<br>
+        คลิกที่ภาพเพื่อเลือกช่องนั้น แล้วใช้ปุ่มลูกศร <b>←</b> <b>→</b> เลื่อนทีละ 0.1 วิ (กด Shift ค้าง = 0.02 วิ)</li>
+    <li>พอใจแล้วกด <b>ดาวน์โหลด poses.zip</b> — แตกไฟล์ที่โฟลเดอร์โปรเจกต์ ไฟล์จะลงที่ <code>assets/poses/</code> ให้เอง แล้วรีเฟรช <code>index.html</code></li>
+    <li><b>บันทึก poses.json</b> เก็บเวลาที่เลือกไว้ ถ้าจะกลับมาแก้ทีหลังให้กด <b>โหลด poses.json</b> ก่อนเริ่ม</li>
+  </ol>
+</div>
+
+<main id="cards"></main>
+
+<footer>
+  <span class="pill" id="fstat">พร้อม</span>
+  <div class="bar"><i id="fbar"></i></div>
+  <span class="kbd"><b>←</b> <b>→</b> เลื่อน 0.1 วิ · <b>Shift</b>+ลูกศร 0.02 วิ · คลิกภาพเพื่อเลือกช่อง</span>
+</footer>
+
+<script>
+/* ================================================================
+   วิดีโอ 22 คลิปบน ainora.psu.ac.th (เฉพาะที่เปิดใช้งาน)
+   ต้องตรงกับรายการ VIDEOS ใน index.html
+   ================================================================ */
+const VIDEOS = [
+  ['6a7b4e69a8615dbe0af2672e','ท่าพรหมสี่หน้า → ท่าเทวดา → ท่าใหม่ (A)'],
+  ['6a791869a8615dbe0af2670b','ท่าใหม่ (B) → ท่าใหม่ (C) → เขาควาย → ท่าใหม่ (C) → ท่าใหม่ (B)'],
+  ['6a6d8a98e8c21f9b2fa12ae4','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า'],
+  ['6a6d8ae44e74c6635728add3','ท่าครู → ท่าพรหมสี่หน้า'],
+  ['6a6d8b34c262c1cc3e46a496','ท่าครู → ท่าเหาะเหิน'],
+  ['6a6d8b704e74c6635728adda','ท่าซัดหวางอก → ท่าขี้หนอน'],
+  ['6a6d8ba1e8c21f9b2fa12ae9','ท่าพรหมสี่หน้า → ท่าเทวดา'],
+  ['6a6d8bdec262c1cc3e46a49e','ท่าย่างสามขุม → ท่าขี้หนอน'],
+  ['6a7488164e74c6635728adf4','ท่าย่างสามขุม → ท่าลงฉากน้อย'],
+  ['6a6d8d43eab1361e29e3045e','ท่าขุนศรัทธา → ท่าครู'],
+  ['6a6d8d9dc262c1cc3e46a4a6','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า → ท่าเทวดา'],
+  ['6a6d8dfce8c21f9b2fa12af4','ท่าจีบปรกหน้า → ท่าเทวดา → ท่าเขาควาย'],
+  ['6a6d8e374e74c6635728ade0','ท่าย่างสามขุม → ท่าย่างสามขุม'],
+  ['6a6d8e6fc262c1cc3e46a4ab','ท่าเขาควาย → ท่าจีบหน้า → ท่าพนมมือ → ท่าเขาควาย'],
+  ['6a6d8eadc262c1cc3e46a4bc','ท่าขุนศรัทธา → ท่าเขาควาย → ท่าใหม่ (D)'],
+  ['6a6d8ef1eab1361e29e30466','ท่าย่างสามขุม → ท่าใหม่ (D)'],
+  ['6a6d8f23e8c21f9b2fa12afb','ท่าเขาควาย → ท่าใหม่ (A)'],
+  ['6a74a210e8c21f9b2fa12b24','ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย'],
+  ['6a74c9cac262c1cc3e46a4ce','ท่าใหม่ (A) → ท่าเขาควาย → ท่าขุนศรัทธา'],
+  ['6a74d6c5eab1361e29e304e5','ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย → ท่าใหม่ (C) → ท่าใหม่ (C) → ท่าเขาควาย → ท่าขุนศรัทธา'],
+  ['6a77fb5aeab1361e29e304fe','ท่าจีบหน้า → ท่าใหม่ (E)'],
+  ['6a783c54e8c21f9b2fa12b3c','ท่าใหม่ (F) → ท่าใหม่ (G) → ท่าเขาควาย'],
+];
+/* '' = โฮสต์บนโดเมนเดียวกับ ainora.psu.ac.th (จำเป็นสำหรับการอ่านพิกเซลจากวิดีโอ) */
+const BASE = '';
+const JPEG_Q = 0.92;
+const vurl = id => BASE + '/videos/' + id + '/file';
+
+/* ---------- state ---------- */
+const items = VIDEOS.map(([id,title],vi)=>({
+  id, title, vi,
+  poses: title.split('→').map(x=>x.trim()),
+  dur: 0, w:0, h:0,
+  slots: title.split('→').map(()=>({ t:null, blob:null, url:null })),
+  el:null, video:null, stateEl:null, loaded:false,
+}));
+const TOTAL = items.reduce((a,it)=>a+it.slots.length,0);
+let sel = null;                 // {it, k}
+const cv = document.createElement('canvas');
+const cx = cv.getContext('2d');
+let tainted = false;
+
+/* ---------- ui build ---------- */
+const cards = document.getElementById('cards');
+const fmt = t => (t==null? '–' : t.toFixed(2)+'s');
+
+items.forEach(it=>{
+  const card = document.createElement('section'); card.className='card';
+  card.innerHTML = `
+    <div class="chead">
+      <div class="num">${it.vi+1}</div>
+      <div class="ctitle"><b>${esc(it.title)}</b>
+        <span>${it.poses.length} ท่า · <code>${it.id}</code> · <i data-meta>ยังไม่โหลด</i></span></div>
+      <span class="state" data-state>รอ</span>
+      <button data-recap>จับใหม่ทั้งคลิป</button>
+    </div>
+    <div class="slots" data-slots></div>
+    <video class="src" data-video crossorigin="anonymous" preload="metadata" muted playsinline></video>`;
+  const slots = card.querySelector('[data-slots]');
+  it.poses.forEach((nm,k)=>{
+    const d = document.createElement('div'); d.className='slot'; d.dataset.k=k;
+    d.innerHTML = `
+      <div class="thumb" data-thumb><span class="empty">ยังไม่จับเฟรม</span></div>
+      <div class="pname${/ท่าใหม่/.test(nm)?' newp':''}">${esc(nm)}</div>
+      <div class="tline"><input type="range" min="0" max="1" step="0.01" value="0" data-range disabled>
+        <span class="tnum" data-tnum>–</span></div>
+      <div class="nudge">
+        <button data-nudge="-0.5">−.5</button><button data-nudge="-0.1">−.1</button>
+        <button data-nudge="0.1">+.1</button><button data-nudge="0.5">+.5</button>
+      </div>`;
+    slots.appendChild(d);
+  });
+  cards.appendChild(card);
+  it.el = card; it.video = card.querySelector('[data-video]');
+  it.stateEl = card.querySelector('[data-state]');
+  card.querySelector('[data-recap]').onclick = ()=> queue(()=>autoCapture(it, true));
+  slots.addEventListener('click', e=>{
+    const slot = e.target.closest('.slot'); if(!slot) return;
+    const k = +slot.dataset.k;
+    if(e.target.closest('[data-thumb]')) select(it,k);
+    const n = e.target.closest('[data-nudge]');
+    if(n){ select(it,k); nudge(+n.dataset.nudge); }
+  });
+  slots.addEventListener('input', e=>{
+    const r = e.target.closest('[data-range]'); if(!r) return;
+    const slot = r.closest('.slot'); const k = +slot.dataset.k;
+    select(it,k); queue(()=>grab(it,k,+r.value));
+  });
+});
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function setState(it, txt, cls){ it.stateEl.textContent = txt; it.stateEl.className = 'state ' + (cls||''); }
+function select(it,k){
+  if(sel) sel.it.el.querySelectorAll('.slot')[sel.k].classList.remove('sel');
+  sel = {it,k};
+  it.el.querySelectorAll('.slot')[k].classList.add('sel');
+}
+function refreshStat(){
+  const n = items.reduce((a,it)=>a+it.slots.filter(s=>s.blob).length,0);
+  document.querySelector('#stat b').textContent = n;
+  document.getElementById('stat').innerHTML = 'จับแล้ว <b>'+n+'</b> / '+TOTAL;
+  document.getElementById('fbar').style.width = (n/TOTAL*100)+'%';
+  document.getElementById('dlZip').disabled = n===0;
+  document.getElementById('dlJson').disabled = n===0;
+}
+refreshStat();
+
+/* ---------- video loading / seeking ---------- */
+function loadVideo(it){
+  return new Promise((res,rej)=>{
+    if(it.loaded) return res();
+    const v = it.video;
+    const ok = ()=>{
+      it.dur = v.duration; it.w = v.videoWidth; it.h = v.videoHeight; it.loaded = true;
+      it.el.querySelector('[data-meta]').textContent =
+        it.dur.toFixed(2)+' วิ · '+it.w+'×'+it.h;
+      it.el.querySelectorAll('[data-range]').forEach(r=>{ r.max = it.dur; r.disabled = false; });
+      res();
+    };
+    v.onloadedmetadata = ok;
+    v.onerror = ()=> rej(new Error('โหลดวิดีโอไม่ได้: '+it.id));
+    v.src = vurl(it.id);
+    v.load();
+  });
+}
+function seek(v, t){
+  return new Promise(res=>{
+    const done = ()=>{ v.removeEventListener('seeked',done); res(); };
+    v.addEventListener('seeked', done);
+    v.currentTime = t;
+    setTimeout(done, 4000);   // กันค้าง
+  });
+}
+async function grab(it, k, t){
+  await loadVideo(it);
+  t = Math.max(0, Math.min(it.dur - 0.02, t));
+  await seek(it.video, t);
+  cv.width = it.w; cv.height = it.h;
+  cx.drawImage(it.video, 0, 0, it.w, it.h);
+  let blob;
+  try{
+    blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', JPEG_Q));
+  }catch(err){ tainted = true; showOriginNote(); return; }
+  if(!blob){ tainted = true; showOriginNote(); return; }
+  const s = it.slots[k];
+  if(s.url) URL.revokeObjectURL(s.url);
+  s.t = t; s.blob = blob; s.url = URL.createObjectURL(blob);
+  const slot = it.el.querySelectorAll('.slot')[k];
+  slot.querySelector('[data-thumb]').innerHTML = '<img src="'+s.url+'" alt="">';
+  slot.querySelector('[data-tnum]').textContent = fmt(t);
+  slot.querySelector('[data-range]').value = t;
+  refreshStat();
+}
+function autoTimes(dur, n){
+  if(n === 1) return [dur/2];
+  const a = 0.20, b = Math.max(a, dur - 0.20);
+  return Array.from({length:n}, (_,i)=> a + (b-a)*i/(n-1));
+}
+async function autoCapture(it, force){
+  setState(it,'กำลังจับเฟรม…','busy');
+  try{
+    await loadVideo(it);
+    const ts = autoTimes(it.dur, it.slots.length);
+    for(let k=0;k<it.slots.length;k++){
+      if(!force && it.slots[k].blob) continue;
+      await grab(it, k, it.slots[k].t != null ? it.slots[k].t : ts[k]);
+    }
+    setState(it,'ครบ '+it.slots.length+' เฟรม','done');
+  }catch(err){
+    setState(it,'ผิดพลาด: '+err.message,'');
+  }
+  // ปล่อยหน่วยความจำ
+  it.video.removeAttribute('src'); it.video.load(); it.loaded = false;
+  it.el.querySelectorAll('[data-range]').forEach(r=>{ r.disabled = false; });
+}
+
+/* ---------- คิวงาน (ทีละงาน กันโหลดวิดีโอพร้อมกันหลายคลิป) ---------- */
+let chain = Promise.resolve();
+function queue(fn){ chain = chain.then(fn).catch(e=>console.warn(e)); return chain; }
+
+function nudge(dt){
+  if(!sel) return;
+  const {it,k} = sel;
+  const base = it.slots[k].t;
+  if(base == null) return;
+  queue(()=>grab(it, k, base + dt));
+}
+addEventListener('keydown', e=>{
+  if(!sel) return;
+  if(e.key === 'ArrowRight'){ e.preventDefault(); nudge(e.shiftKey ? 0.02 : 0.1); }
+  if(e.key === 'ArrowLeft'){  e.preventDefault(); nudge(e.shiftKey ? -0.02 : -0.1); }
+});
+
+document.getElementById('autoAll').onclick = async e=>{
+  e.target.disabled = true;
+  for(const it of items){
+    document.getElementById('fstat').textContent = 'คลิป '+(it.vi+1)+'/'+items.length;
+    await queue(()=>autoCapture(it, false));
+  }
+  document.getElementById('fstat').textContent = 'จับเฟรมครบแล้ว';
+  e.target.disabled = false;
+};
+
+/* ---------- แจ้งเตือนเรื่อง origin ---------- */
+function showOriginNote(){
+  const n = document.getElementById('originNote');
+  if(!n.hidden) return;
+  n.hidden = false; n.className = 'notice bad';
+  n.innerHTML = `<h3>อ่านพิกเซลจากวิดีโอไม่ได้ (canvas tainted)</h3>
+    เบราว์เซอร์ห้ามอ่านภาพจากวิดีโอที่มาจากโดเมนอื่น เครื่องมือนี้จึงต้องเปิด
+    <b>จากโดเมนเดียวกับวิดีโอ</b> คือ
+    <code>https://ainora.psu.ac.th/nora-exhibition/frame-picker.html</code>
+    <br>อัปโหลดโฟลเดอร์ nora-exhibition ขึ้นเซิร์ฟเวอร์ก่อน แล้วเปิดหน้านี้จาก URL นั้น`;
+}
+if(location.protocol === 'file:' ||
+   (location.hostname && location.hostname !== 'ainora.psu.ac.th')){
+  const n = document.getElementById('originNote');
+  n.hidden = false; n.className = 'notice warn';
+  n.innerHTML = `<h3>ต้องเปิดหน้านี้จาก ainora.psu.ac.th</h3>
+    ตอนนี้เปิดจาก <code>${esc(location.origin || 'file://')}</code> —
+    เบราว์เซอร์จะไม่ยอมให้อ่านพิกเซลจากวิดีโอข้ามโดเมน (canvas tainted)
+    ทำให้จับเฟรมไม่ได้<br>
+    ให้อัปโหลดโฟลเดอร์ <code>nora-exhibition</code> ขึ้น web root แล้วเปิด
+    <code>https://ainora.psu.ac.th/nora-exhibition/frame-picker.html</code>`;
+}
+
+/* ================================================================
+   ZIP (store-only) — ไม่ต้องพึ่ง library ภายนอก
+   ================================================================ */
+const CRC_T = (()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); t[n]=c>>>0; }
+  return t; })();
+function crc32(u8){ let c=0xFFFFFFFF; for(let i=0;i<u8.length;i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c>>>8); return (c ^ 0xFFFFFFFF)>>>0; }
+
+function zipStore(files){
+  const te = new TextEncoder(), parts = [], central = [];
+  let offset = 0;
+  for(const f of files){
+    const name = te.encode(f.name), crc = crc32(f.data), size = f.data.length;
+    const lh = new Uint8Array(30 + name.length), dv = new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true); dv.setUint16(4,20,true); dv.setUint16(6,0x0800,true);
+    dv.setUint16(8,0,true); dv.setUint16(10,0,true); dv.setUint16(12,0x21,true);
+    dv.setUint32(14,crc,true); dv.setUint32(18,size,true); dv.setUint32(22,size,true);
+    dv.setUint16(26,name.length,true); dv.setUint16(28,0,true);
+    lh.set(name,30);
+    parts.push(lh, f.data);
+
+    const ch = new Uint8Array(46 + name.length), cvw = new DataView(ch.buffer);
+    cvw.setUint32(0,0x02014b50,true); cvw.setUint16(4,20,true); cvw.setUint16(6,20,true);
+    cvw.setUint16(8,0x0800,true); cvw.setUint16(10,0,true);
+    cvw.setUint16(12,0,true); cvw.setUint16(14,0x21,true);
+    cvw.setUint32(16,crc,true); cvw.setUint32(20,size,true); cvw.setUint32(24,size,true);
+    cvw.setUint16(28,name.length,true); cvw.setUint16(30,0,true); cvw.setUint16(32,0,true);
+    cvw.setUint16(34,0,true); cvw.setUint16(36,0,true); cvw.setUint32(38,0,true);
+    cvw.setUint32(42,offset,true);
+    ch.set(name,46);
+    central.push(ch);
+    offset += lh.length + size;
+  }
+  const cdSize = central.reduce((a,c)=>a+c.length,0);
+  const eo = new Uint8Array(22), ev = new DataView(eo.buffer);
+  ev.setUint32(0,0x06054b50,true);
+  ev.setUint16(8,files.length,true); ev.setUint16(10,files.length,true);
+  ev.setUint32(12,cdSize,true); ev.setUint32(16,offset,true);
+  return new Blob([...parts, ...central, eo], {type:'application/zip'});
+}
+function save(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
+}
+function timesJson(){
+  const o = {};
+  items.forEach(it=>{ o[it.id] = { title: it.title, poses: it.poses, times: it.slots.map(s=>s.t) }; });
+  return JSON.stringify(o, null, 1);
+}
+
+document.getElementById('dlZip').onclick = async e=>{
+  e.target.disabled = true;
+  const f = document.getElementById('fstat'); f.textContent = 'กำลังทำ zip…';
+  const files = [];
+  for(const it of items){
+    for(let k=0;k<it.slots.length;k++){
+      const s = it.slots[k]; if(!s.blob) continue;
+      files.push({ name:'assets/poses/'+it.id+'-'+k+'.jpg',
+                   data:new Uint8Array(await s.blob.arrayBuffer()) });
+    }
+  }
+  const te = new TextEncoder();
+  files.push({ name:'poses.json', data: te.encode(timesJson()) });
+  files.push({ name:'README.txt', data: te.encode(
+    'แตกไฟล์นี้ที่โฟลเดอร์ nora-exhibition/ ไฟล์ภาพจะลงที่ assets/poses/ ให้เอง\n'
+    + 'แล้วรีเฟรช index.html สไลด์หมวด "ภาพท่า + ภาพท่า = วิดีโอ" จะใช้ภาพเหล่านี้ทันที\n'
+    + 'poses.json เก็บเวลาที่เลือกไว้ ใช้กับปุ่ม "โหลด poses.json" ใน frame-picker.html\n')});
+  save(zipStore(files), 'poses.zip');
+  f.textContent = 'ดาวน์โหลด poses.zip แล้ว ('+(files.length-2)+' ภาพ)';
+  e.target.disabled = false;
+};
+document.getElementById('dlJson').onclick = ()=>
+  save(new Blob([timesJson()],{type:'application/json'}), 'poses.json');
+
+document.getElementById('ldJson').onclick = ()=> document.getElementById('jsonFile').click();
+document.getElementById('jsonFile').onchange = async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const data = JSON.parse(await f.text());
+  items.forEach(it=>{
+    const rec = data[it.id]; if(!rec || !rec.times) return;
+    rec.times.forEach((t,k)=>{ if(t != null && it.slots[k]) it.slots[k].t = t; });
+    setState(it,'โหลดเวลาแล้ว','');
+  });
+  document.getElementById('fstat').textContent = 'โหลด poses.json แล้ว — กด "จับเฟรมอัตโนมัติทั้งหมด" เพื่อจับตามเวลานั้น';
+};
+
+document.getElementById('dlVid').onclick = async e=>{
+  if(!confirm('จะดาวน์โหลดวิดีโอ 22 คลิป (~120 MB) เบราว์เซอร์อาจถามยืนยันการดาวน์โหลดหลายไฟล์\n\n'
+            + 'ไฟล์ที่ได้ให้เปลี่ยนชื่อ/ย้ายไปที่ assets/videos/<id>.mp4 แล้วตั้ง USE_LOCAL_VIDEOS:true ใน index.html')) return;
+  e.target.disabled = true;
+  const f = document.getElementById('fstat');
+  for(const it of items){
+    f.textContent = 'ดาวน์โหลดวิดีโอ '+(it.vi+1)+'/'+items.length;
+    try{
+      const r = await fetch(vurl(it.id));
+      save(await r.blob(), it.id + '.mp4');
+    }catch(err){ console.warn(it.id, err); }
+    await new Promise(r=>setTimeout(r, 400));
+  }
+  f.textContent = 'ดาวน์โหลดวิดีโอครบแล้ว';
+  e.target.disabled = false;
+};
+</script>
+</body>
+</html>

@@ -4,10 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI NORA — นิทรรศการ Breath of Nora</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Noto+Serif+Thai:wght@600;700&display=swap" rel="stylesheet">
 <style>
+/* ฟอนต์ Anuphan (Cadson Demak, SIL OFL 1.1) — ดูสัญญาอนุญาตที่ brand/Anuphan-OFL.txt */
+@font-face{
+  font-family:'Anuphan';
+  src:url('brand/Anuphan-var.woff2') format('woff2-variations'),
+      url('brand/Anuphan-var.woff2') format('woff2');
+  font-weight:100 700;
+  font-style:normal;
+  font-display:block;
+}
 /* ============================================================
    AI NORA — Exhibition loop deck
    Stage authored at 3840x2160 (4K) and scaled to fit viewport.
@@ -19,6 +25,7 @@
   --maroon-ink:#3E0E16;
   --gold:#C2922B;
   --gold-lt:#E4C468;
+  --saffron:#E88B00;   /* สีส้มจากโลโก้ AI NORA */
   --cream:#FBF6EC;
   --cream-2:#F3EADA;
   --ink:#2B2118;
@@ -28,7 +35,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#0D0709;overflow:hidden}
-body{font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+body{font-family:"Anuphan","Noto Sans Thai",system-ui,-apple-system,sans-serif;color:var(--ink);
+     font-variant-numeric:tabular-nums}
 
 #viewport{position:fixed;inset:0;overflow:hidden;background:#0D0709}
 #stage{
@@ -56,39 +64,39 @@ body{font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
 .hdr-txt{flex:1;min-width:0}
 .eyebrow{
   display:inline-flex;align-items:center;gap:22px;
-  font-size:44px;font-weight:600;letter-spacing:.14em;color:var(--gold);
+  font-size:44px;font-weight:600;letter-spacing:.14em;color:var(--saffron);
   text-transform:uppercase;margin-bottom:22px;
 }
-.eyebrow::before{content:"";width:110px;height:5px;background:var(--gold);border-radius:3px}
+.eyebrow::before{content:"";width:110px;height:5px;background:var(--saffron);border-radius:3px}
 h1.title{
-  font-family:"Noto Serif Thai","Noto Sans Thai",serif;
-  font-size:104px;line-height:1.14;font-weight:700;color:var(--maroon);
+  font-family:"Anuphan",sans-serif;
+  font-size:104px;line-height:1.16;font-weight:700;color:var(--maroon);
   letter-spacing:-.01em;
 }
 h1.title .thin{color:var(--muted);font-weight:600}
 .sub{margin-top:20px;font-size:50px;font-weight:400;color:#6C5B49;line-height:1.35}
 
-.wordmark{flex:0 0 auto;text-align:right;padding-top:6px}
-.wordmark .wm{
-  font-family:"Noto Serif Thai",serif;font-weight:700;font-size:96px;line-height:1;
-  letter-spacing:.06em;
-  background:linear-gradient(178deg,#EBCE7C 0%,#C2922B 46%,#8E651A 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 4px 0 rgba(0,0,0,.10));
-}
-.wordmark .org{margin-top:14px;font-size:34px;color:var(--muted);font-weight:500;letter-spacing:.02em}
+.wordmark{flex:0 0 auto;text-align:right;padding-top:4px}
+.wordmark img{display:block;width:560px;height:auto;margin-left:auto}
+.wordmark .org{margin-top:10px;font-size:34px;color:var(--muted);font-weight:500;letter-spacing:.02em}
+/* โลโก้ 2 เวอร์ชัน: ดำสำหรับพื้นครีม / ครีมสำหรับพื้นแดง */
+.lg-light{display:none}
+.slide.dark .lg-dark{display:none}
+.slide.dark .lg-light{display:block}
+.slide.dark .wordmark .org{color:rgba(255,255,255,.62)}
+.hero .herologo{width:900px;height:auto;margin-bottom:8px}
 
 .ftr{
   position:absolute;left:150px;right:150px;bottom:78px;
   display:flex;align-items:center;gap:40px;
   font-size:36px;color:var(--muted);font-weight:500;
 }
-.ftr .dot{width:12px;height:12px;border-radius:50%;background:var(--gold);flex:0 0 auto}
+.ftr .dot{width:12px;height:12px;border-radius:50%;background:var(--saffron);flex:0 0 auto}
 .ftr .grow{flex:1}
 .ftr .count{font-variant-numeric:tabular-nums;font-weight:600;color:#7E6E5B}
 
 .progress{position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(123,30,40,.10)}
-.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--maroon));transition:width .1s linear}
+.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--saffron),var(--maroon));transition:width .1s linear}
 
 /* ---------- comparison grid ---------- */
 .stagebody{position:absolute;left:150px;right:150px;top:400px;bottom:190px;display:flex;flex-direction:column}
@@ -108,14 +116,14 @@ h1.title .thin{color:var(--muted);font-weight:600}
   background:rgba(255,255,255,.16);border-radius:999px;padding:10px 28px;
 }
 .panel .cap .lbl{font-size:46px;font-weight:600;line-height:1.2}
-.panel.alt .cap{background:var(--gold)}
-.panel.alt .cap .lbl{color:#3A2A06}
+.panel.alt .cap{background:var(--saffron)}
+.panel.alt .cap .lbl{color:#3A2103}
 .panel.alt .cap .badge{background:rgba(0,0,0,.14);color:#3A2A06}
 .panel .body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:26px;padding:40px;background:var(--cream-2)}
 .panel .body img,.panel .body video{max-width:100%;max-height:100%;object-fit:contain;display:block;border-radius:12px}
 .panel .body.two img{max-width:48%}
 
-.arrow{font-size:170px;line-height:1;color:var(--gold);font-weight:700;user-select:none}
+.arrow{font-size:170px;line-height:1;color:var(--saffron);font-weight:700;user-select:none}
 .arrow small{display:block;font-size:34px;color:var(--muted);font-weight:600;text-align:center;margin-top:6px;letter-spacing:.08em}
 
 /* ---------- combine (poses + result) ---------- */
@@ -135,7 +143,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .chip .nm{padding:20px 24px;font-size:36px;font-weight:600;text-align:center;color:var(--maroon);background:#fff;line-height:1.25}
 .chip.newpose .nm{color:#8E651A}
 .chip.newpose .ph{background:repeating-linear-gradient(135deg,#F7EFDD 0 26px,#F1E4C9 26px 52px)}
-.newmark{font-size:96px;color:var(--gold);font-weight:800;line-height:1}
+.newmark{font-size:96px;color:var(--saffron);font-weight:700;line-height:1}
 .newmark span{display:block;font-size:32px;color:var(--muted);font-weight:600;margin-top:10px}
 
 /* ---------- placeholder ---------- */
@@ -144,7 +152,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
   background:repeating-linear-gradient(135deg,#F4EBDA 0 30px,#EEE2CB 30px 60px);
   border-radius:14px;padding:60px;text-align:center;
 }
-.ph-box .ic{font-size:120px;line-height:1;color:#C2922B}
+.ph-box .ic{font-size:120px;line-height:1;color:var(--saffron)}
 .ph-box .t1{font-size:52px;font-weight:700;color:var(--maroon)}
 .ph-box .t2{font-size:34px;color:#7A6A57;line-height:1.45;word-break:break-all;max-width:92%}
 .ph-box code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:30px;background:rgba(123,30,40,.08);padding:6px 14px;border-radius:10px;display:inline-block;margin-top:6px}
@@ -166,16 +174,16 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .slide.dark .progress{background:rgba(255,255,255,.14)}
 .hero{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 300px;gap:40px}
 .hero .big{
-  font-family:"Noto Serif Thai",serif;font-weight:700;font-size:190px;line-height:1.08;
+  font-family:"Anuphan",sans-serif;font-weight:700;font-size:190px;line-height:1.06;letter-spacing:-.015em;
   background:linear-gradient(178deg,#F3DFA6 0%,#DDB558 52%,#B98C2A 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .hero .lead{font-size:66px;line-height:1.35;color:#FBEFD6;font-weight:400;max-width:2700px}
-.hero .rule{width:260px;height:8px;background:var(--gold);border-radius:4px}
+.hero .rule{width:260px;height:8px;background:var(--saffron);border-radius:4px}
 .hero .meta{font-size:44px;color:rgba(255,255,255,.68);line-height:1.5}
 .secnum{
   position:absolute;right:260px;bottom:200px;
-  font-family:"Noto Serif Thai",serif;font-size:520px;line-height:.8;font-weight:700;
+  font-family:"Anuphan",sans-serif;font-size:520px;line-height:.8;font-weight:700;
   color:rgba(255,255,255,.07);
 }
 
@@ -231,7 +239,12 @@ const CONFIG = {
   SEC_VIDEO_DEF : 8,      // เวลาสำรองถ้าอ่านความยาววิดีโอไม่ได้
   AINORA_BASE   : '',     // '' = โฮสต์บนโดเมนเดียวกับ ainora.psu.ac.th
                           // ถ้าเปิดจากเครื่องอื่น ให้ใส่ 'https://ainora.psu.ac.th'
+  USE_LOCAL_VIDEOS: false,// true = ใช้ไฟล์ที่ดาวน์โหลดไว้ใน assets/videos/<id>.mp4 ก่อน
+                          // (ใช้ตอนอัดวิดีโอแบบ offline) ถ้าไม่มีไฟล์จะถอยไปใช้ URL บนเว็บเอง
+  DIR_VIDEOS    : 'assets/videos/',
   DIR_COMPARE   : 'assets/compare/',   // ภาพต้นฉบับ/ซ่อมแซม (จากโฟลเดอร์ เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม)
+  DIR_POSES     : 'assets/poses/',     // เฟรมท่ารำที่ตัดจากวิดีโอ ด้วย frame-picker.html
+                                       // ตั้งชื่อ <videoId>-<ลำดับท่าเริ่มจาก 0>.jpg
   DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
   DIR_COLOR     : 'assets/color/',     // วิดีโอที่ใส่สีแล้ว
   DIR_STUDENT   : 'assets/students/',  // วิดีโอ/ภาพ นักศึกษา-นักเรียนรำ
@@ -308,7 +321,11 @@ const VIDEOS = [
   ['6a77fb5aeab1361e29e304fe','ท่าจีบหน้า → ท่าใหม่ (E)'],
   ['6a783c54e8c21f9b2fa12b3c','ท่าใหม่ (F) → ท่าใหม่ (G) → ท่าเขาควาย'],
 ];
-const vurl = id => CONFIG.AINORA_BASE + '/videos/' + id + '/file';
+/* คืนรายการไฟล์ตามลำดับที่จะลอง: ไฟล์ในเครื่องหรือ URL บนเว็บ แล้วสลับกันเป็นตัวสำรอง */
+const vremote = id => CONFIG.AINORA_BASE + '/videos/' + id + '/file';
+const vlocal  = id => CONFIG.DIR_VIDEOS + id + '.mp4';
+const vurl    = id => CONFIG.USE_LOCAL_VIDEOS ? [vlocal(id), vremote(id)]
+                                              : [vremote(id), vlocal(id)];
 
 /* --- 2.4 จับคู่วิดีโอที่เจนได้ ↔ ไฟล์ใน Google Drive (12 คลิป) ---- */
 const DRIVE_PAIRS = [
@@ -380,7 +397,11 @@ function frame(o){
         <h1 class="title">${o.title}</h1>
         ${o.sub?`<div class="sub">${o.sub}</div>`:''}
       </div>
-      <div class="wordmark"><div class="wm">AI NORA</div><div class="org">ainora.psu.ac.th</div></div>
+      <div class="wordmark">
+        <img class="lg-dark"  src="brand/logo-dark.png"  alt="AI NORA">
+        <img class="lg-light" src="brand/logo-light.png" alt="AI NORA">
+        <div class="org">ainora.psu.ac.th</div>
+      </div>
     </div>
     <div class="stagebody">${o.body}</div>
     <div class="ftr">${sec}<span>${esc(FOOT)}</span><span class="grow"></span><span class="count" data-count></span></div>
@@ -390,7 +411,8 @@ function frame(o){
 /* ---- ปกใหญ่ ---- */
 push({ dur:CONFIG.SEC_TITLE, dark:true, kind:'still', html:`
   <div class="hero">
-    <div class="eyebrow">Breath of Nora · AI NORA</div>
+    <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
+    <div class="eyebrow">Breath of Nora</div>
     <div class="big">จากภาพนิ่งอายุ ๑๐๐ ปี<br>สู่ลมหายใจของโนรา</div>
     <div class="rule"></div>
     <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์ — ฟื้นฟูภาพจากตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖ แล้วเชื่อมท่ารำให้กลับมาเคลื่อนไหวอีกครั้ง</div>
@@ -432,13 +454,16 @@ PAIRS.forEach((p,i)=>{
 divider('02','เชื่อมท่ารำให้เคลื่อนไหว','นำภาพท่ารำมาประกอบกัน แล้วให้ AI สร้างช่วงเชื่อมต่อระหว่างท่า จนได้เป็นวิดีโอการรำที่ต่อเนื่อง');
 VIDEOS.forEach(([id,title],i)=>{
   const poses = title.split('→').map(s=>s.trim());
-  const chips = poses.map(nm=>{
+  const chips = poses.map((nm,k)=>{
     const isNew = /ท่าใหม่/.test(nm);
-    const file = POSE_IMG[nm];
-    const inner = isNew
-      ? `<div class="newmark">✦<span>ท่าที่ AI สร้างใหม่</span></div>`
-      : (file ? `<img alt="" data-chip="1" data-srcs='${esc(JSON.stringify([CONFIG.DIR_COMPARE+file]))}' data-i="0" src="${enc(CONFIG.DIR_COMPARE+file)}">`
-              : `<div class="newmark">▧<span>ยังไม่ได้จับคู่ภาพ</span></div>`);
+    const file  = POSE_IMG[nm];
+    // ลำดับการหาไฟล์: เฟรมที่ตัดจากวิดีโอ -> ภาพซ่อมแซมจากหนังสือ -> การ์ดชื่อท่า
+    const srcs  = [CONFIG.DIR_POSES + id + '-' + k + '.jpg',
+                   CONFIG.DIR_POSES + id + '-' + k + '.png']
+                  .concat(!isNew && file ? [CONFIG.DIR_COMPARE + file] : []);
+    const fb    = isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ยังไม่มีภาพท่านี้'];
+    const inner = `<img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb))}'
+        data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(srcs[0])}">`;
     return `<div class="chip${isNew?' newpose':''}"><div class="ph">${inner}</div><div class="nm">${esc(nm)}</div></div>`;
   }).join('');
   push({ kind:'video', section:'เชื่อมท่ารำ · '+(i+1)+'/'+VIDEOS.length, html: frame({
@@ -537,7 +562,9 @@ function attachFallback(node, kind){
     if(next < srcs.length){ node.dataset.i = next; node.src = enc(srcs[next]); if(node.load) node.load(); return; }
 
     if(node.dataset.chip){
-      node.parentNode.innerHTML = '<div class="newmark">▧<span>ยังไม่มีภาพท่านี้</span></div>';
+      let fb = ['▧','ยังไม่มีภาพท่านี้'];
+      try{ fb = JSON.parse(node.dataset.fb) || fb; }catch(e){}
+      node.parentNode.innerHTML = '<div class="newmark">' + fb[0] + '<span>' + fb[1] + '</span></div>';
     } else {
       node.parentNode.innerHTML = phBox(kind, srcs[0] || '');
     }
