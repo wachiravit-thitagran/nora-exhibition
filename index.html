@@ -302,6 +302,24 @@ html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
 .pCR .wide-sec .tx .big{font-size:172px}
 .pCR .wide-sec .tx .lead{font-size:64px;max-width:4400px}
 .pCR .wide-rail{left:200px;right:200px;bottom:130px}
+/* ---------- กองภาพตัวอย่าง วางเอียงซ้อนกันเหมือนกองรูปถ่าย ---------- */
+.pstack{position:relative;flex:1;min-width:0;min-height:0}
+.pstack .pc{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) translate(var(--x),var(--y)) rotate(var(--r));
+  background:#FFFDF8;padding:26px 26px 18px;border-radius:12px;
+  box-shadow:0 46px 90px -34px rgba(0,0,0,.6),0 0 0 2px rgba(17,24,39,.07);
+  display:flex;flex-direction:column;gap:12px;
+}
+.pstack .pc img{height:var(--ih,1180px);width:auto;max-width:none;object-fit:contain;display:block;border-radius:4px}
+.pstack .pc i{font-style:normal;font-size:34px;font-weight:600;color:#4B5563;text-align:center;line-height:1.2}
+/* กองย่อสำหรับปกขั้นตอนบนจอเดียว 16:9 */
+.pstack.side{position:absolute;left:auto;right:170px;top:0;bottom:0;width:1720px;flex:none}
+.pstack.side .pc{padding:20px 20px 14px}
+.pstack.side .pc img{height:var(--ih,1120px)}
+.pstack.side .pc i{font-size:30px}
+.hero.dvd{padding-right:2020px}
+
 .wide-rail{
   position:absolute;left:260px;right:260px;bottom:150px;
   display:flex;align-items:stretch;gap:26px;
@@ -325,6 +343,14 @@ html.motion .slide.on .wide-hero .lead    {animation:riseIn .9s cubic-bezier(.2,
 html.motion .slide.on .wide-sec .num      {animation:riseIn 1s cubic-bezier(.2,.7,.3,1) both}
 html.motion .slide.on .wide-sec .tx .big  {animation:riseIn .9s cubic-bezier(.2,.7,.3,1) .16s both}
 html.motion .slide.on .wide-sec .tx .lead {animation:riseIn .9s cubic-bezier(.2,.7,.3,1) .3s both}
+html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay:calc(var(--i) * .13s)}
+@keyframes dealIn{
+  from{opacity:0;
+    transform:translate(-50%,-50%) translate(var(--x),calc(var(--y) + 110px)) rotate(0deg) scale(.93)}
+  to  {opacity:1;
+    transform:translate(-50%,-50%) translate(var(--x),var(--y)) rotate(var(--r)) scale(1)}
+}
 html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) both;
                                            animation-delay:calc(.3s + var(--i,0) * .08s)}
 
@@ -976,18 +1002,36 @@ function poseCell(i, name, srcs, fb){
     </div>`;
 }
 
-/* ภาพตัวอย่างประจำแต่ละขั้นตอน — แสดงบนจอซ้ายของสไลด์ปกขั้นตอน */
+/* ภาพตัวอย่างประจำแต่ละขั้นตอน — วางเอียงซ้อนกันเหมือนกองรูปถ่ายบนโต๊ะ */
+const shotO = i => ({ srcs:imgOrig(PAIRS[i]),   tag:PAIRS[i].book });
+const shotF = i => ({ srcs:imgFix(PAIRS[i])[0], tag:PAIRS[i].book });
+
+/* ROT/OFF เรียงสลับซ้าย-ขวา ให้กองดูเป็นธรรมชาติ ไม่ใช่เอียงทางเดียวกันหมด */
+const ROT = [-7, 4.5, -3.5, 7, -5];
+const OFF = [34, -30, 26, -34, 30];
+function photoStack(items, opt){
+  const o = opt || {}, n = items.length;
+  const step = o.step || (n > 3 ? 760 : 900);
+  return `<div class="pstack ${o.cls || ''}">` + items.map((it,i)=>{
+    const x = Math.round((i - (n-1)/2) * step);
+    return `<div class="pc" style="--x:${x}px;--y:${OFF[i % OFF.length]}px;`
+         + `--r:${ROT[i % ROT.length]}deg;--i:${i};z-index:${i+1}`
+         + (o.ih ? `;--ih:${o.ih}px` : '') + `">`
+         + mediaImg(it.srcs) + `<i>${esc(it.tag)}</i></div>`;
+  }).join('') + `</div>`;
+}
+
 const STEP_SAMPLE = [
-  { srcs:imgOrig(PAIRS[9]),    lbl:'ต้นฉบับ',    cap:'ภาพสแกนจากตำรา',
-    eb:'ตัวอย่างภาพสแกน',      name:'ท่าหน้าไม้ — ภาพในตำรา พ.ศ. ๒๔๖๖' },
-  { srcs:imgFix(PAIRS[1])[0],  lbl:'ฟื้นฟูแล้ว', cap:'ภาพที่ฟื้นฟูรายละเอียดแล้ว',
-    eb:'ตัวอย่างภาพที่ฟื้นฟู', name:'ท่าขุนศรัทธา — หลังฟื้นฟู' },
-  { srcs:imgFix(PAIRS[10])[0], lbl:'ภาพต้นทาง',  cap:'ภาพท่าที่ป้อนให้ปัญญาประดิษฐ์',
-    eb:'จุดเริ่มของการเคลื่อนไหว', name:'ท่าเขาควาย — ภาพต้นทางของวิดีโอ' },
-  { srcs:imgFix(PAIRS[6])[0],  lbl:'ท่าในข้อมูล', cap:'ท่ารำที่ถูกเก็บเป็นข้อมูล',
-    eb:'ท่ารำในรูปของข้อมูล',  name:'ท่าพรหมสี่หน้า' },
-  { srcs:imgFix(PAIRS[11])[0], lbl:'สื่อการสอน', cap:'ภาพท่าที่ใช้สอนในชั้นเรียน',
-    eb:'ท่ารำที่คืนสู่ห้องเรียน', name:'ท่าเหาะเหิน — สื่อการสอน' },
+  { eb:'ตัวอย่างภาพสแกนจากตำรา', name:'ภาพต้นทางของทั้งโครงการ',
+    items:[shotO(9), shotO(1), shotO(6), shotO(11)] },
+  { eb:'ตัวอย่างภาพที่ฟื้นฟูแล้ว', name:'ผลการฟื้นฟูรายละเอียด',
+    items:[shotF(1), shotF(3), shotF(7), shotF(10)] },
+  { eb:'ภาพท่าที่ป้อนให้ปัญญาประดิษฐ์', name:'จุดเริ่มของการเคลื่อนไหว',
+    items:[shotF(10), shotF(6), shotF(0), shotF(4)] },
+  { eb:'ท่ารำที่ถูกเก็บเป็นข้อมูล', name:'ลำดับท่าที่บันทึกไว้',
+    items:[shotF(6), shotF(9), shotF(5), shotF(2)] },
+  { eb:'ภาพท่าที่ใช้สอนในชั้นเรียน', name:'สื่อการสอนที่ได้',
+    items:[shotF(10), shotF(6), shotF(11)] },
 ];
 
 /* ปกขั้นตอน — จอซ้ายเป็นภาพตัวอย่าง จอกลาง+จอขวารวมเป็นชื่อขั้นตอน */
@@ -997,20 +1041,20 @@ function divider(step){
   const sm = STEP_SAMPLE[step] || STEP_SAMPLE[0];
   push({ dur:CONFIG.DWELL.divider, dark:true, step, spanCR:true,
     left:()=> band({ eyebrow:sm.eb, h2:86, title:esc(sm.name),
-      body:`<div class="cmp solo">${panel(sm.cap, sm.lbl, mediaImg(sm.srcs))}</div>` }),
+      body:photoStack(sm.items) }),
     cr:()=> wideSection(step), wall:{
     head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
     rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['ผลงานในขั้นนี้', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 05']],
     note:sc.longd || sc.d }, html:`
     <div class="bgimg"></div>
-    <div class="hero">
+    <div class="hero dvd">
       <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)}</div>
       <div class="big" style="font-size:${sc.t.length > 20 ? 108 : 150}px">${esc(sc.t)}</div>
       <div class="rule"></div>
       <div class="lead">${esc(sc.longd || sc.d)}</div>
       ${logoStrip()}
     </div>
-    <div class="secnum">${esc(sc.n)}</div>`});
+    ${photoStack(sm.items.slice(0,3), { cls:'side', step:470, ih:1120 })}`});
 }
 
 /* ---- ปกใหญ่ ---- */
