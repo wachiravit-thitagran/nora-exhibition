@@ -101,11 +101,11 @@ h1.title .thin{color:var(--muted);font-weight:600}
 
 .logos{
   align-self:flex-start;flex:0 0 auto;
-  display:flex;align-items:center;gap:40px;
+  display:flex;align-items:center;gap:34px;
   background:#fff;border:2px solid var(--line);border-radius:999px;
   padding:16px 40px;box-shadow:0 14px 34px -22px rgba(17,24,39,.4);
 }
-.logos img{height:84px;width:auto;display:block}
+.logos img{height:calc(84px * var(--k,1));width:auto;display:block}
 .logos .sep{width:2px;height:60px;background:var(--line);flex:0 0 auto}
 .logobox{
   height:84px;min-width:230px;padding:0 24px;border:3px dashed #C9CFD8;border-radius:16px;
@@ -114,7 +114,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 }
 .hero .logobox{height:112px;min-width:280px;font-size:30px}
 .hero .logos{padding:22px 52px;gap:52px}
-.hero .logos img{height:112px}
+.hero .logos img{height:calc(112px * var(--k,1))}
 
 .progress{position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(17,24,39,.10)}
 .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--saffron));transition:width .1s linear}
@@ -325,11 +325,13 @@ const CONFIG = {
 /* แถบโลโก้ผู้สนับสนุน — แสดงทุกสไลด์แทนการเขียนชื่อหน่วยงาน
    ถ้าไฟล์ยังไม่มี จะขึ้นกรอบประบอกชื่อหน่วยงานไว้ให้รู้ว่าต้องวางไฟล์อะไร */
 const SPONSORS = [
-  { file:'brand/logo-ocac.png', name:'สำนักงานศิลปวัฒนธรรม\nร่วมสมัย',
-    web:'https://www.ocac.go.th/wp-content/uploads/2021/03/web-logo-ocac2.png' },
-  { file:'brand/logo-moc.png',  name:'กระทรวง\nวัฒนธรรม',
+  // k = ตัวคูณความสูง ปรับให้น้ำหนักสายตาเท่ากัน (สัดส่วนโลโก้ต่างกันมาก
+  //     ตราครุฑสูงแคบ 0.65 : โลโก้ PSU กว้าง 3.78)
+  { file:'brand/logo-moc.png',  k:1.16, name:'กระทรวง\nวัฒนธรรม',
     web:'https://www.m-culture.go.th/_nuxt/img/logo.be79a18.png' },
-  { file:'brand/logo-psu.png',  name:'มหาวิทยาลัย\nสงขลานครินทร์',
+  { file:'brand/logo-ocac.png', k:1.00, name:'สำนักงานศิลปวัฒนธรรม\nร่วมสมัย',
+    web:'https://www.ocac.go.th/wp-content/uploads/2021/03/web-logo-ocac2.png' },
+  { file:'brand/logo-psu.png',  k:0.80, name:'มหาวิทยาลัย\nสงขลานครินทร์',
     web:'https://www.psu.ac.th/img/logos/psu_th.webp' },
 ];
 function logoStrip(){
@@ -337,7 +339,7 @@ function logoStrip(){
     // ลองไฟล์ในเครื่องก่อน ถ้าไม่มีค่อยดึงจากเว็บต้นทาง (ทำงานได้ทันทีแม้ยังไม่ได้ก็อปไฟล์)
     const srcs = [sp.file].concat(sp.web ? [sp.web] : []);
     return `<img alt="${esc(sp.name.replace(/\n/g,' '))}" data-logo='${esc(JSON.stringify(sp.name))}'
-       data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(sp.file)}">`;
+       style="--k:${sp.k || 1}" data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(sp.file)}">`;
   }).join('') + '</div>';
 }
 
