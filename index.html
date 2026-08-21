@@ -148,7 +148,8 @@ h1.title .thin{color:var(--muted);font-weight:600}
 
 /* ---------- placeholder ---------- */
 .ph-box{
-  width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  width:100%;height:100%;flex:1 1 0;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
   background:repeating-linear-gradient(135deg,#F4EBDA 0 30px,#EEE2CB 30px 60px);
   border-radius:14px;padding:60px;text-align:center;
 }
@@ -557,17 +558,21 @@ SLIDES.forEach((s,i)=>{
 /* fallback chain สำหรับไฟล์ที่หาไม่เจอ */
 function attachFallback(node, kind){
   node.addEventListener('error', () => {
+    if(!node.parentNode) return;                 // ถูกถอดออกไปแล้ว
     const srcs = JSON.parse(node.dataset.srcs || '[]');
     const next = (+node.dataset.i || 0) + 1;
     if(next < srcs.length){ node.dataset.i = next; node.src = enc(srcs[next]); if(node.load) node.load(); return; }
 
+    const box = document.createElement('div');
     if(node.dataset.chip){
       let fb = ['▧','ยังไม่มีภาพท่านี้'];
       try{ fb = JSON.parse(node.dataset.fb) || fb; }catch(e){}
-      node.parentNode.innerHTML = '<div class="newmark">' + fb[0] + '<span>' + fb[1] + '</span></div>';
+      box.className = 'newmark';
+      box.innerHTML = fb[0] + '<span>' + fb[1] + '</span>';
     } else {
-      node.parentNode.innerHTML = phBox(kind, srcs[0] || '');
+      box.innerHTML = phBox(kind, srcs[0] || '');
     }
+    node.replaceWith(box.className ? box : box.firstElementChild || box);
   });
 }
 stage.querySelectorAll('img[data-srcs]').forEach(n => attachFallback(n, 'image'));

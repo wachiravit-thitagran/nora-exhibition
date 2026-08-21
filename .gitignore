@@ -15,3 +15,6 @@ assets/**/*.jpeg
 Thumbs.db
 *.swp
 node_modules/
+
+# ไฟล์ที่ถูกสร้างโดย make-standalone.py
+standalone.html
