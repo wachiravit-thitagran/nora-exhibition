@@ -496,6 +496,28 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .panel.tight .body > img:only-child,.panel.tight .body > video:only-child{
   inset:13px;width:calc(100% - 26px);height:calc(100% - 26px);
   max-width:none;max-height:none;object-fit:contain}
+/* โหมดจอเดียว 16:9 — วางครบ 3 ท่าในจอเดียว คอลัมน์ละท่า
+   ในคอลัมน์มีทั้งภาพสแกน ภาพที่ฟื้นฟู และคำอธิบาย เหมือนที่แต่ละจอบนผนังได้รับ
+   ป้ายหัวกรอบย่อลงเพราะกรอบแคบกว่าบนผนังราว 3 เท่า */
+.trio3{flex:1;min-width:0;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:54px}
+.trio3 .t3{min-width:0;display:flex;flex-direction:column;gap:20px;justify-content:center}
+.trio3 .t3 .hd{flex:0 0 auto;font-size:52px;font-weight:700;color:var(--ink);line-height:1.2;text-align:center}
+.trio3 .t3 .hd small{display:block;font-size:30px;font-weight:600;color:var(--gold-dk);letter-spacing:.06em;margin-bottom:6px}
+/* คอลัมน์กว้างราว 1100px กรอบละ ~545px ภาพแนวตั้งสัดส่วน 0.64
+   ถ้าปล่อยให้กรอบสูงเต็มคอลัมน์ (สัดส่วน 0.44) ภาพจะถูกจำกัดด้วยความกว้าง
+   แล้วเหลือช่องว่างบน-ล่างกรอบละเกือบ 400px จึงตัดความสูงกรอบไว้ให้พอดีภาพ */
+.trio3 .t3 .pair{flex:1 1 auto;min-height:0;max-height:930px;
+  display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.trio3 .t3 .nb{flex:0 0 auto;font-size:28px;line-height:1.35;color:var(--muted);text-align:center;min-height:78px}
+.trio3 .panel{border-radius:26px;border-width:2px}
+.trio3 .panel .cap{padding:14px 18px;gap:12px}
+.trio3 .panel .cap .lbl{font-size:26px}
+.trio3 .panel .cap .badge{font-size:20px;padding:5px 14px}
+.trio3 .panel .body{padding:14px}
+.trio3 .panel.tight .body > img:only-child{inset:8px;width:calc(100% - 16px);height:calc(100% - 16px)}
+.slide.dark .trio3 .t3 .hd{color:#fff}
+.slide.dark .trio3 .t3 .nb{color:rgba(255,255,255,.7)}
+
 .cmpcol{flex:1;min-height:0;display:flex;flex-direction:column;gap:30px}
 .cmpcol .duowide{flex:1;min-height:0;height:auto}
 .cmpnote{flex:0 0 auto;font-size:36px;line-height:1.4;color:var(--muted);text-align:center;
@@ -1260,21 +1282,22 @@ for(let i = 0; i < PAIRS.length; i += 3){
     left: ()=> poseCompare(set[0]),
     midU: ()=> set[1] ? poseCompare(set[1]) : '',
     right:()=> set[2] ? poseCompare(set[2]) : '',
-    /* โหมดจอเดียว 16:9 — วางเรียงสามท่าไม่ไหว จึงโชว์ท่าแรกของหน้าเต็มจอ
-       ผู้ที่ดูจากจอเดียวใช้ปุ่มเลือกจอ 1/2/3 ดูอีกสองท่าได้ */
+    /* โหมดจอเดียว 16:9 — ยกทั้งสามท่ามาไว้ในจอเดียว คอลัมน์ละท่า
+       ครบทั้งภาพสแกน ภาพที่ฟื้นฟู และคำอธิบาย เหมือนที่แต่ละจอบนผนังได้รับ */
     html: frame({ eyebrow:stepEB(1),
-      title:esc(set[0].book),
-      sub:'ท่าที่ ' + thNum(+set[0].n) + ' จาก ๑๒ · ภาพสแกนจากหนังสือ → ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์',
-      body:`<div class="cmpcol">
-        <div class="duowide portrait tall">
-          ${panel('ภาพสแกนจากหนังสือ', set[0].n, mediaImg(imgOrig(set[0])), false, false, 'tight')}
-          <div class="arrow">»<small>ฟื้นฟู</small></div>
-          ${panel('ภาพที่ฟื้นฟูแล้ว', set[0].n,
-            set[0].pending ? phBox('image','') : imgFix(set[0]).map(mediaImg).join(''),
-            true, set[0].two, 'tight')}
-        </div>
-        <div class="cmpnote">${esc(set[0].note)}</div>
-      </div>` })});
+      title:'ท่าที่ ' + rng + ' จาก ๑๒',
+      sub:'ภาพสแกนจากหนังสือ → ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์',
+      body:`<div class="trio3">${set.map(q => `
+        <div class="t3">
+          <div class="hd"><small>ท่าที่ ${esc(thNum(+q.n))}</small>${esc(q.book)}</div>
+          <div class="pair">
+            ${panel('ภาพสแกน', '', mediaImg(imgOrig(q)), false, false, 'tight')}
+            ${panel(q.pending ? 'อยู่ระหว่างจัดเตรียม' : 'ฟื้นฟูแล้ว', '',
+              q.pending ? phBox('image','') : imgFix(q).map(mediaImg).join(''),
+              true, q.two, 'tight')}
+          </div>
+          <div class="nb">${esc(q.note)}</div>
+        </div>`).join('')}</div>` })});
 }
 
 /* ---- ขั้นที่ 02 (ต่อ): ฟื้นฟูภาพครูโนราท่านอื่น ----
