@@ -189,6 +189,35 @@ if [ ! -s "$bg" ]; then
     fi
 fi
 
+# ---------------------------------------------------------------------------
+# ตรวจโคเดก — ต้องเป็น H.264 เท่านั้น
+#
+# เจอมาแล้วจริง: คลิปชุด Drive เป็น mpeg4 (MPEG-4 Part 2 แบบ DivX)
+# ไฟล์เปิดด้วย QuickTime/VLC ได้ปกติ แต่ <video> ในเบราว์เซอร์ทุกตัวเล่นไม่ได้
+# สไลด์จึงขึ้นกล่อง "วิดีโอส่วนนี้อยู่ระหว่างจัดเตรียม" ทั้งที่ไฟล์อยู่ครบ
+# แปลงด้วย
+#   ffmpeg -i เดิม.mp4 -c:v libx264 -profile:v high -pix_fmt yuv420p \
+#          -crf 20 -movflags +faststart -an ใหม่.mp4
+if command -v ffprobe >/dev/null 2>&1; then
+    bad=0
+    for f in "$VID_DIR"/*.mp4 "$DRV_DIR"/*.mp4; do
+        [ -f "$f" ] || continue
+        c=$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name \
+              -of csv=p=0 "$f" 2>/dev/null)
+        if [ "$c" != "h264" ]; then
+            printf 'โคเดกไม่รองรับ (%s): %s\n' "${c:-อ่านไม่ได้}" "$(basename "$f")" >&2
+            bad=$((bad + 1))
+        fi
+    done
+    if [ "$bad" -gt 0 ]; then
+        echo "มี $bad ไฟล์ที่ไม่ใช่ H.264 — เบราว์เซอร์จะเล่นไม่ได้ ต้องแปลงก่อน" >&2
+        exit 1
+    fi
+    echo 'โคเดก: H.264 ครบทุกไฟล์'
+else
+    echo 'ข้ามการตรวจโคเดก (ไม่มี ffprobe) — ระวังไฟล์ที่ไม่ใช่ H.264' >&2
+fi
+
 echo '----'
 echo "วิดีโอ (22 คลิปหลัก + 12 คลิปจาก Drive): มีอยู่แล้ว $have · ได้ใหม่ $got · ไม่ได้ $fail"
 du -sh "$HERE/assets"/* 2>/dev/null | sort -h || true

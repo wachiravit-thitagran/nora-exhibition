@@ -68,7 +68,7 @@ pipeline {
                         -u "$(id -u):$(id -g)" \
                         -e HOME=/tmp -e npm_config_cache=/tmp/.npm \
                         -e PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
-                        -e EXPECT_SLIDES=62 \
+                        -e EXPECT_SLIDES=64 \
                         mcr.microsoft.com/playwright:v1.59.1-jammy \
                         sh -c 'npm install --no-save --no-audit --no-fund playwright@1.59.1 >/dev/null 2>&1 \
                                && node tests/check-deck.mjs /w' | tee deck_report.txt

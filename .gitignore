@@ -7,7 +7,7 @@
 #   assets/videos/   22 คลิป  ~40 MB    (เติมด้วย deploy/fetch-media.sh)
 #   assets/color/    22 คลิป            (ยังไม่มี)
 #   assets/drive/    12 คลิป  ~60 MB    (เติมด้วย deploy/fetch-media.sh)
-#   assets/restore/   6 ภาพ   ~1.2 MB  (การ์ดเทียบจากรายงานฟื้นฟู ๖๔ ภาพ)
+#   assets/restore/  39 ภาพ   ~7 MB    (การ์ดเทียบจากรายงานฟื้นฟู ๖๔ ภาพ)
 #   assets/students/  6 คลิป            (ยังไม่มี)
 # ถ้าครบทั้งหมดแล้ว repo โตเกิน ~200 MB ค่อยพิจารณาย้ายไป Git LFS
 # (git lfs track "assets/**/*.mp4") — ตอนนี้ยังไม่จำเป็น

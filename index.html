@@ -523,6 +523,18 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .cmpnote{flex:0 0 auto;font-size:36px;line-height:1.4;color:var(--muted);text-align:center;
   max-width:1900px;margin:0 auto}
 /* การ์ดเทียบก่อน-หลังจากรายงาน เป็นภาพสำเร็จรูปใบเดียว ให้พอดีพื้นที่ที่เหลือ */
+/* แถวการ์ดเทียบก่อน-หลัง — บนผนังจอละ 4 ใบ ในโหมดจอเดียวห่อเป็น 6x2
+   การ์ดจากรายงานมีพื้นขาวและป้ายชื่อท่าในตัวอยู่แล้ว จึงไม่ใส่กรอบซ้อนอีก */
+.fgrid{flex:1;min-width:0;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:30px}
+.fgrid.wrap{grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(2,1fr);gap:22px}
+.fgrid .fcard{min-width:0;min-height:0;margin:0;display:flex;flex-direction:column;gap:12px}
+.fgrid .fcard img{flex:1;min-height:0;width:100%;object-fit:contain;
+  filter:drop-shadow(0 18px 34px rgba(17,24,39,.28))}
+.fgrid .fcard figcaption{flex:0 0 auto;font-size:34px;font-weight:600;color:var(--ink);
+  text-align:center;line-height:1.2}
+.fgrid.wrap .fcard figcaption{font-size:26px}
+.slide.dark .fgrid .fcard figcaption{color:#F1E6CE}
+
 /* การ์ดเทียบจากรายงานมีพื้นขาวในตัวอยู่แล้ว ถ้าใส่กรอบขาวซ้อนอีกชั้น
    จะเห็นเป็นกล่องขาวใหญ่ว่าง ๆ ข้างละครึ่ง จึงปล่อยให้ภาพลอยกลางพื้นที่แทน
    แล้วใช้ drop-shadow ซึ่งเกาะรูปจริงของภาพ ไม่ใช่กรอบ */
@@ -844,6 +856,8 @@ const INLINE = (typeof window !== 'undefined' && window.__INLINE) || {};
 const cmp = f => INLINE[f]
   ? [INLINE[f]]
   : [CONFIG.DIR_COMPARE + f.replace(/\.png$/i, '.jpg')];
+/* การ์ดเทียบจากรายงานฟื้นฟู — ผ่าน INLINE เหมือน cmp() เพื่อให้ไฟล์พรีวิวก้อนเดียวฝังภาพได้ */
+const res = f => INLINE[f] ? [INLINE[f]] : [CONFIG.DIR_RESTORE + f];
 const drv = f => [CONFIG.DIR_DRIVE + f]
   .concat(CONFIG.ALT_DRIVE ? [CONFIG.ALT_DRIVE + f] : []);
 
@@ -1304,37 +1318,45 @@ for(let i = 0; i < PAIRS.length; i += 3){
    นอกจากตำราฟ้อนรำ ๒๔๖๖ โครงการยังฟื้นฟูภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร
    ตัวเลขและภาพเปรียบเทียบมาจากรายงาน nora_restoration_report_0164_FINAL
    ภาพในโฟลเดอร์ assets/restore/ คือการ์ดเทียบก่อน-หลังสำเร็จรูปจากรายงานฉบับนั้น */
-const DOCSETS = [
-  { id:'fig13', set:'ชุดที่ ๒', name:'ท่าพนมจีบ',  kind:'ภาพพิมพ์สกรีน (halftone) ฉากสถานที่จริง', ssim:'0.915' },
-  { id:'fig25', set:'ชุดที่ ๓', name:'ท่าปฐม',     kind:'ภาพถ่ายสีฉากกลางแจ้ง',                  ssim:'0.877' },
-  { id:'fig37', set:'ชุดที่ ๔', name:'ท่าเทพพนม',  kind:'ภาพถ่ายสีบนเวทีฉากม่าน',                ssim:'0.925' },
-  { id:'fig49', set:'ชุดที่ ๕', name:'ภาพที่ ๑',   kind:'ภาพถ่ายดิจิทัลร่วมสมัยฉากดำ',           ssim:'1.000 — โหมดสงวนต้นฉบับ' },
-  { id:'fig51', set:'ชุดที่ ๖', name:'ภาพที่ ๑',   kind:'ภาพถ่ายฟิล์มขาวดำจดหมายเหตุ ริมสระน้ำ', ssim:'0.852' },
-  { id:'fig58', set:'ชุดที่ ๖', name:'ภาพที่ ๘',   kind:'ภาพถ่ายฟิล์มขาวดำจดหมายเหตุ ริมสระน้ำ', ssim:'0.859' },
+/* สามชุดเอกสารที่ถ่ายครบ "ท่าครู ๑๒ ท่า" ของครูโนราคนละท่าน
+   หมายเลขภาพตรงกับ "ภาพที่ N" ในรายงาน ไฟล์อยู่ที่ assets/restore/figNN.jpg */
+const MASTERS = [
+  { set:'ชุดเอกสารที่ ๒', kind:'ภาพพิมพ์สกรีน (halftone) ฉากสถานที่จริง',
+    note:'ชุดท่าจีบ ๑๑ ท่า ปิดท้ายด้วยท่าเขาควาย',
+    poses:[[13,'ท่าพนมจีบ'],[14,'จีบข้างซ้าย'],[15,'จีบข้างขวา'],[16,'จีบเพียงเอวซ้าย'],
+           [17,'จีบเพียงเอวขวา'],[18,'จีบไว้หลังซ้าย'],[19,'จีบไว้หลังขวา'],[20,'จีบเพียงบ่าซ้าย'],
+           [21,'จีบเพียงบ่าขวา'],[22,'จีบเสมอหน้าซ้าย'],[23,'จีบเสมอหน้าขวา'],[24,'ท่าเขาควาย']] },
+  { set:'ชุดเอกสารที่ ๓', kind:'ภาพถ่ายสีฉากกลางแจ้ง',
+    note:'ชุดท่าปฐม–แม่ลาย–สามย่าง–ผาลา–เครือวัลย์–จีบหลัง',
+    poses:[[25,'ท่าปฐม'],[26,'ท่าแม่ลาย'],[27,'ท่าชัดหว่างอก'],[28,'ท่าแม่ลายซื่อ'],
+           [29,'ท่าแม่ลายจีบบน'],[30,'ท่าแม่ลายจีบตั้งเข่า'],[31,'ท่าแม่ลายท่าต่ำ'],[32,'ท่าสามย่างมือต่ำ'],
+           [33,'ท่าสามย่างจีบต่ำ'],[34,'ท่าผาลา'],[35,'ท่าเครือวัลย์'],[36,'ท่าจีบหลัง']] },
+  { set:'ชุดเอกสารที่ ๔', kind:'ภาพถ่ายสีบนเวทีฉากม่าน',
+    note:'ชุดท่าเทพพนม–พรหมเทวะ–มาลัย–ผาลา–ยูงฟ้อนหาง–กินนรเลียบถ้ำ',
+    poses:[[37,'ท่าเทพพนม'],[38,'ท่าพรหมเทวะ'],[39,'ท่าเขาควาย'],[40,'ท่าชูชาย'],
+           [41,'ท่าชูมาลัย'],[42,'ท่าพวงมาลัย'],[43,'ท่าร้อยพวงมาลัย'],[44,'ท่าโคมเวียน'],
+           [45,'ท่าผาลาเพียงไหล่'],[46,'ท่ายูงฟ้อนหาง'],[47,'ท่าชูสูง'],[48,'ท่ากินนรเลียบถ้ำ']] },
 ];
-const restorePane = f => band({ eyebrow:f.set, h2:82, title:esc(f.name), nologo:true,
-  sub:esc(f.kind),
-  body:`<div class="cmpcol">
-    <div class="figbox">${mediaImg([CONFIG.DIR_RESTORE + f.id + '.jpg'])}</div>
-    <div class="cmpnote">ก่อนฟื้นฟู · หลังฟื้นฟู · ขยายดูใบหน้าและเครื่องแต่งกาย — SSIM ${esc(f.ssim)}</div>
-  </div>` });
+const figCard = ([num, nm]) => `<figure class="fcard">
+     ${mediaImg(res('fig' + num + '.jpg'))}
+     <figcaption>${esc(nm)}</figcaption></figure>`;
 
 /* หน้าเปิดหมวด — เล่าว่าฟื้นฟูอะไรบ้าง ก่อนโชว์ภาพจริง */
 const RESTORE_KPI = [['64','ภาพที่ฟื้นฟูทั้งชุด'],['6','ชุดเอกสารต้นทาง'],
-                     ['59','ผ่านเกณฑ์อัตโนมัติ'],['×2','ความละเอียดที่ส่งมอบ']]
+                     ['3','ครูโนราที่มีครบ ๑๒ ท่า'],['×2','ความละเอียดที่ส่งมอบ']]
   .map(([a,b],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
 push({ dur:D.compare, step:1, dark:true, spanCU:true,
   wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ฟื้นฟูภาพจดหมายเหตุอีก ๖๔ ภาพ',
     rows:[['ชุดเอกสาร','๖ ชุด — ภาพสตูดิโอ ภาพพิมพ์สกรีน ภาพสี และฟิล์มขาวดำ'],
+          ['ครบ ๑๒ ท่า','๓ ชุด (ชุดที่ ๒ ๓ และ ๔) จากครูโนราคนละท่าน'],
           ['ผ่านเกณฑ์อัตโนมัติ','๕๙ ภาพ'],
-          ['ผ่านโดยการทบทวน','๒ ภาพ'],
           ['โหมดสงวนต้นฉบับ','๒ ภาพ (คุณภาพดีอยู่แล้ว ไม่แตะต้อง)']],
     note:'เกณฑ์ยอมรับ ๔ ข้อต่อภาพ วัดด้วยตัวชี้วัดแบบไม่อ้างอิง (BRISQUE / ความคมชัด / สัญญาณรบกวน / SSIM) '
        + 'ภาพที่ไม่ผ่านเกณฑ์อัตโนมัติเข้าสู่การทบทวนโดยคน และบันทึกผลไว้อย่างโปร่งใส' },
   left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
   midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
     h2:86, title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
-    sub:'ภาพถ่ายจดหมายเหตุของครูโนราท่านอื่นอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ผ่านกระบวนการเดียวกัน',
+    sub:'ภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
     body:`<div class="sumgrid grid2">${RESTORE_KPI}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'ระเบียบวิธี', h2:88,
     title:'ฟื้นฟูด้วยกติกาเดียวกันทุกภาพ', nologo:true,
@@ -1348,25 +1370,48 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
     </div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
     title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
-    sub:'ภาพถ่ายจดหมายเหตุของครูโนราท่านอื่นอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ผ่านกระบวนการเดียวกัน',
+    sub:'ภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
     body:`<div class="sumgrid">${RESTORE_KPI}</div>` })});
 
-for(let i = 0; i < DOCSETS.length; i += 3){
-  const set = DOCSETS.slice(i, i + 3);
+/* ครูละหน้า — ๑๒ ท่าครบในหน้าเดียว จอละ ๔ ท่า
+   การ์ดแต่ละใบคือภาพเทียบก่อน-หลังจากรายงาน จึงไม่ต้องแยกภาพสแกน/ภาพฟื้นฟูอีก */
+MASTERS.forEach(m => {
+  const strip = k => `<div class="fgrid">${m.poses.slice(k, k + 4).map(figCard).join('')}</div>`;
+  const pane = (k, i) => band({ eyebrow:m.set + ' · ท่าที่ ' + thNum(k + 1) + '–' + thNum(k + 4),
+    h2:72, title:'ท่าครู ๑๒ ท่า', nologo:true, sub:esc(m.kind), body:strip(k) });
   push({ dur:D.compare, step:1, spanCU:true,
-    wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ผลการฟื้นฟูรายภาพ',
-      rows:set.map(f => [f.set + ' · ' + f.name, f.kind]),
-      note:'การ์ดเทียบก่อน-หลังนำมาจากรายงานผลการฟื้นฟูฉบับสมบูรณ์ ภาพที่ ๑–๖๔' },
-    left: ()=> restorePane(set[0]),
-    midU: ()=> set[1] ? restorePane(set[1]) : '',
-    right:()=> set[2] ? restorePane(set[2]) : '',
-    html: frame({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
-      title:esc(set[0].set + ' · ' + set[0].name), sub:esc(set[0].kind),
-      body:`<div class="cmpcol">
-        <div class="figbox">${mediaImg([CONFIG.DIR_RESTORE + set[0].id + '.jpg'])}</div>
-        <div class="cmpnote">ก่อนฟื้นฟู · หลังฟื้นฟู · ขยายดูใบหน้าและเครื่องแต่งกาย — SSIM ${esc(set[0].ssim)}</div>
-      </div>` })});
-}
+    wall:{ head:stepEB(1) + ' — ' + m.set, title:'ท่าครู ๑๒ ท่า',
+      rows:m.poses.map(([n, nm], i) => ['ท่าที่ ' + thNum(i + 1), nm]),
+      note:m.kind + ' — ' + m.note },
+    left: ()=> pane(0), midU:()=> pane(4), right:()=> pane(8),
+    html: frame({ eyebrow:stepEB(1) + ' — ' + m.set,
+      title:'ท่าครู ๑๒ ท่า', sub:esc(m.kind + ' — ' + m.note),
+      body:`<div class="fgrid wrap">${m.poses.map(figCard).join('')}</div>` })});
+});
+
+/* ชุดที่ ๕–๖ ไม่ได้ถ่ายครบ ๑๒ ท่า เก็บไว้หน้าเดียวเป็นตัวอย่าง */
+const OTHERS = [
+  { id:'fig49', set:'ชุดที่ ๕', name:'ภาพที่ ๑', kind:'ภาพถ่ายดิจิทัลร่วมสมัยฉากดำ', ssim:'1.000 — โหมดสงวนต้นฉบับ' },
+  { id:'fig51', set:'ชุดที่ ๖', name:'ภาพที่ ๑', kind:'ภาพถ่ายฟิล์มขาวดำจดหมายเหตุ ริมสระน้ำ', ssim:'0.852' },
+  { id:'fig58', set:'ชุดที่ ๖', name:'ภาพที่ ๘', kind:'ภาพถ่ายฟิล์มขาวดำจดหมายเหตุ ริมสระน้ำ', ssim:'0.859' },
+];
+const otherPane = f => band({ eyebrow:f.set, h2:82, title:esc(f.name), nologo:true,
+  sub:esc(f.kind),
+  body:`<div class="cmpcol">
+    <div class="figbox">${mediaImg(res(f.id + '.jpg'))}</div>
+    <div class="cmpnote">ก่อนฟื้นฟู · หลังฟื้นฟู · ขยายดูใบหน้าและเครื่องแต่งกาย — SSIM ${esc(f.ssim)}</div>
+  </div>` });
+push({ dur:D.compare, step:1, spanCU:true,
+  wall:{ head:stepEB(1) + ' — ชุดที่ ๕ และ ๖', title:'ภาพชุดที่ยังรอยืนยันชื่อท่า',
+    rows:OTHERS.map(f => [f.set + ' · ' + f.name, f.kind]),
+    note:'สองชุดนี้ไม่ได้ถ่ายครบ ๑๒ ท่า และยังรอคณะทำงานยืนยันชื่อท่ากับบริบท '
+       + 'จึงยังไม่บันทึกชื่อท่าลงในชุดองค์ความรู้' },
+  left: ()=> otherPane(OTHERS[0]), midU:()=> otherPane(OTHERS[1]), right:()=> otherPane(OTHERS[2]),
+  html: frame({ eyebrow:stepEB(1) + ' — ชุดที่ ๕ และ ๖',
+    title:esc(OTHERS[0].set + ' · ' + OTHERS[0].name), sub:esc(OTHERS[0].kind),
+    body:`<div class="fgrid wrap">${OTHERS.map(f => `<figure class="fcard">
+        ${mediaImg(res(f.id + '.jpg'))}
+        <figcaption>${esc(f.set + ' · ' + f.name)}</figcaption></figure>`).join('')}</div>` })});
 
 /* ---- ขั้นที่ 03 สร้างการเคลื่อนไหว — จอกลางกับจอขวาเล่นคนละคลิปพร้อมกัน ---- */
 divider(2);
