@@ -597,6 +597,8 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
 #ui button:hover{background:rgba(255,255,255,.22)}
 #ui button.on{background:var(--gold);color:#2E2405}
 #ui .sep{width:1px;height:22px;background:rgba(255,255,255,.18)}
+#ui .grp{display:flex;align-items:center;gap:10px}
+#ui [data-panels].hide{display:none}
 #ui .info{color:var(--gold);font-size:13px;font-weight:600;padding:0 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
 #hint{
   position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
@@ -616,12 +618,15 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
   <button data-act="next">▶</button>
   <span class="info" id="uiInfo">–</span>
   <span class="sep"></span>
-  <button data-mode="0" title="จอเดียว 16:9">16:9</button>
-  <button data-mode="wall" title="จอเดียวยาว 48:9 ไม่มีขอบจอคั่น (จอ LED ผืนเดียว)">48:9 ยาว</button>
-  <button data-mode="w" title="จอ 3 จอเรียงกัน จอละ 16:9">48:9 แบ่ง 3</button>
-  <button data-mode="1" title="เฉพาะจอซ้าย">จอ 1</button>
-  <button data-mode="2" title="เฉพาะจอกลาง">จอ 2</button>
-  <button data-mode="3" title="เฉพาะจอขวา">จอ 3</button>
+  <button data-mode="0" data-fam="s" title="จอเดียว 16:9">16:9</button>
+  <button data-mode="w" data-fam="w" title="จอ 3 จอเรียงกัน จอละ 16:9">48:9 แบ่ง 3</button>
+  <span class="sep" data-panels></span>
+  <span class="grp" data-panels>
+    <button data-mode="0" title="เนื้อหาหลักจอเดียว ไม่แบ่งจอ">เดี่ยว</button>
+    <button data-mode="1" title="เฉพาะจอซ้าย">จอ 1</button>
+    <button data-mode="2" title="เฉพาะจอกลาง">จอ 2</button>
+    <button data-mode="3" title="เฉพาะจอขวา">จอ 3</button>
+  </span>
   <span class="sep"></span>
   <button data-act="full">⛶ เต็มจอ</button>
   <button data-act="restart">↻ เริ่มใหม่</button>
@@ -1583,7 +1588,9 @@ function show(i, seekMs){
   });
   const info = document.getElementById('uiInfo');
   if(info) info.textContent = (cur+1) + ' / ' + SLIDES.length
-    + (ULTRA_ON ? (PANEL ? ' · จอ ' + PANEL : ' · 48:9') : '')
+    + (PANEL_ON ? ' · จอ ' + PANEL_ON
+       : WALL_ON ? ' · 48:9 ยาว'
+       : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
     + (SYNC ? ' · sync' : '');
 }
 
@@ -1628,6 +1635,19 @@ addEventListener('mousemove', ()=>{
   uiTimer = setTimeout(()=>{ ui.classList.remove('show'); hint.classList.remove('show'); }, 3000);
 });
 /* ปุ่มสลับโหมดจอ — ทำงานสด ไม่ต้องแก้ URL */
+/* ไฮไลต์ปุ่มให้ตรงกับโหมดปัจจุบัน และซ่อนกลุ่มเลือกจอเมื่อไม่ได้อยู่โหมด 16:9 */
+function markMode(m){
+  const single = !WALL_ON && (m === '0' || PANEL_ON > 0);
+  ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x.dataset.mode === m));
+  ui.querySelectorAll('[data-fam]').forEach(x =>
+    x.classList.toggle('on', x.dataset.fam === (single ? 's' : 'w')));
+  ui.querySelectorAll('[data-panels]').forEach(x => x.classList.toggle('hide', !single));
+}
+
+/* โหมดที่ให้เลือกมีสองกลุ่ม
+     16:9        m = '0' (เดี่ยว) หรือ '1' '2' '3' (เลือกดูทีละจอของผัง 3 จอ)
+     48:9 แบ่ง 3 m = 'w'
+   ('wall' คือจอยาวไม่มีขอบคั่น ไม่มีปุ่มแล้ว แต่ยังเปิดด้วย ?wall=1 ได้) */
 function setMode(m){
   const root = document.documentElement;
   PANEL_ON = (m === '1' || m === '2' || m === '3') ? +m : 0;
@@ -1635,7 +1655,7 @@ function setMode(m){
   ULTRA_ON = (m !== '0');
   root.classList.toggle('ultra', ULTRA_ON);
   root.classList.toggle('wall', WALL_ON);
-  ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x.dataset.mode === m));
+  markMode(m);
   fit();
   const c = cur; cur = -1; show(c);       // สร้าง/หยุดวิดีโอตาม pane ที่เห็น
 }
@@ -1655,9 +1675,9 @@ addEventListener('keydown', e=>{
   if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   if((e.key==='r'||e.key==='R') && !SYNC) show(0);
-  if(e.key==='u'||e.key==='U'){                      // วนโหมด 16:9 → 48:9 → จอ1 → จอ2 → จอ3
-    const order = ['0','wall','w','1','2','3'];
-    const now = PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'));
+  if(e.key==='u'||e.key==='U'){       // วน 16:9 → จอ1 → จอ2 → จอ3 → 48:9 แบ่ง 3
+    const order = ['0','1','2','3','w'];
+    const now = PANEL_ON ? String(PANEL_ON) : (ULTRA_ON && !WALL_ON ? 'w' : '0');
     setMode(order[(order.indexOf(now) + 1) % order.length]);
   }
 });
@@ -1675,9 +1695,8 @@ function boot(){
     const n = Math.max(0, (parseInt(QS.get('slide'), 10) || 1) - 1);
     show(Math.min(n, SLIDES.length - 1));
   }
-  ui.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on',
-    x.dataset.mode === (PANEL ? String(PANEL)
-                              : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')))));
+  markMode(PANEL_ON ? String(PANEL_ON)
+                    : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')));
   raf = requestAnimationFrame(tick);
 }
 boot();
