@@ -1,14 +1,15 @@
-# ไฟล์สื่อขนาดใหญ่ — ไม่เก็บใน git
-# (วิดีโอชุดหนึ่ง ~150 MB + ภาพ ~36 MB) ให้ก็อปเข้าเซิร์ฟเวอร์ตอน deploy
-# ถ้าอยากเก็บใน git ให้ลบบรรทัดพวกนี้ออก และพิจารณาใช้ Git LFS
-assets/**/*.mp4
-assets/**/*.webm
-assets/**/*.mov
-assets/**/*.m4v
-assets/**/*.png
-assets/**/*.jpg
-assets/**/*.jpeg
-!assets/**/.gitkeep
+# ไฟล์สื่อใน assets/ ถูกเก็บใน repo ด้วย
+# เพราะ Dockerfile ฝังทุกอย่างลงอิมเมจ (COPY assets/) — repo จึงเป็นแหล่งเดียว
+# ที่ CI ใช้ build ได้โดยไม่ต้องพึ่งเครื่องใครหรือเน็ต
+#
+# ขนาดที่ต้องรู้ตัว
+#   assets/compare/  25 ไฟล์  ~6 MB     (มีแล้ว)
+#   assets/videos/   22 คลิป  ~40 MB    (เติมด้วย deploy/fetch-media.sh)
+#   assets/color/    22 คลิป            (ยังไม่มี)
+#   assets/drive/    12 คลิป            (ยังไม่มี)
+#   assets/students/  6 คลิป            (ยังไม่มี)
+# ถ้าครบทั้งหมดแล้ว repo โตเกิน ~200 MB ค่อยพิจารณาย้ายไป Git LFS
+# (git lfs track "assets/**/*.mp4") — ตอนนี้ยังไม่จำเป็น
 
 # ระบบปฏิบัติการ / เครื่องมือ
 .DS_Store
@@ -16,7 +17,7 @@ Thumbs.db
 *.swp
 node_modules/
 
-# ไฟล์ที่ถูกสร้างโดย make-standalone.py
+# ไฟล์ที่สร้างใหม่ได้เสมอ
 standalone.html
-# ไฟล์พรีวิวก้อนเดียว (standalone + ภาพฝังเป็น data URI ~3.4 MB) สร้างใหม่ได้เสมอ
 preview-full.html
+# ไฟล์พรีวิวก้อนเดียว (standalone + ภาพฝังเป็น data URI ~3.4 MB)

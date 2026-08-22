@@ -1,0 +1,15 @@
+# รันบน ainora-agent — มีชุดเดียว ไม่มี staging
+# สื่อทั้งหมดอยู่ในอิมเมจ ไม่ต้อง mount อะไร
+name: nora-exhibition
+services:
+  nora-exhibition:
+    image: "${REGISTRY_NORAEXHIBITION_IMAGE}:latest"
+    container_name: nora-exhibition-web
+    restart: unless-stopped
+    ports:
+      - "${EXHIBITION_PORT:-10096}:80"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

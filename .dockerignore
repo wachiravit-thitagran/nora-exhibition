@@ -1,0 +1,11 @@
+.git
+.gitignore
+*.md
+tests/
+standalone.html
+preview-full.html
+nora-history.bundle
+docker-compose*.yml
+Jenkinsfile
+make-standalone.py
+deploy/fetch-media.sh

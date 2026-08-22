@@ -133,8 +133,11 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .stagebody{position:absolute;left:150px;right:150px;top:404px;bottom:230px;display:flex;flex-direction:column}
 .cmp{flex:1;display:grid;grid-template-columns:1fr auto 1fr;gap:70px;align-items:center}
 .cmp.solo{grid-template-columns:1fr}
-/* ภาพเดี่ยวแนวตั้งบนจอเสริม — บีบกรอบให้พอดีภาพ ไม่เหลือพื้นขาวกว้าง */
-.pL .cmp.solo,.pR .cmp.solo{grid-template-columns:minmax(0,1500px);justify-content:center}
+/* สื่อชิ้นเดียวบนจอเสริม/ผืนกว้าง — บีบกรอบให้พอดีของจริง ไม่เหลือพื้นขาวกว้าง
+   จอซ้ายเป็นภาพนิ่งแนวตั้ง (กว้างกว่าได้) ส่วนที่เหลือเป็นคลิป 9:16 จึงแคบกว่า */
+.pL .cmp.solo{grid-template-columns:minmax(0,1500px);justify-content:center}
+.pR .cmp.solo,.pCR .cmp.solo,.pW .cmp.solo,.pCU .cmp.solo{
+  grid-template-columns:minmax(0,1100px);justify-content:center}
 .panel{
   height:100%;background:var(--card);border:3px solid var(--line);border-radius:40px;
   box-shadow:0 34px 70px -44px rgba(17,24,39,.42);
@@ -152,17 +155,32 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .panel.alt .cap{background:var(--gold)}
 .panel.alt .cap .lbl{color:#2E2405}
 .panel.alt .cap .badge{background:rgba(0,0,0,.16);color:#2E2405}
-.panel .body{flex:1;min-height:0;display:flex;align-items:stretch;justify-content:center;gap:26px;
-  padding:40px;background:var(--paper-2);overflow:hidden}
-.panel .body img,.panel .body video{flex:1 1 0;min-width:0;min-height:0;width:100%;height:auto;
+.panel .body{position:relative;flex:1;min-height:0;display:flex;align-items:stretch;
+  justify-content:center;gap:26px;padding:40px;background:var(--paper-2);overflow:hidden}
+/* สื่อชิ้นเดียว — จัดกลางด้วยตำแหน่งสัมบูรณ์ + margin:auto
+   คลิป 9:16 หรือภาพแนวตั้งจึงย่อให้พอดีกรอบเอง ไม่ล้นออกไปแล้วถูก overflow ตัด
+   (เดิม width:100% + height:auto ทำให้คลิปแนวตั้งสูงเป็น 1.78 เท่าของความกว้างกรอบ) */
+.panel .body > img:only-child,
+.panel .body > video:only-child{
+  position:absolute;inset:0;margin:auto;width:auto;height:auto;
+  max-width:calc(100% - 80px);max-height:calc(100% - 80px);
   object-fit:contain;display:block;border-radius:14px}
-.panel .body.two img{flex:0 1 48%}
+/* ภาพคู่ ซ้าย+ขวา — คุมด้วยความสูงของกรอบ */
+.panel .body.two img{flex:0 1 48%;min-width:0;height:100%;width:auto;
+  object-fit:contain;display:block;border-radius:14px}
 
 .arrow{font-size:150px;line-height:1;color:var(--gold);font-weight:700;user-select:none}
 .arrow small{display:block;font-size:32px;color:var(--muted);font-weight:600;text-align:center;margin-top:8px;letter-spacing:.08em}
 
 /* ---------- combine (poses + result) ---------- */
-.combine{flex:1;display:grid;grid-template-columns:1.15fr auto 1fr;gap:64px;align-items:center}
+.combine{flex:1;display:grid;grid-template-columns:1fr auto minmax(0,1120px);
+  gap:64px;align-items:center}
+/* สมการเดียวกันบนผืนกว้าง 2 จอ — การ์ดท่ารำเรียงแนวนอน สูงเต็มผืน
+   ไม่ใช้ความกว้างเป็น % เพราะคอลัมน์กว้างเกือบ 4000px จะได้การ์ดเตี้ยแบนผิดสัดส่วน */
+.combine.wide{height:100%;grid-template-columns:1fr auto minmax(0,1400px);gap:110px}
+.combine.wide .chips{flex-wrap:nowrap;height:100%;gap:44px}
+.combine.wide .chip{width:auto;flex:1 1 0;min-width:0;max-width:1250px}
+.combine.wide .chip .nm{font-size:44px;padding:24px 26px}
 .chips{display:flex;flex-wrap:wrap;gap:32px;align-items:stretch;justify-content:center}
 .chip{
   width:calc(33.333% - 24px);min-width:300px;background:var(--card);border:3px solid var(--line);
@@ -643,10 +661,13 @@ const CONFIG = {
   },
   CYCLE_TARGET_SEC : 1800,   // ยืด/หดทุกหน้าตามสัดส่วน ให้รอบลงตัว 30 นาที
                              // ใส่ 0 = ใช้เวลาตาม DWELL ตรง ๆ ไม่ปรับ
-  AINORA_BASE   : '',     // '' = โฮสต์บนโดเมนเดียวกับ ainora.psu.ac.th
-                          // ถ้าเปิดจากเครื่องอื่น ให้ใส่ 'https://ainora.psu.ac.th'
-  USE_LOCAL_VIDEOS: false,// true = ใช้ไฟล์ที่ดาวน์โหลดไว้ใน assets/videos/<id>.mp4 ก่อน
-                          // (ใช้ตอนอัดวิดีโอแบบ offline) ถ้าไม่มีไฟล์จะถอยไปใช้ URL บนเว็บเอง
+  /* ---- ที่มาของวิดีโอ ----
+     สื่อทั้งหมดถูกฝังลง docker image แล้ว คอนเทนเนอร์จึงไม่ต้องต่อออกไปที่ไหนเลย
+       true  = เล่นจากไฟล์ assets/videos/<id>.mp4 ในอิมเมจ  ← ค่าที่ใช้ deploy
+       false = ขอผ่าน AINORA_BASE + /videos/<id>/file (ต้องมี proxy ให้)
+     เติมไฟล์ด้วย sh deploy/fetch-media.sh ก่อน docker build                  */
+  USE_LOCAL_VIDEOS: true,
+  AINORA_BASE     : '/exhibition',   // ใช้เฉพาะเมื่อ USE_LOCAL_VIDEOS = false
   DIR_VIDEOS    : 'assets/videos/',
   ANIMATE       : true,   // false = ปิดอนิเมชันทั้งหมด (หรือใส่ ?nomotion=1 ที่ URL)
   ULTRA         : false,  // true = เปิดโหมดจอยาว 48:9 เป็นค่าเริ่มต้น (หรือใส่ ?ultra=1)
@@ -657,39 +678,40 @@ const CONFIG = {
                           // โหมดนี้คำนวณว่า "ตอนนี้ควรอยู่หน้าไหน" จากนาฬิกาจริง
                           // ทุกเครื่องจึงตรงกันเองโดยไม่ต้องเชื่อมต่อกัน
   SYNC_EPOCH    : Date.UTC(2026, 0, 1),  // จุดเริ่มนับเวลาที่ทุกเครื่องใช้ร่วมกัน
-  HERO_BG       : '/static/images/background.png',  // ภาพพื้นหลังลายไทยจากหน้าเว็บ
+  HERO_BG       : 'assets/static/background.png',   // ภาพพื้นหลังลายไทย (อยู่ในอิมเมจ)
   DIR_COMPARE   : 'assets/compare/',   // ภาพต้นฉบับ/ซ่อมแซม (จากโฟลเดอร์ เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม)
-  /* ---- ที่หาไฟล์สำรอง: โฟลเดอร์พี่น้องใน Nora/ ----
-     ถ้าวางโปรเจกต์เป็น Nora/exhibition_web/ จะหาไฟล์จากโฟลเดอร์เดิมได้เลย
-     ไม่ต้องก็อปอะไรเข้า assets/ ก่อน — เปิด index.html จากเครื่องก็เห็นภาพครบ
-     พอ deploy ขึ้นเซิร์ฟเวอร์แล้วค่อยก็อปเข้า assets/ (ตัวแรกในลิสต์ชนะ)  */
-  ALT_COMPARE   : '../เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/',
-  ALT_DRIVE     : '../วิดีโอ/',
+  /* ---- ปิดไว้: path ../ วิ่งออกไปนอก /exhibition/ ซึ่ง service ไม่ให้บริการ ----
+     ถ้าจะเปิดไฟล์จากโฟลเดอร์ Nora/ ตรง ๆ (ไม่ผ่าน nginx) ค่อยใส่ค่ากลับเข้าไป
+       ALT_COMPARE : '../เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/'
+       ALT_DRIVE   : '../วิดีโอ/'                                            */
+  ALT_COMPARE   : '',
+  ALT_DRIVE     : '',
   DIR_POSES     : 'assets/poses/',     // เฟรมท่ารำที่ตัดจากวิดีโอ ด้วย frame-picker.html
                                        // ตั้งชื่อ <videoId>-<ลำดับท่าเริ่มจาก 0>.jpg
+  /* ภาพท่าบนสไลด์ "ภาพท่า + ภาพท่า = วิดีโอ" เอามาจากที่เดียว ไม่ไล่สำรอง
+       'compare' = ภาพท่าที่ฟื้นฟูจากตำรา (มีอยู่แล้วครบ ใช้ได้ทันที)
+       'frames'  = เฟรมที่ตัดจากวิดีโอ (ต้องตัด 66 ภาพด้วย frame-picker.html ก่อน) */
+  POSE_SRC      : 'compare',
   DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
   DIR_COLOR     : 'assets/color/',     // วิดีโอที่ใส่สีแล้ว
   DIR_STUDENT   : 'assets/students/',  // วิดีโอ/ภาพ นักศึกษา-นักเรียนรำ
 };
 /* แถบโลโก้ผู้สนับสนุน — แสดงทุกสไลด์แทนการเขียนชื่อหน่วยงาน
    ถ้าไฟล์ยังไม่มี จะขึ้นกรอบประบอกชื่อหน่วยงานไว้ให้รู้ว่าต้องวางไฟล์อะไร */
+// k = ตัวคูณความสูง ปรับให้น้ำหนักสายตาเท่ากัน (สัดส่วนโลโก้ต่างกันมาก
+//     ตราครุฑสูงแคบ 0.65 : โลโก้ PSU กว้าง 3.78)
+// ไฟล์อยู่ใน brand/ ทั้งหมด — ไม่ดึงจากเว็บต้นทางแล้ว ทุก request ต้องผ่าน nginx
+// ถ้าไฟล์หาย ให้รัน brand/fetch-logos.sh ดึงมาวางใหม่ (ที่มาของแต่ละไฟล์อยู่ในสคริปต์)
 const SPONSORS = [
-  // k = ตัวคูณความสูง ปรับให้น้ำหนักสายตาเท่ากัน (สัดส่วนโลโก้ต่างกันมาก
-  //     ตราครุฑสูงแคบ 0.65 : โลโก้ PSU กว้าง 3.78)
-  { file:'brand/logo-moc.png',  k:1.16, name:'กระทรวง\nวัฒนธรรม',
-    web:'https://www.m-culture.go.th/_nuxt/img/logo.be79a18.png' },
-  { file:'brand/logo-ocac.png', k:1.00, name:'สำนักงานศิลปวัฒนธรรม\nร่วมสมัย',
-    web:'https://www.ocac.go.th/wp-content/uploads/2021/03/web-logo-ocac2.png' },
-  { file:'brand/logo-psu.png',  k:0.80, name:'มหาวิทยาลัย\nสงขลานครินทร์',
-    web:'https://www.psu.ac.th/img/logos/psu_th.webp' },
+  { file:'brand/logo-moc.png',  k:1.16, name:'กระทรวง\nวัฒนธรรม' },
+  { file:'brand/logo-ocac.png', k:1.00, name:'สำนักงานศิลปวัฒนธรรม\nร่วมสมัย' },
+  { file:'brand/logo-psu.png',  k:0.80, name:'มหาวิทยาลัย\nสงขลานครินทร์' },
 ];
 function logoStrip(){
-  return '<div class="logos">' + SPONSORS.map(sp => {
-    // ลองไฟล์ในเครื่องก่อน ถ้าไม่มีค่อยดึงจากเว็บต้นทาง (ทำงานได้ทันทีแม้ยังไม่ได้ก็อปไฟล์)
-    const srcs = [sp.file].concat(sp.web ? [sp.web] : []);
-    return `<img alt="${esc(sp.name.replace(/\n/g,' '))}" data-logo='${esc(JSON.stringify(sp.name))}'
-       style="--k:${sp.k || 1}" data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(sp.file)}">`;
-  }).join('') + '</div>';
+  return '<div class="logos">' + SPONSORS.map(sp =>
+    `<img alt="${esc(sp.name.replace(/\n/g,' '))}" data-logo='${esc(JSON.stringify(sp.name))}'
+       style="--k:${sp.k || 1}" data-srcs='${esc(JSON.stringify([sp.file]))}' data-i="0" src="${enc(sp.file)}">`
+  ).join('') + '</div>';
 }
 
 /* ================================================================
@@ -716,16 +738,16 @@ const PAIRS = [
 /* จุดฝังภาพแบบ data: URI — ใช้ตอนทำไฟล์พรีวิวก้อนเดียว (ปกติเป็น {} เฉย ๆ) */
 const INLINE = (typeof window !== 'undefined' && window.__INLINE) || {};
 
-/* cmp(ชื่อไฟล์) → ลำดับที่ไล่หาไฟล์
-   1) ภาพที่ฝังในไฟล์ (ตอนทำพรีวิวก้อนเดียว)
-   2) assets/compare/<ชื่อ>.jpg   ← ชุดย่อขนาดสำหรับขึ้นเว็บ (เล็กกว่า PNG ~7 เท่า)
-   3) assets/compare/<ชื่อ>.png   ← ไฟล์ต้นฉบับ ถ้าก็อปมาทั้งดุ้น
-   4) ../เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/  ← โฟลเดอร์พี่น้องใน Nora/ (ตอนเปิดจากเครื่อง) */
-const cmp = f => (INLINE[f] ? [INLINE[f]] : [])
-  .concat(/\.png$/i.test(f) ? [CONFIG.DIR_COMPARE + f.replace(/\.png$/i, '.jpg')] : [])
-  .concat([CONFIG.DIR_COMPARE + f])
-  .concat(CONFIG.ALT_COMPARE ? [CONFIG.ALT_COMPARE + f] : []);
-const drv = f => [CONFIG.DIR_DRIVE   + f].concat(CONFIG.ALT_DRIVE   ? [CONFIG.ALT_DRIVE   + f] : []);
+/* cmp(ชื่อไฟล์) → ที่อยู่ของภาพ ทางเดียว ไม่มีสำรอง
+   assets/compare/<ชื่อ>.jpg  (ชุดย่อขนาดสำหรับขึ้นเว็บ — วิธีสร้างอยู่ใน README ข้อ 3.1)
+   ชื่อไฟล์ในโค้ดลงท้าย .png ตามชื่อต้นฉบับ จึงเปลี่ยนนามสกุลให้ตรงชุดที่ deploy
+   ยกเว้นตอนทำไฟล์พรีวิวก้อนเดียว ที่ภาพถูกฝังเป็น data URI มาแล้ว
+   ถ้าจะใช้ PNG ต้นฉบับแทน ให้ตัด .replace(...) บรรทัดล่างออก                */
+const cmp = f => INLINE[f]
+  ? [INLINE[f]]
+  : [CONFIG.DIR_COMPARE + f.replace(/\.png$/i, '.jpg')];
+const drv = f => [CONFIG.DIR_DRIVE + f]
+  .concat(CONFIG.ALT_DRIVE ? [CONFIG.ALT_DRIVE + f] : []);
 
 const imgOrig = p => cmp(p.n + '_' + p.book + '_A-ต้นฉบับ.png');
 const imgFix  = p => p.two
@@ -750,6 +772,14 @@ const POSE_IMG = {
   'ท่าเหาะเหิน'    : '12_ท่าเหาะเหิน_B-ซ่อมแซม.png',
   // ยังไม่ได้จับคู่: ท่าเทวดา, ท่าพนมมือ, ท่าจีบปรกหน้า  → แสดงเป็นการ์ดชื่อท่า
 };
+
+/* ภาพท่าหนึ่งใบ มาจากที่เดียวตาม CONFIG.POSE_SRC */
+function poseSrc(id, k, name){
+  const frame = [CONFIG.DIR_POSES + id + '-' + k + '.jpg'];
+  if(CONFIG.POSE_SRC === 'frames') return frame;
+  const file = POSE_IMG[name];
+  return file ? cmp(file) : frame;   // ท่าที่ AI สร้างใหม่ไม่มีภาพในตำรา
+}
 
 /* --- 2.3 วิดีโอ 22 คลิปบน ainora.psu.ac.th (เฉพาะที่เปิดใช้งาน) --- */
 const VIDEOS = [
@@ -779,8 +809,8 @@ const VIDEOS = [
 /* คืนรายการไฟล์ตามลำดับที่จะลอง: ไฟล์ในเครื่องหรือ URL บนเว็บ แล้วสลับกันเป็นตัวสำรอง */
 const vremote = id => CONFIG.AINORA_BASE + '/videos/' + id + '/file';
 const vlocal  = id => CONFIG.DIR_VIDEOS + id + '.mp4';
-const vurl    = id => CONFIG.USE_LOCAL_VIDEOS ? [vlocal(id), vremote(id)]
-                                              : [vremote(id), vlocal(id)];
+/* ทางเดียวต่อคลิป ไม่มีตัวสำรอง — โหลดไม่ได้ก็ขึ้นกล่อง "อยู่ระหว่างจัดเตรียม" ตรง ๆ */
+const vurl    = id => [CONFIG.USE_LOCAL_VIDEOS ? vlocal(id) : vremote(id)];
 
 /* --- 2.4 จับคู่วิดีโอที่เจนได้ ↔ ไฟล์ใน Google Drive (12 คลิป) ---- */
 const DRIVE_PAIRS = [
@@ -832,7 +862,8 @@ function phBox(kind, file){
 }
 /* media builders — เก็บรายการไฟล์สำรองไว้ใน data-srcs
    ถ้าไฟล์แรกโหลดไม่ได้จะไล่ลองไฟล์ถัดไป ถ้าหมดแล้วจึงขึ้นกล่อง "รอไฟล์" */
-const alt = p => [p, p.replace(/\.mp4$/i, '.webm')];
+/* เดิมลอง .webm ต่อท้าย — ตัดออก ให้เหลือ request เดียวต่อไฟล์ */
+const alt = p => [p];
 function mediaImg(paths){
   const L = Array.isArray(paths) ? paths : [paths];
   return `<img alt="" data-srcs='${esc(JSON.stringify(L))}' data-i="0" src="${enc(L[0])}">`;
@@ -1160,9 +1191,7 @@ VIDEOS.forEach(([id,title],i)=>{
   const poses = title.split('→').map(x=>x.trim());
   const chips = poses.map((nm,k)=>{
     const isNew = /ท่าใหม่/.test(nm);
-    const file  = POSE_IMG[nm];
-    const srcs  = [CONFIG.DIR_POSES + id + '-' + k + '.jpg', CONFIG.DIR_POSES + id + '-' + k + '.png']
-                  .concat(!isNew && file ? cmp(file) : []);
+    const srcs  = poseSrc(id, k, nm);
     const fb    = isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม'];
     return `<div class="chip${isNew?' newpose':''}" style="--i:${k}">
         <div class="ph"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb))}'
@@ -1171,10 +1200,7 @@ VIDEOS.forEach(([id,title],i)=>{
   }).join('');
   const cells = poses.map((nm,k)=>{
     const isNew = /ท่าใหม่/.test(nm);
-    const file  = POSE_IMG[nm];
-    return poseCell(k, nm,
-      [CONFIG.DIR_POSES + id + '-' + k + '.jpg', CONFIG.DIR_POSES + id + '-' + k + '.png']
-        .concat(!isNew && file ? cmp(file) : []),
+    return poseCell(k, nm, poseSrc(id, k, nm),
       isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม']);
   }).join('');
   const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
@@ -1187,12 +1213,17 @@ VIDEOS.forEach(([id,title],i)=>{
             ['ที่มาของภาพท่า', 'ภาพท่ารำที่ฟื้นฟูจากตำรา ๒๔๖๖']],
       note:'นำภาพท่ารำมาต่อกันเป็นลำดับ แล้วให้ AI สร้างช่วงเชื่อมระหว่างท่า จนได้การเคลื่อนไหวที่ต่อเนื่องจากภาพนิ่ง',
       },
-    left:()=> band({ eyebrow:'ท่าที่นำมาต่อกัน · ' + poses.length + ' ท่า', h2:70,
-      title:esc(title), body:`<div class="strip" style="flex-direction:column">${cells}</div>` }),
+    /* จอซ้ายใช้บันไดขั้นตอนตามค่าเริ่มต้น (paneL) ไม่ซ้ำกับการ์ดท่ารำที่อยู่ถัดไป
+       จอกลาง+ขวารวมกันเป็นสมการ  ภาพท่า + ภาพท่า = วิดีโอ  เต็มผืน 7680px
+       (คลิปเป็นแนวตั้ง 9:16 ถ้าวางคลิปเดี่ยวกลางผืนจะเหลือที่ว่างข้างละมาก) */
     cr:()=> band({ eyebrow:stepEB(2), title:esc(title),
       sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ประกอบจาก ' + poses.length
         + ' ท่า — ปัญญาประดิษฐ์สร้างช่วงเชื่อมระหว่างท่า',
-      body:`<div class="cmp solo">${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}</div>` }),
+      body:`<div class="combine wide">
+        <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
+        <div class="arrow">»<small>ได้เป็น</small></div>
+        ${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}
+      </div>` }),
     html: frame({ eyebrow:stepEB(2),
       section:stepFoot(2, i+1, VIDEOS.length),
       title:esc(title),
@@ -1231,9 +1262,7 @@ if(CONFIG.SHOW_TWOSETS) DRIVE_PAIRS.forEach(([id,file],i)=>{
   const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
   const poses = title.split('→').map(x=>x.trim());
   const first = poses[0];
-  const pf = POSE_IMG[first];
-  const poseSrcs = [CONFIG.DIR_POSES + id + '-0.jpg', CONFIG.DIR_POSES + id + '-0.png']
-                   .concat(pf ? cmp(pf) : []);
+  const poseSrcs = poseSrc(id, 0, first);
   push({ dur:D.threeway, step:3, vids:[id], spanCU:true,
     section:stepFoot(3, i+1, DRIVE_PAIRS.length),
     wall:{ head:stepEB(3), title:title,
@@ -1379,7 +1408,7 @@ if(CONFIG.ANIMATE && QS.get('nomotion') !== '1' &&
 /* ภาพพื้นหลังลายไทยจากหน้าเว็บ ainora.psu.ac.th (ถ้าโหลดไม่ได้ก็เหลือแค่ gradient) */
 if(CONFIG.HERO_BG){
   document.head.insertAdjacentHTML('beforeend',
-    '<style>.bgimg{background-image:url("' + CONFIG.AINORA_BASE + CONFIG.HERO_BG + '")}</style>');
+    '<style>.bgimg{background-image:url("' + enc(CONFIG.HERO_BG) + '")}</style>');
 }
 
 const want2 = (a,b) => !PANEL || PANEL === a || PANEL === b;
@@ -1530,8 +1559,10 @@ function show(i, seekMs){
     v.muted = true;
     v.loop = true;                       // คลิปสั้นกว่าเวลาหน้า จะวนซ้ำในหน้าเดียว
     const align = () => {
-      if(seek > 0 && isFinite(v.duration) && v.duration > 0){
-        try{ v.currentTime = Math.min(seek, v.duration - 0.05); }catch(e){}
+      if(seek > 0 && isFinite(v.duration) && v.duration > 0.2){
+        // คลิปสั้นกว่าเวลาหน้าและตั้ง loop ไว้ จึงหาตำแหน่งด้วยเศษของการหาร
+        // ทุกเครื่องคำนวณเหมือนกัน จอ 3 จอจึงอยู่เฟรมเดียวกันแม้คลิปยาว 2 วินาที
+        try{ v.currentTime = Math.min(seek % v.duration, v.duration - 0.05); }catch(e){}
       }
     };
     if(v.readyState >= 1) align();

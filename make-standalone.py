@@ -7,8 +7,8 @@
   - อยากอัดวิดีโอแบบ offline โดยไม่พึ่งโฟลเดอร์ brand/
 
 วิธีใช้:
-    python3 make-standalone.py                      # วิดีโอดึงจาก ainora.psu.ac.th
-    python3 make-standalone.py --local-videos       # วิดีโอใช้ไฟล์ใน assets/videos/
+    python3 make-standalone.py                      # วิดีโอใช้ไฟล์ใน assets/videos/
+    python3 make-standalone.py --remote-videos      # วิดีโอดึงจาก ainora.psu.ac.th
 
 หมายเหตุ: ภาพและวิดีโอใน assets/ ยัง "ไม่" ถูกฝังลงไฟล์ (ใหญ่เกินไป)
 ต้องวางโฟลเดอร์ assets/ ไว้ข้าง standalone.html เหมือนเดิม
@@ -56,13 +56,14 @@ def main() -> int:
         else:
             print(f"เตือน: ไม่พบ brand/{name} — ข้ามการฝังโลโก้")
 
-    # 3) วิดีโอ: ชี้ไปโดเมนจริง เพราะเปิดจาก file:// จะ resolve /videos/... ไม่ได้
-    if "--local-videos" in sys.argv:
-        html = html.replace("USE_LOCAL_VIDEOS: false,", "USE_LOCAL_VIDEOS: true, ")
-    else:
+    # 3) วิดีโอ: ค่าปกติของโปรเจกต์คือเล่นจากไฟล์ใน assets/videos/ ซึ่งใช้ได้ทั้ง
+    #    ตอนเปิดจาก file:// และตอนอยู่ในคอนเทนเนอร์ จึงไม่ต้องแก้อะไร
+    #    ใส่ --remote-videos ถ้าจะให้ดึงจากโดเมนจริงแทน (ต้องมีเน็ต)
+    if "--remote-videos" in sys.argv:
+        html = re.sub(r"USE_LOCAL_VIDEOS: true,", "USE_LOCAL_VIDEOS: false,", html, count=1)
         html = re.sub(
-            r"AINORA_BASE   : '',",
-            "AINORA_BASE   : 'https://ainora.psu.ac.th',",
+            r"AINORA_BASE\s*: '[^']*',",
+            "AINORA_BASE     : 'https://ainora.psu.ac.th',",
             html,
             count=1,
         )

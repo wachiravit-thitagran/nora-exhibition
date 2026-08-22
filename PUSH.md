@@ -36,13 +36,28 @@ git remote add origin git@github.com:<ชื่อผู้ใช้>/nora-exhib
 git push -u origin main
 ```
 
-## 3. สิ่งที่ไม่ได้เก็บใน git (ตั้งใจ)
+## 3. เติมวิดีโอเข้า repo ก่อน push
+
+ไฟล์วิดีโอ 22 คลิปอยู่ในเครื่องคุณแล้ว แต่ยังไม่อยู่ใน git — เติมด้วย
+
+```sh
+cd ~/Documents/Nora/exhibition_web
+N="$HOME/Documents/Nora"
+FROM_DIR="$N/web_ainora_video_output_9x16_logo_v2:$N/web_ainora_video_output" \
+  sh deploy/fetch-media.sh
+git add assets/videos && git commit -m "เพิ่มวิดีโอ 22 คลิปลง repo"
+```
+
+ทำบนเครื่องคุณ ไม่ได้ทำมาให้จากคลาวด์ เพราะสะพานส่งไฟล์กลับได้ไม่เกิน 20 MB ต่อไฟล์
+ถ้า commit วิดีโอมาจากฝั่งคลาวด์ ไฟล์ bundle จะเกินขนาดที่ส่งกลับได้
+และประวัติสองฝั่งจะแยกกัน — วิธีนี้ไฟล์ไม่ต้องเดินทาง และประวัติเป็นเส้นเดียว
+
+## 4. สิ่งที่ไม่ได้เก็บใน git
 
 | ไม่เก็บ | เหตุผล |
 |---|---|
-| `assets/**` (ภาพ/วิดีโอ) | ไฟล์สื่อขนาดใหญ่ — ชุด compare 6.1 MB, วิดีโออีกหลายร้อย MB |
 | `standalone.html` | สร้างใหม่ได้ด้วย `python3 make-standalone.py` |
 | `preview-full.html` | ไฟล์พรีวิวก้อนเดียว ~3.4 MB สร้างใหม่ได้ |
 
-ถ้าต้องการเก็บไฟล์สื่อใน git ด้วย ให้ลบบรรทัดที่เกี่ยวข้องใน `.gitignore`
-และพิจารณาใช้ Git LFS (ชุด compare 6.1 MB พอเก็บตรง ๆ ได้ แต่วิดีโอไม่ควร)
+ถ้าภายหลังใส่คลิปลงสี 22 + สองรอบ 12 + ผู้รำ 6 ครบ repo จะโตเกิน ~200 MB
+ตอนนั้นค่อยย้ายไป Git LFS (`git lfs track "assets/**/*.mp4"`)
