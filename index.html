@@ -105,9 +105,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 }
 .ftr .dot{width:11px;height:11px;border-radius:50%;background:var(--gold);flex:0 0 auto}
 .ftr .grow{flex:1}
-.ftr .count{font-variant-numeric:tabular-nums;font-weight:700;color:var(--muted)}
 .slide.dark .ftr{color:rgba(255,255,255,.6)}
-.slide.dark .ftr .count{color:rgba(255,255,255,.72)}
 
 .logos{
   align-self:flex-start;flex:0 0 auto;
@@ -424,12 +422,15 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .sumgrid.facecol .kpi span{font-size:62px}
 /* หน้าปิดท้าย — จอซ้ายผู้สนับสนุน จอกลางสรุป จอขวาเครดิต
    โลโก้ผู้สนับสนุนเป็นภาพเข้มบนพื้นขาว จึงต้องมีการ์ดขาวรองบนสไลด์พื้นเข้ม */
-.sponsors{flex:1;height:100%;display:flex;flex-direction:column;justify-content:center;gap:90px}
-.sponsors .sp{display:flex;align-items:center;gap:80px}
-.sponsors .sp .box{flex:0 0 auto;background:#fff;border-radius:44px;padding:48px 68px;
+.sponsors{flex:1;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:170px;text-align:center}
+.sponsors .grp{display:flex;flex-direction:column;align-items:center;gap:56px}
+.sponsors .row{display:flex;align-items:center;justify-content:center;gap:80px}
+.sponsors .box{flex:0 0 auto;background:#fff;border-radius:44px;padding:48px 64px;
   box-shadow:0 22px 48px -30px rgba(0,0,0,.65)}
-.sponsors .sp .box img{display:block;width:auto;height:calc(270px * var(--k,1));max-width:1200px}
-.sponsors .sp .nm{font-size:76px;line-height:1.26;color:#F1E6CE;font-weight:600}
+.sponsors .box img{display:block;width:auto;height:calc(300px * var(--k,1));max-width:1300px}
+.sponsors .lbl{font-size:72px;font-weight:700;color:var(--gold);letter-spacing:.08em}
+.sponsors .lbl.org{font-size:80px;color:#F1E6CE;letter-spacing:.02em}
 .sumgrid.grid2{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:44px}
 .sumgrid.grid2 .kpi b{font-size:250px}
 .sumgrid.grid2 .kpi span{font-size:62px}
@@ -520,11 +521,6 @@ html.motion .slide.on .credits .col     {animation:riseIn .7s cubic-bezier(.2,.7
 .slide.dark .wr-note{color:#EDE3CE}
 .wr-src{font-size:32px;color:var(--muted);line-height:1.4}
 .wr-tail{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
-.wr-count{
-  font-size:120px;font-weight:700;line-height:.9;letter-spacing:-.02em;
-  color:rgba(17,24,39,.14);font-variant-numeric:tabular-nums;
-}
-.slide.dark .wr-count{color:rgba(255,255,255,.16)}
 .wr-url{
   display:inline-flex;align-items:center;gap:24px;
   font-size:52px;font-weight:700;color:var(--gold-dk);letter-spacing:.02em;
@@ -570,7 +566,6 @@ html.motion .slide.on h1.title          {animation:riseIn .62s cubic-bezier(.2,.
 html.motion .slide.on .sub              {animation:riseIn .62s cubic-bezier(.2,.7,.3,1) .15s both}
 html.motion .slide.on .wordmark         {animation:fadeIn .8s ease .1s both}
 html.motion .slide.on .logos            {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .45s both}
-html.motion .slide.on .ftr .count       {animation:fadeIn .8s ease .55s both}
 
 html.motion .slide.on .cmp > .panel:first-child {animation:inL .75s cubic-bezier(.2,.7,.3,1) .2s both}
 html.motion .slide.on .cmp > .panel:last-child  {animation:inR .75s cubic-bezier(.2,.7,.3,1) .34s both}
@@ -951,7 +946,6 @@ function paneR(w){
       ${w.note ? `<div class="wr-note">${esc(w.note)}</div>` : ''}
       <div class="wr-tail">
         <div class="wr-url">ainora.psu.ac.th</div>
-        <div class="wr-count" data-count2></div>
       </div>
     </div>`;
 }
@@ -1007,7 +1001,7 @@ function frame(o){
       </div>
     </div>
     <div class="stagebody">${o.body}</div>
-    <div class="ftr">${sec}${logoStrip()}<span class="grow"></span><span class="count" data-count></span></div>
+    <div class="ftr">${sec}${logoStrip()}<span class="grow"></span></div>
     <div class="progress"><i data-bar></i></div>`;
 }
 
@@ -1025,10 +1019,10 @@ const D = CONFIG.DWELL;
 function band(o){
   return `<div class="wideband">
     <div class="wb-hd">
-      <div class="t">
+      <div class="t">${(o.eyebrow || o.title || o.sub) ? `
         ${o.eyebrow ? `<div class="eyebrow">${esc(o.eyebrow)}</div>` : ''}
         <h2${o.h2 ? ` style="font-size:${o.h2}px"` : ''}>${o.title || ''}</h2>
-        ${o.sub ? `<div class="wb-sub">${o.sub}</div>` : ''}
+        ${o.sub ? `<div class="wb-sub">${o.sub}</div>` : ''}` : ''}
       </div>
       <div class="wordmark">
         <img class="lg-dark"  src="brand/logo-dark.png"  alt="AI NORA">
@@ -1357,14 +1351,22 @@ const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟู
              ['7','ท่าใหม่ที่เกิดในกระบวนการ'],['5','ขั้นตอนของกระบวนการ']]
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
 
-/* จอซ้าย — โลโก้ผู้สนับสนุนขนาดใหญ่พร้อมชื่อเต็ม (คนละชุดกับแถบโลโก้เล็กท้ายหน้า) */
-const SPONSOR_PANE = `<div class="sponsors">${SPONSORS.map((sp,i)=>
-  `<div class="sp" style="--i:${i};--k:${sp.k || 1}">
-     <div class="box"><img alt="${esc(sp.name.replace(/\n/g,' '))}"
-       data-logo='${esc(JSON.stringify(sp.name))}'
-       data-srcs='${esc(JSON.stringify([sp.file]))}' data-i="0" src="${enc(sp.file)}"></div>
-     <div class="nm">${sp.name.split('\n').map(esc).join('<br>')}</div>
-   </div>`).join('')}</div>`;
+/* จอซ้าย — โลโก้ผู้สนับสนุนขนาดใหญ่ จัดกลางจอ ไม่มีหัวข้อกำกับ
+   แถวบน  ผู้สนับสนุน  = กระทรวงวัฒนธรรม + สำนักงานศิลปวัฒนธรรมร่วมสมัย
+   แถวล่าง ผู้ดำเนินงาน = โลโก้ PSU + ข้อความ PSU DiiS ร่วมกับ TSU        */
+const logoCard = sp => `<div class="box" style="--k:${sp.k || 1}">
+     <img alt="${esc(sp.name.replace(/\n/g,' '))}" data-logo='${esc(JSON.stringify(sp.name))}'
+       data-srcs='${esc(JSON.stringify([sp.file]))}' data-i="0" src="${enc(sp.file)}"></div>`;
+const SPONSOR_PANE = `<div class="sponsors">
+    <div class="grp" style="--i:0">
+      <div class="lbl">ผู้สนับสนุน</div>
+      <div class="row">${logoCard(SPONSORS[0])}${logoCard(SPONSORS[1])}</div>
+    </div>
+    <div class="grp" style="--i:1">
+      <div class="row">${logoCard(SPONSORS[2])}</div>
+      <div class="lbl org">PSU DiiS ร่วมกับ TSU</div>
+    </div>
+  </div>`;
 
 /* เครดิตแยกเป็นคอลัมน์ เพื่อประกอบใหม่ได้ทั้งแบบเรียงลง (จอขวา) และเรียงข้าง (จอเดียว) */
 const CR_SRC = `<div class="col" style="--i:0"><h3>ต้นฉบับท่ารำ</h3>
@@ -1388,8 +1390,7 @@ push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
         ['ขั้นตอนของกระบวนการ','5 ขั้นตอน']],
   note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๒ ภาพ' },
   /* จอซ้าย ผู้สนับสนุน · จอกลาง สรุปโครงการ · จอขวา เครดิต — อยู่ในสไลด์เดียวกัน */
-  left: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'ด้วยการสนับสนุนจาก',
-    h2:96, title:'ผู้สนับสนุนโครงการ', nologo:true, body:SPONSOR_PANE }),
+  left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
   midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'สรุปผลงาน',
     h2:88, title:'จาก ๑๒ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
     body:`<div class="sumgrid grid2">${KPI}</div>` }),
@@ -1464,10 +1465,6 @@ SLIDES.forEach((s,i)=>{
   // ถอดของที่อยู่ใน pane ทิ้ง เหลือแถบเดียวที่ระดับสไลด์ ไม่งั้น [data-bar]
   // จะไปเจอแถบใน pane ก่อน แล้วแถบจริงจะนิ่งอยู่กับที่
   el.querySelectorAll('.pane .progress').forEach(nd => nd.remove());
-  el.querySelectorAll('[data-count]').forEach(nd => {
-    nd.textContent = (i+1) + ' / ' + SLIDES.length; });
-  el.querySelectorAll('[data-count2]').forEach(nd => {
-    nd.textContent = String(i+1).padStart(2,'0') + ' / ' + SLIDES.length; });
   s.el = el; s.bar = el.querySelector('[data-bar]');
   stage.appendChild(el);
 });
@@ -1555,9 +1552,9 @@ function clockPos(){
 function slideDuration(s){ return fixedDur(SLIDES.indexOf(s)); }
 
 /* โหมดจอเดียวยาว: ของที่ควรมี "อันเดียวต่อจอ" ต้องไม่ซ้ำ 3 ชุดบนผืนเดียว
-   เหลือแถบโลโก้ผู้สนับสนุนไว้ซ้ายสุด · โลโก้ AI NORA และเลขหน้าไว้ขวาสุด */
+   เหลือแถบโลโก้ผู้สนับสนุนไว้ซ้ายสุด · โลโก้ AI NORA ไว้ขวาสุด */
 function wallDedupe(el){
-  el.querySelectorAll('.logos,.wordmark,.ftr .count').forEach(n => { n.style.display = ''; });
+  el.querySelectorAll('.logos,.wordmark').forEach(n => { n.style.display = ''; });
   if(!WALL_ON) return;
   const panes = [...el.querySelectorAll('.pane')]
     .filter(p => p.offsetWidth > 0)
@@ -1565,7 +1562,6 @@ function wallDedupe(el){
   const pick = sel => panes.map(p => p.querySelector(sel)).filter(Boolean);
   pick('.logos').slice(1).forEach(n => { n.style.display = 'none'; });          // เหลือซ้ายสุด
   pick('.wordmark').slice(0, -1).forEach(n => { n.style.display = 'none'; });   // เหลือขวาสุด
-  pick('.ftr .count').slice(0, -1).forEach(n => { n.style.display = 'none'; });
 }
 
 function show(i, seekMs){
