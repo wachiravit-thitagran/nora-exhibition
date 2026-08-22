@@ -425,12 +425,29 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .sponsors{flex:1;height:100%;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:170px;text-align:center}
 .sponsors .grp{display:flex;flex-direction:column;align-items:center;gap:56px}
-.sponsors .row{display:flex;align-items:center;justify-content:center;gap:80px}
+.sponsors .row{display:flex;align-items:stretch;justify-content:center;gap:80px}
 .sponsors .box{flex:0 0 auto;background:#fff;border-radius:44px;padding:48px 64px;
+  display:flex;align-items:center;justify-content:center;
   box-shadow:0 22px 48px -30px rgba(0,0,0,.65)}
-.sponsors .box img{display:block;width:auto;height:calc(300px * var(--k,1));max-width:1300px}
+.sponsors .box img{display:block;width:auto;height:calc(340px * var(--k,1));max-width:1300px}
 .sponsors .lbl{font-size:72px;font-weight:700;color:var(--gold);letter-spacing:.08em}
 .sponsors .lbl.org{font-size:80px;color:#F1E6CE;letter-spacing:.02em}
+
+/* ตารางท่าใหม่ — การ์ดละท่า เรียงกลางจอ แถวสุดท้ายไม่ครบก็ยังอยู่กลาง
+   จึงใช้ flex-wrap ไม่ใช่ grid (grid จะดันแถวสุดท้ายไปชิดซ้าย) */
+.newgrid{flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:44px;
+  align-content:center;justify-content:center}
+.newgrid .np{flex:0 0 calc(25% - 33px);min-width:0;display:flex;flex-direction:column;gap:16px;
+  background:rgba(255,255,255,.06);border:3px solid rgba(227,196,104,.42);border-radius:34px;
+  padding:42px 40px}
+.newgrid .np .mark{font-size:56px;line-height:1;color:var(--gold)}
+.newgrid .np .nm{font-size:62px;font-weight:700;color:#fff;line-height:1.15}
+.newgrid .np .meta{font-size:38px;color:#E3C468;line-height:1.3}
+.newgrid .np .nb{font-size:36px;color:rgba(255,255,255,.7);line-height:1.35}
+.slide:not(.dark) .newgrid .np{background:var(--card);border-color:var(--line)}
+.slide:not(.dark) .newgrid .np .nm{color:var(--ink)}
+.slide:not(.dark) .newgrid .np .meta{color:var(--gold-dk)}
+.slide:not(.dark) .newgrid .np .nb{color:var(--muted)}
 .sumgrid.grid2{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:44px}
 .sumgrid.grid2 .kpi b{font-size:250px}
 .sumgrid.grid2 .kpi span{font-size:62px}
@@ -1357,14 +1374,24 @@ const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟู
 const logoCard = sp => `<div class="box" style="--k:${sp.k || 1}">
      <img alt="${esc(sp.name.replace(/\n/g,' '))}" data-logo='${esc(JSON.stringify(sp.name))}'
        data-srcs='${esc(JSON.stringify([sp.file]))}' data-i="0" src="${enc(sp.file)}"></div>`;
+/* ขนาด k ของสองชุดนี้ตั้งแยกจาก SPONSORS เพราะที่นี่โลโก้ใหญ่กว่าแถบท้ายหน้ามาก
+   สัดส่วนที่ดูดีในแถบเล็กจะเพี้ยนทันทีเมื่อขยาย (PSU เป็นโลโก้แนวนอน 3.8:1) */
+const SUPPORTERS = [
+  { file:'brand/logo-moc.png',  k:1.00, name:'กระทรวงวัฒนธรรม' },
+  { file:'brand/logo-ocac.png', k:0.92, name:'สำนักงานศิลปวัฒนธรรมร่วมสมัย' },
+];
+const PARTNERS = [
+  { file:'brand/logo-psu.png',  k:0.62, name:'มหาวิทยาลัยสงขลานครินทร์' },
+  { file:'brand/logo-diis.png', k:1.05, name:'PSU DiiS\nสำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ' },
+  { file:'brand/logo-tsu.png',  k:1.15, name:'มหาวิทยาลัยทักษิณ' },
+];
 const SPONSOR_PANE = `<div class="sponsors">
     <div class="grp" style="--i:0">
       <div class="lbl">ผู้สนับสนุน</div>
-      <div class="row">${logoCard(SPONSORS[0])}${logoCard(SPONSORS[1])}</div>
+      <div class="row">${SUPPORTERS.map(logoCard).join('')}</div>
     </div>
     <div class="grp" style="--i:1">
-      <div class="row">${logoCard(SPONSORS[2])}</div>
-      <div class="lbl org">PSU DiiS ร่วมกับ TSU</div>
+      <div class="row">${PARTNERS.map(logoCard).join('')}</div>
     </div>
   </div>`;
 
@@ -1381,6 +1408,51 @@ const CR_SUP = `<div class="col" style="--i:2"><h3>สนับสนุนโ�
       <p>ชมผลงานทั้งหมดได้ที่<small style="font-size:44px;color:#E3C468;margin-top:12px">ainora.psu.ac.th</small></p></div>`;
 const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั้งหมดได้ที่</h3>
       <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
+
+/* ---- สรุปโครงการ (หน้า ๒): ท่าใหม่ทั้งหมดที่เกิดขึ้น ----
+   จอซ้าย/จอขวา ใช้ชุดเดียวกับหน้าปิดท้าย จอกลางเป็นรายการท่าใหม่
+   รายการนี้คำนวณจากชื่อคลิปใน VIDEOS โดยตรง ถ้าเพิ่ม/ลดคลิปก็อัปเดตตามเอง */
+const NEWPOSES = (()=>{
+  const map = new Map();
+  VIDEOS.forEach(([id, title], i)=>{
+    const poses = title.split('→').map(x => x.trim());
+    poses.forEach((nm, k)=>{
+      if(!/ท่าใหม่/.test(nm)) return;
+      if(!map.has(nm)) map.set(nm, { clips:new Set(), nb:new Set() });
+      const e = map.get(nm);
+      e.clips.add(i + 1);
+      [poses[k-1], poses[k+1]].forEach(x => { if(x) e.nb.add(x); });
+    });
+  });
+  return [...map.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0], 'th'))
+    .map(([name, e]) => ({ name, clips:[...e.clips], nb:[...e.nb] }));
+})();
+const NEWGRID = NEWPOSES.map((np, i)=>
+  `<div class="np" style="--i:${i}">
+     <div class="mark">✦</div>
+     <div class="nm">${esc(np.name)}</div>
+     <div class="meta">ปรากฏใน ${thNum(np.clips.length)} คลิป · คลิปที่ ${np.clips.map(thNum).join(' · ')}</div>
+     <div class="nb">ต่อกับ ${np.nb.map(esc).join(' · ')}</div>
+   </div>`).join('');
+const NEWSUB = thNum(NEWPOSES.length) + ' ท่าที่ไม่มีอยู่ในตำรา — '
+  + 'เกิดขึ้นตอนปัญญาประดิษฐ์สร้างช่วงเชื่อมระหว่างท่าครูสองท่า';
+
+push({ dur:D.summary, dark:true, step:-1, spanCU:true, wall:{
+  head:'สรุป', title:'ท่าใหม่ที่เกิดขึ้นในกระบวนการ',
+  rows:NEWPOSES.map(np => [np.name, 'คลิปที่ ' + np.clips.map(thNum).join(' · ')]),
+  note:'ท่าเหล่านี้ไม่ได้ตั้งใจออกแบบไว้ล่วงหน้า แต่เกิดจากช่วงเชื่อมที่ปัญญาประดิษฐ์สร้างขึ้น '
+     + 'แล้วผู้เชี่ยวชาญมาดูย้อนหลังว่าเป็นท่าที่รำได้จริง' },
+  left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
+  midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'สรุปผลงาน',
+    h2:88, title:'ท่าใหม่ที่เกิดขึ้นในกระบวนการ', sub:NEWSUB,
+    body:`<div class="newgrid">${NEWGRID}</div>` }),
+  right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
+    h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
+    body:`<div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>` }),
+  html:`<div class="bgimg"></div>` + frame({ eyebrow:'สรุปผลงาน',
+    title:'ท่าใหม่ที่เกิดขึ้นในกระบวนการ', sub:NEWSUB,
+    body:`<div class="newgrid">${NEWGRID}</div>` })});
 
 push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
   head:'ปิดท้าย', title:'ผลงานทั้งโครงการ',

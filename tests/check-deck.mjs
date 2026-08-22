@@ -17,7 +17,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { chromium } from 'playwright';
 
 const ROOT = resolve(process.argv[2] || process.cwd());
-const EXPECT_SLIDES = Number(process.env.EXPECT_SLIDES || 65);
+const EXPECT_SLIDES = Number(process.env.EXPECT_SLIDES || 66);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',

@@ -47,7 +47,8 @@ def main() -> int:
     # 2) ฝังโลโก้ — ทั้งที่เขียน src="brand/..." ตรง ๆ ใน HTML
     #    และที่อยู่ในอาร์เรย์ SPONSORS ในสคริปต์ (file:'brand/...')
     for name in ("logo-dark.png", "logo-light.png",
-                 "logo-ocac.png", "logo-moc.png", "logo-psu.png"):
+                 "logo-ocac.png", "logo-moc.png", "logo-psu.png",
+                 "logo-diis.png", "logo-tsu.png"):
         p = HERE / "brand" / name
         if p.exists():
             uri = data_uri(p, "image/png")
