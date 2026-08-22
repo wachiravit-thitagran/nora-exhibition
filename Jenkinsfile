@@ -125,15 +125,37 @@ pipeline {
                 '''
                 sh 'docker image prune -f'
                 // จอนิทรรศการเปิดค้างทั้งวัน ตรวจให้แน่ว่าหน้ายังเสิร์ฟได้จริงก่อนจบบิลด์
+                //
+                // ตรวจจากในคอนเทนเนอร์ด้วย docker exec ไม่ใช่ curl ไปที่ 127.0.0.1:10096
+                // เพราะถ้า agent รันอยู่ในคอนเทนเนอร์ พอร์ตที่ publish จะอยู่ที่ host
+                // ไม่ใช่ใน agent — curl จึงไม่มีทางเจอ แม้บริการจะขึ้นเรียบร้อย
                 sh '''
+                    NAME=nora-exhibition-web
+                    st=ไม่พบ
                     for i in $(seq 1 20); do
-                        if curl -fsS "http://127.0.0.1:$EXHIBITION_PORT/exhibition/" -o /dev/null; then
-                            echo "สไลด์ตอบสนองแล้ว"
+                        st=$(docker inspect -f '{{.State.Status}}' "$NAME" 2>/dev/null || echo missing)
+                        if [ "$st" = "running" ] \
+                           && docker exec "$NAME" wget -qO- http://127.0.0.1/exhibition/healthz >/dev/null 2>&1; then
+                            echo "คอนเทนเนอร์ทำงานแล้ว"
+                            if docker exec "$NAME" wget -qO- http://127.0.0.1/exhibition/ >/dev/null 2>&1; then
+                                echo "หน้าสไลด์เสิร์ฟได้"
+                            else
+                                echo "healthz ผ่าน แต่หน้าสไลด์ไม่ขึ้น" >&2
+                                exit 1
+                            fi
+                            if curl -fsS --max-time 5 "http://127.0.0.1:$EXHIBITION_PORT/exhibition/" -o /dev/null 2>/dev/null; then
+                                echo "เข้าจาก 127.0.0.1:$EXHIBITION_PORT ได้"
+                            else
+                                echo "หมายเหตุ: จาก agent เข้าพอร์ต $EXHIBITION_PORT ไม่ได้"
+                                echo "         (ปกติถ้า agent รันในคอนเทนเนอร์) ให้ตรวจจากเครื่อง host แทน"
+                            fi
                             exit 0
                         fi
                         sleep 3
                     done
-                    echo "เปิดหน้าสไลด์ไม่ได้หลังรอ 60 วินาที" >&2
+                    echo "คอนเทนเนอร์ไม่ตอบใน 60 วินาที (สถานะล่าสุด: $st)" >&2
+                    docker ps -a --filter name="$NAME" --format "{{.Names}}  {{.Status}}" >&2
+                    docker logs --tail 100 "$NAME" >&2 || true
                     exit 1
                 '''
             }
