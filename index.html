@@ -175,12 +175,6 @@ h1.title .thin{color:var(--muted);font-weight:600}
 /* ---------- combine (poses + result) ---------- */
 .combine{flex:1;display:grid;grid-template-columns:1fr auto minmax(0,1120px);
   gap:64px;align-items:center}
-/* สมการเดียวกันบนผืนกว้าง 2 จอ — การ์ดท่ารำเรียงแนวนอน สูงเต็มผืน
-   ไม่ใช้ความกว้างเป็น % เพราะคอลัมน์กว้างเกือบ 4000px จะได้การ์ดเตี้ยแบนผิดสัดส่วน */
-.combine.wide{height:100%;grid-template-columns:1fr auto minmax(0,1400px);gap:110px}
-.combine.wide .chips{flex-wrap:nowrap;height:100%;gap:44px}
-.combine.wide .chip{width:auto;flex:1 1 0;min-width:0;max-width:1250px}
-.combine.wide .chip .nm{font-size:44px;padding:24px 26px}
 .chips{display:flex;flex-wrap:wrap;gap:32px;align-items:stretch;justify-content:center}
 .chip{
   width:calc(33.333% - 24px);min-width:300px;background:var(--card);border:3px solid var(--line);
@@ -281,6 +275,15 @@ html.ultra .slide.span-lc .pLC{display:block;left:0;width:7680px}
 html.ultra .slide.span-cr .pC,
 html.ultra .slide.span-cr .pR{display:none}
 html.ultra .slide.span-cr .pCR{display:block;left:3840px;width:7680px}
+/* สองคลิปพร้อมกัน — จอกลางคลิปหนึ่ง จอขวาอีกคลิปหนึ่ง (ขั้นตอนที่ 03)
+   โหมดจอเดียว 16:9 ไม่มีจอขวาให้ใช้ จึงย่อทั้งสองจอลงครึ่งแล้ววางเรียงกัน
+   คนที่ดูจากจอเดียว (หรือไฟล์ที่อัดจากโหมดนี้) จะได้เห็นครบทั้ง 22 คลิปเหมือนเดิม
+   ส่วนโหมด ?panel=2 / ?panel=3 ยังได้จอละคลิปเต็มขนาด เพราะนับเป็นโหมดจอยาว */
+html:not(.ultra) .slide.dual .pC,
+html:not(.ultra) .slide.dual .pR{display:block;top:540px;transform:scale(.5);transform-origin:0 0;
+  outline:8px solid var(--line);outline-offset:-8px}
+html:not(.ultra) .slide.dual .pR{left:1920px}
+
 /* จอกลางใช้เนื้อหาคนละแบบเมื่ออยู่โหมดจอยาว (เช่นการเทียบ 3 ทาง) */
 html.ultra .slide.span-cu .pC{display:none}
 html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
@@ -950,7 +953,8 @@ const SLIDES = [];
 function push(s){
   if(s.step === undefined) s.step = -1;
   s.cls = [s.dark ? 'dark' : '', s.span ? 'span' : '', s.spanLC ? 'span-lc' : '',
-           s.spanCR ? 'span-cr' : '', s.spanCU ? 'span-cu' : ''].filter(Boolean).join(' ');
+           s.spanCR ? 'span-cr' : '', s.spanCU ? 'span-cu' : '',
+           s.dual ? 'dual' : ''].filter(Boolean).join(' ');
   SLIDES.push(s);
 }
 
@@ -1001,15 +1005,6 @@ function band(o){
     <div class="wb-body">${o.body || ''}</div>
     <div class="wb-ft">${logoStrip()}<span class="grow"></span>${o.foot || ''}</div>
   </div>`;
-}
-
-/* การ์ดท่ารำ (ใช้ทั้งแถบ ๑๒ ท่า และจอซ้ายขององก์ 2) */
-function poseCell(i, name, srcs, fb){
-  return `<div class="cell" style="--i:${i}">
-      <div class="im"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(fb||['▧','อยู่ระหว่างจัดเตรียม']))}'
-        data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(srcs[0])}"></div>
-      <div class="nm">${esc(name)}</div>
-    </div>`;
 }
 
 /* ภาพตัวอย่างประจำแต่ละขั้นตอน — วางเอียงซ้อนกันเหมือนกองรูปถ่ายบนโต๊ะ */
@@ -1169,10 +1164,18 @@ PAIRS.forEach((p,i)=>{
       title:esc(p.book), sub:SUB, body:cmpBody })});
 });
 
-/* ---- ขั้นที่ 03 สร้างการเคลื่อนไหว — โหมด 1｜2 ---- */
+/* ---- ขั้นที่ 03 สร้างการเคลื่อนไหว — จอกลางกับจอขวาเล่นคนละคลิปพร้อมกัน ---- */
 divider(2);
-VIDEOS.forEach(([id,title],i)=>{
-  const poses = title.split('→').map(x=>x.trim());
+
+/* สมการ  ภาพท่า + ภาพท่า = วิดีโอ  ของหนึ่งคลิป พอดีจอ 3840 หนึ่งจอ
+   เดิมกางเต็มสองจอ (spanCR) สไลด์หนึ่งจึงได้คลิปเดียว 22 คลิป = 22 หน้า
+   ย่อลงจอเดียวแล้ววางทั้งจอกลางและจอขวา สไลด์หนึ่งเล่นได้ 2 คลิปพร้อมกัน
+   เหลือ 11 หน้า ประหยัดเวลาไปครึ่งหนึ่งโดยไม่ต้องตัดคลิปไหนออก
+   จอซ้ายยังเป็นบันไดขั้นตอนตามเดิม (paneL ค่าเริ่มต้น)                    */
+function clipUnit(entry, i){
+  const id = entry[0], title = entry[1];
+  const poses = title.split('→').map(x => x.trim());
+  const nNew  = poses.filter(x => /ท่าใหม่/.test(x)).length;
   const chips = poses.map((nm,k)=>{
     const isNew = /ท่าใหม่/.test(nm);
     const srcs  = poseSrc(id, k, nm);
@@ -1182,42 +1185,29 @@ VIDEOS.forEach(([id,title],i)=>{
           data-srcs='${esc(JSON.stringify(srcs))}' data-i="0" src="${enc(srcs[0])}"></div>
         <div class="nm">${esc(nm)}</div></div>`;
   }).join('');
-  const cells = poses.map((nm,k)=>{
-    const isNew = /ท่าใหม่/.test(nm);
-    return poseCell(k, nm, poseSrc(id, k, nm),
-      isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม']);
-  }).join('');
-  const nNew = poses.filter(x=>/ท่าใหม่/.test(x)).length;
-  push({ dur:D.combine, step:2, vids:[id], spanCR:true,
-    section:stepFoot(2, i+1, VIDEOS.length),
-    wall:{ head:stepEB(2), title:title,
-      rows:[['จำนวนท่าที่ใช้', poses.length + ' ท่า'],
-            ['ลำดับท่า', poses.join('  →  ')],
-            ['ท่าที่ AI สร้างใหม่', nNew ? nNew + ' ท่า' : 'ไม่มี — ใช้ท่าดั้งเดิมทั้งหมด'],
-            ['ที่มาของภาพท่า', 'ภาพท่ารำที่ฟื้นฟูจากตำรา ๒๔๖๖']],
-      note:'นำภาพท่ารำมาต่อกันเป็นลำดับ แล้วให้ AI สร้างช่วงเชื่อมระหว่างท่า จนได้การเคลื่อนไหวที่ต่อเนื่องจากภาพนิ่ง',
-      },
-    /* จอซ้ายใช้บันไดขั้นตอนตามค่าเริ่มต้น (paneL) ไม่ซ้ำกับการ์ดท่ารำที่อยู่ถัดไป
-       จอกลาง+ขวารวมกันเป็นสมการ  ภาพท่า + ภาพท่า = วิดีโอ  เต็มผืน 7680px
-       (คลิปเป็นแนวตั้ง 9:16 ถ้าวางคลิปเดี่ยวกลางผืนจะเหลือที่ว่างข้างละมาก) */
-    cr:()=> band({ eyebrow:stepEB(2), title:esc(title),
-      sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ประกอบจาก ' + poses.length
-        + ' ท่า — ปัญญาประดิษฐ์สร้างช่วงเชื่อมระหว่างท่า',
-      body:`<div class="combine wide">
-        <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
-        <div class="arrow">»<small>ได้เป็น</small></div>
-        ${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}
-      </div>` }),
-    html: frame({ eyebrow:stepEB(2),
-      section:stepFoot(2, i+1, VIDEOS.length),
-      title:esc(title),
-      sub:`คลิปที่ ${i+1} จาก ${VIDEOS.length} · ประกอบจาก ${poses.length} ท่า`,
-      body:`<div class="combine">
-        <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
-        <div class="arrow">»<small>ได้เป็น</small></div>
-        ${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}
-      </div>` })});
-});
+  return frame({ eyebrow:stepEB(2),
+    section:stepFoot(2, i + 1, VIDEOS.length),
+    title:esc(title),
+    /* ป้ายกำกับจอขวาถูกแทนที่ด้วยคลิปที่สองแล้ว ข้อมูลที่เคยอยู่ตรงนั้น
+       จึงย้ายมาไว้บรรทัดใต้หัวข้อ ให้ยังอ่านได้ครบจากจอเดียวกัน */
+    sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ประกอบจาก ' + poses.length + ' ท่า'
+      + (nNew ? ' · ท่าที่ AI สร้างใหม่ ' + nNew + ' ท่า' : ''),
+    body:`<div class="combine">
+      <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
+      <div class="arrow">»<small>ได้เป็น</small></div>
+      ${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}
+    </div>` });
+}
+for(let i = 0; i < VIDEOS.length; i += 2){
+  const A = VIDEOS[i], B = VIDEOS[i + 1];
+  const nPair  = i / 2 + 1;
+  const nPairs = Math.ceil(VIDEOS.length / 2);
+  push({ dur:D.combine, step:2, dual:true,
+    vids:B ? [A[0], B[0]] : [A[0]],
+    section:stepFoot(2, nPair, nPairs),
+    html: clipUnit(A, i),
+    right:()=> B ? clipUnit(B, i + 1) : '' });
+}
 
 /* ลงสี (อยู่ในขั้นที่ 03) — โหมด 1｜1｜1 (ค่าเริ่มต้น) */
 if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
@@ -1420,10 +1410,14 @@ SLIDES.forEach((s,i)=>{
     + (U && s.cr   && want2(2,3) ? '<div class="pane pCR">' + s.cr()   + '</div>' : '')
     + (U && s.midU && want(2)    ? '<div class="pane pCU">' + s.midU() + '</div>' : '')
     + PROG;
-  const c = el.querySelector('[data-count]');
-  if(c) c.textContent = (i+1) + ' / ' + SLIDES.length;
-  const c2 = el.querySelector('[data-count2]');
-  if(c2) c2.textContent = String(i+1).padStart(2,'0') + ' / ' + SLIDES.length;
+  // frame() แถมแถบความคืบหน้ามาด้วยเสมอ ถ้า pane ไหนใช้ frame() ก็จะได้มาอีกอัน
+  // ถอดของที่อยู่ใน pane ทิ้ง เหลือแถบเดียวที่ระดับสไลด์ ไม่งั้น [data-bar]
+  // จะไปเจอแถบใน pane ก่อน แล้วแถบจริงจะนิ่งอยู่กับที่
+  el.querySelectorAll('.pane .progress').forEach(nd => nd.remove());
+  el.querySelectorAll('[data-count]').forEach(nd => {
+    nd.textContent = (i+1) + ' / ' + SLIDES.length; });
+  el.querySelectorAll('[data-count2]').forEach(nd => {
+    nd.textContent = String(i+1).padStart(2,'0') + ' / ' + SLIDES.length; });
   s.el = el; s.bar = el.querySelector('[data-bar]');
   stage.appendChild(el);
 });
