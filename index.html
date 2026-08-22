@@ -375,19 +375,17 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .wideband .wb-ft .grow{flex:1}
 
 /* แถบท่ารำเรียงยาว (ท่าครู ๑๒ ท่า) */
-.strip{flex:1;min-width:0;height:100%;display:flex;align-items:stretch;gap:22px}
+.strip{flex:1;min-width:0;height:100%;display:flex;align-items:stretch;gap:26px}
 .strip .cell{flex:1;min-width:0;background:var(--card);border:3px solid var(--line);border-radius:26px;
   overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 50px -36px rgba(17,24,39,.4)}
 .strip .cell .im{flex:1;min-height:0;position:relative;background:var(--paper-2);overflow:hidden}
 .strip .cell .im img{position:absolute;inset:16px;width:calc(100% - 32px);height:calc(100% - 32px);object-fit:contain}
 .strip .cell .nm{padding:16px 12px;font-size:30px;font-weight:600;text-align:center;color:var(--ink);line-height:1.2}
+.strip.grid6{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:min-content;
+  gap:30px;align-content:center;justify-items:stretch}
+.strip.grid6 .cell .im{flex:none;aspect-ratio:3/5}
+.strip.grid6 .cell .nm{font-size:38px}
 .strip .cell .no{position:absolute}
-.strip.two .cell{display:flex}
-.strip .cell .duo{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--paper-2)}
-.strip .cell .duo > div{flex:1;min-height:0;display:grid;place-items:center;position:relative;overflow:hidden}
-.strip .cell .duo > div img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain}
-.strip .cell .duo > div i{position:absolute;left:8px;top:6px;font-style:normal;font-size:22px;font-weight:700;
-  color:var(--muted);background:rgba(255,255,255,.85);border-radius:8px;padding:2px 10px}
 
 /* ไทม์ไลน์กระบวนการเรียงยาว */
 .tline2{flex:1;height:100%;display:flex;align-items:center;gap:0;position:relative}
@@ -630,7 +628,7 @@ const CONFIG = {
     title     : 14,   // ปกใหญ่
     timeline  : 26,   // ไทม์ไลน์กระบวนการ
     divider   : 10,   // ปกขั้นตอน (5 ใบ)
-    poses12   : 30,   // ท่าครู ๑๒ ท่า เรียงเดียวจบ
+    poses12   : 22,   // ภาพจากหนังสือ 2 หน้า หน้าละ 6 ท่า
     compare   : 18,   // เปรียบเทียบ ต้นฉบับ/ซ่อมแซม (12)
     combine   : 25,   // ภาพท่า + ภาพท่า = วิดีโอ (22)
     colorize  : 19,   // ขาวดำ/ใส่สี (22)
@@ -1106,34 +1104,36 @@ push({ dur:D.timeline, dark:true, step:-1, span:true, wall:{
 /* ---- ขั้นที่ 01 สแกนภาพจากหนังสือ ---- */
 divider(0);
 
-/* แถบท่าครู ๑๒ ท่า เรียงเดียวจบ (รวม 3 จอ) */
-const STRIP12 = PAIRS.map((p,i)=>{
-  const o = imgOrig(p), f = imgFix(p)[0];
+/* แถบภาพจากหนังสือ — ขั้นตอนที่ 01 แสดงเฉพาะภาพสแกน ยังไม่มีภาพที่ฟื้นฟู
+   ภาพฟื้นฟูไปอยู่ขั้นตอนที่ 02 ทั้งหมด ขั้นนี้จึงเป็น "ของที่มีอยู่จริงก่อนเริ่มงาน"
+   แบ่งเป็น 2 สไลด์ สไลด์ละ 6 ท่า ภาพจะได้ใหญ่พอให้เห็นลายผ้าและเครื่องประดับ */
+const scanCell = (p, i) => {
+  const o = imgOrig(p);
   return `<div class="cell" style="--i:${i}">
-      <div class="duo">
-        <div><i>ภาพสแกน</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพสแกน']))}'
-          data-srcs='${esc(JSON.stringify(o))}' data-i="0" src="${enc(o[0])}"></div>
-        <div><i>ฟื้นฟูแล้ว</i><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ฟื้นฟูแล้ว']))}'
-          data-srcs='${esc(JSON.stringify(f))}' data-i="0" src="${enc(f[0])}"></div>
-      </div>
+      <div class="im"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพสแกน']))}'
+        data-srcs='${esc(JSON.stringify(o))}' data-i="0" src="${enc(o[0])}"></div>
       <div class="nm">${esc(p.n)} ${esc(p.book)}</div>
     </div>`;
-}).join('');
-push({ dur:D.poses12, step:0, span:true, section:SECTIONS[0].n+' '+SECTIONS[0].t, wall:{
-  head:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำรา',
-  rows:[['ที่มา','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
-        ['ผู้แสดงในภาพ','โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)'],
-        ['จำนวนท่าที่นำมาใช้','๑๒ ท่า']],
-  note:'แถวบนคือภาพสแกนจากตำราซึ่งเป็นจุดเริ่มของขั้นตอนนี้ '
-     + 'แถวล่างคือผลการฟื้นฟูที่จะเห็นทีละท่าในขั้นตอนถัดไป',
-  },
-  wide:()=> band({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำราฟ้อนรำ พ.ศ. ๒๔๖๖',
-    sub:'แถวบน ภาพสแกนจากตำรา · แถวล่าง ผลการฟื้นฟูในขั้นตอนที่ 02',
-    body:`<div class="strip">${STRIP12}</div>` }),
-  html: frame({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า ในตำรา',
-    section:SECTIONS[0].n+' '+SECTIONS[0].t,
-    sub:'แถวบน ภาพสแกนจากตำรา · แถวล่าง ผลการฟื้นฟูในขั้นตอนที่ 02',
-    body:`<div class="strip" style="flex-wrap:wrap">${STRIP12}</div>` })});
+};
+[0, 1].forEach(half => {
+  const set   = PAIRS.slice(half * 6, half * 6 + 6);
+  const cells = set.map(scanCell).join('');
+  const rng   = set[0].n + '–' + set[set.length - 1].n;
+  const SUB   = 'ภาพสแกนจากตำรา ยังไม่ผ่านการฟื้นฟู · ท่าที่ ' + rng + ' จาก ๑๒';
+  push({ dur:D.poses12, step:0, span:true, section:stepFoot(0, half + 1, 2), wall:{
+    head:stepEB(0), title:'ท่าครู ๑๒ ท่า',
+    rows:[['ชุดที่แสดงหน้านี้','ท่าที่ ' + rng + ' จาก ๑๒ ท่า'],
+          ['ที่มา','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
+          ['ผู้แสดงในภาพ','โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)']],
+    note:'ทั้งหมดเป็นภาพฮาล์ฟโทนขาวดำที่สแกนจากตำราโดยตรง ยังไม่ผ่านการฟื้นฟู '
+       + 'ผลการฟื้นฟูจะเห็นทีละท่าในขั้นตอนที่ 02',
+    },
+    wide:()=> band({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า',
+      sub:SUB, body:`<div class="strip">${cells}</div>` }),
+    html: frame({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า',
+      section:stepFoot(0, half + 1, 2),
+      sub:SUB, body:`<div class="strip grid6">${cells}</div>` })});
+});
 
 /* ---- ขั้นที่ 02 ฟื้นฟูภาพ ---- */
 divider(1);
