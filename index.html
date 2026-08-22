@@ -313,13 +313,14 @@ html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
   letter-spacing:-.03em;color:#fff;
 }
 .wide-sec .tx .lead{font-size:80px;line-height:1.34;color:#F3E6C4;max-width:6600px}
-/* ปกขั้นตอนเมื่ออยู่บนสองจอ (กลาง+ขวา) — ย่อขนาดให้พอดีผืน 7680px */
-.pCR .wide-sec{inset:130px 200px 400px;gap:110px}
-.pCR .wide-sec .num{font-size:600px}
-.pCR .wide-sec .tx{gap:36px}
-.pCR .wide-sec .tx .big{font-size:172px}
-.pCR .wide-sec .tx .lead{font-size:64px;max-width:4400px}
-.pCR .wide-rail{left:200px;right:200px;bottom:130px}
+/* ปกขั้นตอนบนจอกลางจอเดียว (3840px) — เลขอยู่บน ชื่อขั้นตอนอยู่ล่าง */
+.pCU .wide-sec{inset:170px 210px 240px;flex-direction:column;align-items:flex-start;
+  justify-content:center;gap:56px}
+.pCU .wide-sec .num{font-size:430px;line-height:.78}
+.pCU .wide-sec .tx{gap:32px}
+.pCU .wide-sec .tx .big{font-size:132px}
+.pCU .wide-sec .tx .lead{font-size:56px;max-width:3350px}
+.secfoot{position:absolute;left:210px;bottom:120px}
 /* ---------- กองภาพตัวอย่าง วางเอียงซ้อนกันเหมือนกองรูปถ่าย ---------- */
 .pstack{position:relative;flex:1;min-width:0;min-height:0}
 .pstack .pc{
@@ -338,21 +339,6 @@ html.ultra .slide.span-cu .pCU{display:block;left:3840px;width:3840px}
 .pstack.side .pc i{font-size:30px}
 .hero.dvd{padding-right:2020px}
 
-.wide-rail{
-  position:absolute;left:260px;right:260px;bottom:150px;
-  display:flex;align-items:stretch;gap:26px;
-}
-.wide-rail .st{
-  flex:1;display:flex;flex-direction:column;gap:14px;padding:34px 40px;border-radius:28px;
-  border:3px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
-}
-.wide-rail .st i{font-style:normal;font-size:40px;font-weight:700;color:rgba(255,255,255,.5);
-  font-variant-numeric:tabular-nums}
-.wide-rail .st b{font-size:56px;font-weight:600;color:#fff;line-height:1.2}
-.wide-rail .st span{font-size:36px;color:rgba(255,255,255,.62);line-height:1.3}
-.wide-rail .st.cur{background:rgba(212,175,55,.18);border-color:var(--gold)}
-.wide-rail .st.cur i{color:var(--gold)}
-.wide-rail .st.cur b{color:var(--gold)}
 .wide-foot{position:absolute;left:260px;bottom:150px}
 
 html.motion .slide.on .wide-hero .herologo{animation:riseIn .9s cubic-bezier(.2,.7,.3,1) both}
@@ -369,8 +355,6 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
   to  {opacity:1;
     transform:translate(-50%,-50%) translate(var(--x),var(--y)) rotate(var(--r)) scale(1)}
 }
-html.motion .slide.on .wide-rail .st      {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) both;
-                                           animation-delay:calc(.3s + var(--i,0) * .08s)}
 
 /* ---------- เลย์เอาต์ในผืนกว้าง (2 จอ = 7680 / 3 จอ = 11520) ---------- */
 .wideband{position:absolute;inset:0;display:flex;flex-direction:column;padding:120px 150px 150px}
@@ -524,8 +508,8 @@ html.motion .slide.on .credits .col     {animation:riseIn .7s cubic-bezier(.2,.7
 .slide.dark img.lg-dark{display:none}
 .slide.dark img.lg-light{display:block}
 
-html.motion .slide.on .pL .wl-logo {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) both}
-html.motion .slide.on .pL .wl-head {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .08s both}
+html.motion .slide.on .wl-logo {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) both}
+html.motion .slide.on .wl-head {animation:riseIn .7s cubic-bezier(.2,.7,.3,1) .08s both}
 html.motion .slide.on .ladder li   {animation:riseIn .6s cubic-bezier(.2,.7,.3,1) both;
                                     animation-delay:calc(.14s + var(--i,0) * .07s)}
 html.motion .slide.on .wl-num      {animation:numIn 1.1s cubic-bezier(.2,.7,.3,1) .3s both}
@@ -600,13 +584,6 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
 #ui .grp{display:flex;align-items:center;gap:10px}
 #ui [data-panels].hide{display:none}
 #ui .info{color:var(--gold);font-size:13px;font-weight:600;padding:0 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
-#hint{
-  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
-  background:rgba(12,16,22,.84);color:#F0E0B4;border:1px solid rgba(255,255,255,.14);
-  padding:9px 18px;border-radius:999px;font-size:13px;z-index:50;
-  opacity:0;transition:opacity .3s;backdrop-filter:blur(14px);pointer-events:none;
-}
-#hint.show{opacity:1}
 </style>
 </head>
 <body>
@@ -631,7 +608,6 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
   <button data-act="full">⛶ เต็มจอ</button>
   <button data-act="restart">↻ เริ่มใหม่</button>
 </div>
-<div id="hint">Space = เล่น/หยุด · ← → = เปลี่ยนสไลด์ · F = เต็มจอ · U = วนโหมดจอ · R = เริ่มใหม่ · เลื่อนเมาส์เพื่อแสดงปุ่ม</div>
 
 <script>
 /* ================================================================
@@ -943,12 +919,6 @@ function paneR(w){
 }
 
 /* ---------- เนื้อหาแบบรวมทุกจอ (ใช้เฉพาะโหมดจอยาว) ---------- */
-function railHTML(step){
-  return '<div class="wide-rail">' + SECTIONS.map((sc,i)=>
-    `<div class="st ${i===step?'cur':''}" style="--i:${i}">
-       <i>${esc(sc.n)}</i><b>${esc(sc.t)}</b><span>${esc(sc.d)} · ${esc(sc.c)}</span>
-     </div>`).join('') + '</div>';
-}
 function wideTitle(){
   return `<div class="wide-hero">
       <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
@@ -959,6 +929,8 @@ function wideTitle(){
       ${logoStrip()}
     </div>`;
 }
+/* ชื่อขั้นตอนสำหรับจอกลาง (จอเดียว 3840px)
+   บันไดขั้นตอนไม่ได้เรียงแนวนอนอยู่แถวล่างแล้ว — ย้ายไปเรียงแนวตั้งที่จอขวา */
 function wideSection(step){
   const sc = SECTIONS[step];
   return `<div class="wide-sec">
@@ -969,7 +941,7 @@ function wideSection(step){
         <div class="lead">${esc(sc.longd || sc.d)}</div>
       </div>
     </div>
-    ${railHTML(step)}`;
+    <div class="secfoot">${logoStrip()}</div>`;
 }
 
 const SLIDES = [];
@@ -1075,10 +1047,12 @@ function divider(step){
   const sc = SECTIONS[step];
   if(!CONFIG.SHOW_DIVIDERS) return;
   const sm = STEP_SAMPLE[step] || STEP_SAMPLE[0];
-  push({ dur:CONFIG.DWELL.divider, dark:true, step, spanCR:true,
+  push({ dur:CONFIG.DWELL.divider, dark:true, step, spanCU:true,
     left:()=> band({ eyebrow:sm.eb, h2:86, title:esc(sm.name),
       body:photoStack(sm.items) }),
-    cr:()=> wideSection(step), wall:{
+    midU:()=> wideSection(step),
+    right:()=> paneL(step),          // บันไดขั้นตอนเรียงแนวตั้งที่จอขวา
+    wall:{
     head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
     rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['ผลงานในขั้นนี้', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 05']],
     note:sc.longd || sc.d }, html:`
@@ -1625,14 +1599,13 @@ function setPlaying(v){
 
 /* controls */
 const ui = document.getElementById('ui');
-const hint = document.getElementById('hint');
 const KIOSK = new URLSearchParams(location.search).get('kiosk') === '1';
 let uiTimer;
 addEventListener('mousemove', ()=>{
   if(KIOSK) return;
-  ui.classList.add('show'); hint.classList.add('show');
+  ui.classList.add('show');
   clearTimeout(uiTimer);
-  uiTimer = setTimeout(()=>{ ui.classList.remove('show'); hint.classList.remove('show'); }, 3000);
+  uiTimer = setTimeout(()=>{ ui.classList.remove('show'); }, 3000);
 });
 /* ปุ่มสลับโหมดจอ — ทำงานสด ไม่ต้องแก้ URL */
 /* ไฮไลต์ปุ่มให้ตรงกับโหมดปัจจุบัน และซ่อนกลุ่มเลือกจอเมื่อไม่ได้อยู่โหมด 16:9 */
