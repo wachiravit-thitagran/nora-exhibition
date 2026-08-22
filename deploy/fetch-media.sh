@@ -14,7 +14,7 @@
 #
 # ปลายทางคือ assets/videos/<videoId>.mp4 ตามที่ index.html เรียกหา
 # ไฟล์ที่มีอยู่แล้วและขนาดไม่เป็น 0 จะข้ามไป รันซ้ำได้
-# ถ้าได้ไม่ครบ 22 คลิป สคริปต์จบด้วย exit 1 ให้บิลด์ล้มตรงนี้
+# ถ้าได้ไม่ครบ (22 คลิปหลัก + 12 คลิปจาก Drive) สคริปต์จบด้วย exit 1 ให้บิลด์ล้มตรงนี้
 # ไม่ปล่อยให้ได้อิมเมจที่วิดีโอหายไปเงียบ ๆ แล้วไปรู้ตอนขึ้นจอหน้างาน
 
 set -eu
@@ -22,9 +22,10 @@ set -eu
 AINORA="${AINORA:-https://ainora.psu.ac.th}"
 HERE="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 VID_DIR="$HERE/assets/videos"
+DRV_DIR="$HERE/assets/drive"
 BG_DIR="$HERE/assets/static"
 
-mkdir -p "$VID_DIR" "$BG_DIR"
+mkdir -p "$VID_DIR" "$DRV_DIR" "$BG_DIR"
 
 have=0; got=0; fail=0
 
@@ -108,6 +109,73 @@ done <<'IDS'
 6a783c54e8c21f9b2fa12b3c	ท่าใหม่ (F) → ท่าใหม่ (G) → ท่าเขาควาย
 IDS
 
+# ---------------------------------------------------------------------------
+# ชุดที่ 2 — คลิปในโฟลเดอร์ "วิดีโอ" บน Google Drive (ใช้ในขั้นตอนที่ 04)
+# https://drive.google.com/drive/folders/1TXF7eGEfm9sy8hAFvzPsBmUhi5kIMQNf
+#
+# ปลายทางคือ assets/drive/<ชื่อไฟล์>.mp4 ตามชื่อเดิมใน Drive (index.html เรียกตามชื่อนี้)
+# โหมด FROM_DIR: หาไฟล์ชื่อเดียวกันในโฟลเดอร์ที่ระบุ
+# โหมด HTTP   : ดึงจาก drive.google.com โดยตรง — โฟลเดอร์ต้องยังแชร์แบบ
+#               "ผู้ใช้ทุกคนที่มีลิงก์" อยู่ ไม่งั้นจะได้หน้า HTML แทนไฟล์วิดีโอ
+#               ทุกคลิปเล็กกว่า 25 MB จึงไม่ติดหน้าเตือนสแกนไวรัสของ Google
+while IFS='	' read -r fid name; do
+    [ -n "$fid" ] || continue
+    out="$DRV_DIR/$name"
+
+    if [ -s "$out" ]; then
+        have=$((have + 1))
+        continue
+    fi
+
+    if [ -n "${FROM_DIR:-}" ]; then
+        src=""
+        OLDIFS="$IFS"; IFS=':'
+        for d in $FROM_DIR; do
+            IFS="$OLDIFS"
+            if [ -f "$d/$name" ]; then src="$d/$name"; fi
+            IFS=':'
+            if [ -n "$src" ]; then break; fi
+        done
+        IFS="$OLDIFS"
+        if [ -n "$src" ]; then
+            cp "$src" "$out"
+            printf 'ก็อป  drive/%s\n' "$name"
+            got=$((got + 1))
+        else
+            printf 'ไม่พบ drive/%s\n' "$name" >&2
+            fail=$((fail + 1))
+        fi
+        continue
+    fi
+
+    printf 'ดึง drive/%s ... ' "$name"
+    if curl -fsSL --retry 2 --retry-delay 2 --max-time 300 \
+            -o "$out.part" "https://drive.google.com/uc?export=download&id=$fid" \
+       && [ "$(head -c 5 "$out.part")" != "<!DOC" ]; then
+        mv "$out.part" "$out"
+        printf 'ได้ %s\n' "$(du -h "$out" | cut -f1)"
+        got=$((got + 1))
+    else
+        rm -f "$out.part"
+        echo 'ไม่สำเร็จ (โฟลเดอร์อาจไม่ได้แชร์แบบลิงก์แล้ว)' >&2
+        fail=$((fail + 1))
+    fi
+done <<'DRIVE'
+1sRQdlS78tw1ULQ_QkVjVZkOx5sD-M9Rf	ท่าใหม่ → ท่าใหม่ → เขาควาย → ท่าใหม่ → ท่าใหม่.mp4
+1zqPGaiq-kZ4CEiFH9txLC3CiN7Z5mEwH	ท่าขุนศรัทธา → ท่าพรหมสี่หน้า → ท่าเทวดา.mp4
+1sDdDjFNO3bWCsIoZCKvGjnYb462F2a2n	ท่าขุนศรัทธา → ท่าครู.mp4
+1jvZmVX4s_NUoYRWJQnjZpSn4oc23hkC1	ท่าย่างสามขุม → ท่าลงฉากน้อย.mp4
+1ixYWz5SBPJpaBSoFbaQsc7uCJaOu46Gi	ท่าย่างสามขุม → ท่าขี้หนอน.mp4
+1HBmVCeestDLaAaTqIodDXvy2YOVPqz80	ท่าพรหมสี่หน้า → ท่าเทวดา.mp4
+1Cz6oTKdHzsHhZ73a8W_lK-Fu-8RYn7os	ท่าซัดหวางอก → ท่าขี้หนอน.mp4
+1u8T1C1WQxmv3UTEAjuq_emfdpzzhV9XD	ท่าครู → ท่าเหาะเหิน.mp4
+1rDdw92VUoDUdfPnKcDOBM5KO3tPSNCgb	ท่าครู → ท่าพรหมสี่หน้า.mp4
+1Tbu1LWBxA-qb5QsXk-vAeP30sDcCuh8g	ท่าย่างสามขุม → ท่าย่างสามขุม.mp4
+1aanmZZAu-960NtP6mYE03KYfX73jyLop	ท่าจีบปรกหน้า → ท่าเทวดา → ท่าเขาควาย.mp4
+1iVGSxyujNJby_Xq4yxmmfvQWYLtNVqmR	ท่าขุนศรัทธา → ท่าพรหมสี่หน้า.mp4
+DRIVE
+
+
 # ภาพพื้นหลังลายไทย (ไม่มีก็ได้ จะเหลือแค่พื้นไล่สี)
 bg="$BG_DIR/background.png"
 if [ ! -s "$bg" ]; then
@@ -122,6 +190,6 @@ if [ ! -s "$bg" ]; then
 fi
 
 echo '----'
-echo "วิดีโอ: มีอยู่แล้ว $have · ได้ใหม่ $got · ไม่ได้ $fail"
+echo "วิดีโอ (22 คลิปหลัก + 12 คลิปจาก Drive): มีอยู่แล้ว $have · ได้ใหม่ $got · ไม่ได้ $fail"
 du -sh "$HERE/assets"/* 2>/dev/null | sort -h || true
 [ "$fail" -eq 0 ] || { echo "ยังขาด $fail คลิป — หยุดก่อน build" >&2; exit 1; }

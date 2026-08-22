@@ -138,6 +138,11 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .pL .cmp.solo{grid-template-columns:minmax(0,1500px);justify-content:center}
 .pR .cmp.solo,.pCR .cmp.solo,.pW .cmp.solo,.pCU .cmp.solo{
   grid-template-columns:minmax(0,1100px);justify-content:center}
+/* คลิปแนวตั้ง 9:16 — บีบกรอบเท่ากันทุก pane รวมทั้งจอซ้าย ต้องอยู่หลังกฎ .pL ด้านบน */
+.cmp.solo.clip{grid-template-columns:minmax(0,1100px);justify-content:center}
+/* สามคลิปเรียงกันในจอเดียว (โหมด 16:9) — คลิปละไม่เกิน 1100px กลางจอ */
+.cmp3{flex:1;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1100px));
+  gap:60px;align-items:stretch;justify-content:center}
 .panel{
   height:100%;background:var(--card);border:3px solid var(--line);border-radius:40px;
   box-shadow:0 34px 70px -44px rgba(17,24,39,.42);
@@ -417,6 +422,26 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .sumgrid.facecol .kpi{gap:30px;padding:70px 60px}
 .sumgrid.facecol .kpi b{font-size:150px}
 .sumgrid.facecol .kpi span{font-size:62px}
+/* หน้าปิดท้าย — จอซ้ายผู้สนับสนุน จอกลางสรุป จอขวาเครดิต
+   โลโก้ผู้สนับสนุนเป็นภาพเข้มบนพื้นขาว จึงต้องมีการ์ดขาวรองบนสไลด์พื้นเข้ม */
+.sponsors{flex:1;height:100%;display:flex;flex-direction:column;justify-content:center;gap:90px}
+.sponsors .sp{display:flex;align-items:center;gap:80px}
+.sponsors .sp .box{flex:0 0 auto;background:#fff;border-radius:44px;padding:48px 68px;
+  box-shadow:0 22px 48px -30px rgba(0,0,0,.65)}
+.sponsors .sp .box img{display:block;width:auto;height:calc(270px * var(--k,1));max-width:1200px}
+.sponsors .sp .nm{font-size:76px;line-height:1.26;color:#F1E6CE;font-weight:600}
+.sumgrid.grid2{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:44px}
+.sumgrid.grid2 .kpi b{font-size:250px}
+.sumgrid.grid2 .kpi span{font-size:62px}
+.credits.stack{flex-direction:column;gap:72px;align-items:stretch;justify-content:center}
+.credits.stack .col{flex:0 0 auto;gap:30px}
+.credits.stack .col h3{font-size:58px}
+.credits.stack .col p{font-size:58px}
+.credits.stack .col p small{font-size:42px;margin-top:8px}
+/* โหมดจอเดียว 16:9 ไม่มีจอซ้าย/ขวา จึงเรียงสรุปไว้บน เครดิตไว้ล่าง ในหน้าเดียว */
+.endstack{flex:1;min-height:0;display:flex;flex-direction:column;gap:80px}
+.endstack .sumgrid{flex:0 0 640px;height:auto}
+.endstack .credits{flex:1;height:auto;align-items:flex-start}
 .credits{flex:1;height:100%;display:flex;gap:100px;align-items:center}
 .credits .col{flex:1;display:flex;flex-direction:column;gap:26px}
 .credits .col h3{font-size:44px;font-weight:700;color:var(--gold);letter-spacing:.06em}
@@ -624,7 +649,7 @@ const CONFIG = {
      ซ้ำ ๆ หลายสิบหน้า ให้ตั้งเป็น false ปิดช่วงนั้นไปเลย
      รอบการแสดงจะยืดหน้าที่เหลือให้ครบ 30 นาทีเองโดยอัตโนมัติ            */
   SHOW_COLORIZE : true,   // 22 หน้า — ต้องมีไฟล์ใน assets/color/
-  SHOW_TWOSETS  : true,   // 12 หน้า — ต้องมีไฟล์ใน assets/drive/
+  SHOW_TWOSETS  : true,   // 4 หน้า หน้าละ 3 คลิป — ต้องมีไฟล์ใน assets/drive/
   SHOW_STUDENT  : true,   //  4 หน้า — ต้องมีไฟล์ assets/students/นักศึกษา-N.mp4
   SHOW_CLASSROOM: true,   //  2 หน้า — ต้องมีไฟล์ assets/students/นักเรียน-N.mp4
   /* ---- ผังรายการ 30 นาที : วินาทีต่อหน้า (แก้ตัวเลขที่นี่ที่เดียว) ----
@@ -640,7 +665,7 @@ const CONFIG = {
     colorize  : 19,   // ขาวดำ/ใส่สี (22)
     student   : 30,   // AI/นักศึกษารำ (4)
     classroom : 22,   // ภาพท่ารำ/นักเรียนรำ (2)
-    threeway  : 20,   // เทียบ 3 ทาง (12)
+    threeway  : 26,   // 3 คลิปพร้อมกัน จอละคลิป (4)
     summary   : 25,   // สรุปผลงาน
     credits   : 20,   // เครดิต
   },
@@ -720,6 +745,11 @@ const PAIRS = [
   { n:'11', book:'ท่าเขาควาย',      fixName:'ท่าเขาควาย',          note:'ใบหน้าตรงกับต้นฉบับ' },
   { n:'12', book:'ท่าเหาะเหิน',     fixName:'ท่าเหาะเหิน',         note:'ใบหน้าตรงกับต้นฉบับ' },
 ];
+/* เลขไทย — ข้อความที่พูดถึง "ท่าที่เท่าไร" ในสไลด์ใช้เลขไทยทั้งหมด
+   (เลขหน้า เลขขั้นตอน และชื่อไฟล์ยังเป็นเลขอารบิกตามเดิม) */
+const TH_DIGIT = '๐๑๒๓๔๕๖๗๘๙';
+const thNum = v => String(v).replace(/\d/g, d => TH_DIGIT[+d]);
+
 /* ผู้รำในภาพ — ทั้ง ๑๒ ท่าในตำราฟ้อนรำ ๒๔๖๖ เป็นผู้แสดงคนเดียวกัน
    เก็บไว้ที่เดียวเพื่อให้จอขวาของทุกขั้นตอนอ้างชื่อเดียวกันเสมอ */
 const PERFORMER = 'โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)';
@@ -1006,7 +1036,7 @@ function band(o){
       </div>
     </div>
     <div class="wb-body">${o.body || ''}</div>
-    <div class="wb-ft">${logoStrip()}<span class="grow"></span>${o.foot || ''}</div>
+    <div class="wb-ft">${o.nologo ? '' : logoStrip()}<span class="grow"></span>${o.foot || ''}</div>
   </div>`;
 }
 
@@ -1120,8 +1150,8 @@ const scanCell = (p, i) => {
 [0, 1].forEach(half => {
   const set   = PAIRS.slice(half * 6, half * 6 + 6);
   const cells = set.map(scanCell).join('');
-  const rng   = set[0].n + '–' + set[set.length - 1].n;
-  const SUB   = 'ภาพสแกนจากตำรา ยังไม่ผ่านการฟื้นฟู · ท่าที่ ' + rng + ' จาก ๑๒';
+  const rng   = thNum(+set[0].n) + '–' + thNum(+set[set.length - 1].n);
+  const SUB   = 'ภาพสแกนจากหนังสือ · ท่าที่ ' + rng + ' จาก ๑๒';
   push({ dur:D.poses12, step:0, span:true, section:stepFoot(0, half + 1, 2), wall:{
     head:stepEB(0), title:'ท่าครู ๑๒ ท่า',
     rows:[['ชุดที่แสดงหน้านี้','ท่าที่ ' + rng + ' จาก ๑๒ ท่า'],
@@ -1233,43 +1263,45 @@ if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
       </div>` })});
 });
 
-/* ---- ขั้นที่ 04 ถอดรหัสท่ารำสู่ตำแหน่งในคอมพิวเตอร์ — จอละชิ้น ---- */
+/* ---- ขั้นที่ 04 ถอดรหัสท่ารำสู่ตำแหน่งในคอมพิวเตอร์ — จอละคลิป สไลด์ละ 3 คลิป ---- */
 divider(3);
-if(CONFIG.SHOW_TWOSETS) DRIVE_PAIRS.forEach(([id,file],i)=>{
-  const title = (VIDEOS.find(v=>v[0]===id)||[,file.replace(/\.mp4$/,'')])[1];
-  const poses = title.split('→').map(x=>x.trim());
-  const first = poses[0];
-  const poseSrcs = poseSrc(id, 0, first);
-  push({ dur:D.threeway, step:3, vids:[id], spanCU:true,
-    section:stepFoot(3, i+1, DRIVE_PAIRS.length),
-    wall:{ head:stepEB(3), title:title,
-      rows:[['จอซ้าย', 'ภาพท่าต้นทาง — ' + first],
-            ['จอกลาง', 'ผลการสร้างรอบที่ ๑'],
-            ['จอขวา', 'ผลการสร้างรอบที่ ๒'],
-            ['ข้อมูลตั้งต้น', 'ลำดับท่าเดียวกันทั้งสองรอบ']],
-      note:'เมื่อลำดับท่าถูกเก็บเป็นข้อมูลแล้ว ก็สั่งสร้างวิดีโอซ้ำได้อีก '
-         + 'สองจอนี้มาจากลำดับท่าเดียวกันแต่ต่างรอบการสร้าง ใช้ดูว่าผลลัพธ์คงที่แค่ไหน' },
-    left:()=> band({ eyebrow:'ข้อมูลตั้งต้น', h2:74, title:esc(first),
-      sub:'ภาพท่าที่ป้อนให้ปัญญาประดิษฐ์',
-      body:`<div class="cmp solo">${panel('ภาพท่าต้นทาง','ท่าแรก',
-        `<img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม']))}'
-           data-srcs='${esc(JSON.stringify(poseSrcs))}' data-i="0" src="${enc(poseSrcs[0])}">`)}</div>` }),
-    midU:()=> band({ eyebrow:'ผลการสร้างรอบที่ ๑', h2:74, title:esc(title),
-      sub:'สร้างจากลำดับท่าที่บันทึกไว้',
-      body:`<div class="cmp solo">${panel('วิดีโอรอบที่ ๑','รอบ ๑', mediaVid(vurl(id)), true)}</div>` }),
-    right:()=> band({ eyebrow:'ผลการสร้างรอบที่ ๒', h2:74, title:'ลำดับท่าเดิม สร้างใหม่อีกรอบ',
-      sub:'อินพุตเดียวกัน — ผลลัพธ์ต่างกันในรายละเอียด',
-      body:`<div class="cmp solo">${panel('วิดีโอรอบที่ ๒','รอบ ๒', mediaVid(drv(file).flatMap(alt)), true)}</div>` }),
+
+/* คลิปทั้ง 12 ในโฟลเดอร์ "วิดีโอ" บน Google Drive คือชุดที่สั่งสร้างใหม่
+   จากลำดับท่าเดิมที่บันทึกไว้เป็นข้อมูลตำแหน่งแล้ว
+   วางจอละคลิป สไลด์หนึ่งจึงได้ 3 คลิปเล่นพร้อมกัน 12 คลิป = 4 หน้า
+   ไฟล์อยู่ที่ assets/drive/<ชื่อไฟล์>.mp4 เติมด้วย deploy/fetch-media.sh */
+function drivePane(entry, i){
+  const id = entry[0], file = entry[1];
+  const title = (VIDEOS.find(v => v[0] === id) || [, file.replace(/\.mp4$/,'')])[1];
+  return band({ eyebrow:'คลิปที่ ' + thNum(i + 1) + ' จาก ' + thNum(DRIVE_PAIRS.length),
+    h2:66, title:esc(title),
+    sub:'สร้างใหม่จากลำดับท่าที่บันทึกไว้',
+    body:`<div class="cmp solo clip">${
+      panel('วิดีโอที่สร้างซ้ำได้', 'รอบใหม่', mediaVid(drv(file).flatMap(alt)), true)}</div>` });
+}
+if(CONFIG.SHOW_TWOSETS) for(let i = 0; i < DRIVE_PAIRS.length; i += 3){
+  const set    = DRIVE_PAIRS.slice(i, i + 3);
+  const nPage  = i / 3 + 1;
+  const nPages = Math.ceil(DRIVE_PAIRS.length / 3);
+  const rng    = thNum(i + 1) + '–' + thNum(i + set.length);
+  push({ dur:D.threeway, step:3, spanCU:true,
+    vids:set.map(e => e[0]),
+    section:stepFoot(3, nPage, nPages),
+    /* จอซ้าย/กลาง/ขวา คลิปละจอ — ?panel=1|2|3 จึงได้จอละคลิปเต็มขนาด */
+    left: ()=> drivePane(set[0], i),
+    midU: ()=> set[1] ? drivePane(set[1], i + 1) : '',
+    right:()=> set[2] ? drivePane(set[2], i + 2) : '',
+    /* โหมดจอเดียว 16:9 วางสามคลิปเรียงกันในจอเดียว จะได้ครบทั้ง 12 คลิปเหมือนกัน */
     html: frame({ eyebrow:stepEB(3),
-      section:stepFoot(3, i+1, DRIVE_PAIRS.length), title:esc(title),
-      sub:'คลิปที่ ' + (i+1) + ' จาก ' + DRIVE_PAIRS.length
-        + ' · ลำดับท่าเดียวกันที่บันทึกไว้ สั่งสร้างใหม่ได้อีกรอบ',
-      body:`<div class="cmp">
-        ${panel('ผลการสร้างรอบที่ ๑','รอบ ๑', mediaVid(vurl(id)))}
-        <div class="arrow">»<small>เทียบกับ</small></div>
-        ${panel('ผลการสร้างรอบที่ ๒','รอบ ๒', mediaVid(drv(file).flatMap(alt)), true)}
-      </div>` })});
-});
+      section:stepFoot(3, nPage, nPages),
+      title:'ลำดับท่าเดิม สั่งสร้างใหม่ได้อีก',
+      sub:'คลิปที่ ' + rng + ' จาก ' + thNum(DRIVE_PAIRS.length)
+        + ' · เมื่อท่ารำถูกเก็บเป็นข้อมูลตำแหน่งแล้ว จะสร้างวิดีโอซ้ำกี่รอบก็ได้',
+      body:`<div class="cmp3">${set.map((e,k)=>{
+        const title = (VIDEOS.find(v => v[0] === e[0]) || [, e[1].replace(/\.mp4$/,'')])[1];
+        return panel(title, thNum(i + k + 1), mediaVid(drv(e[1]).flatMap(alt)), true);
+      }).join('')}</div>` })});
+}
 
 /* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — นักศึกษา (2｜1) ---- */
 divider(4);
@@ -1319,44 +1351,58 @@ if(CONFIG.SHOW_CLASSROOM) STUDENT_STILLS.forEach((st,i)=>{
       sub:'ท่าที่ ' + (i+1) + ' จาก 2 · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body })});
 });
 
-/* ---- ปิดท้าย: สรุปผลงาน + เครดิต (รวม 3 จอ) ---- */
+/* ---- ปิดท้าย: ผู้สนับสนุน | สรุปโครงการ | เครดิต — สไลด์เดียว จอละส่วน ---- */
 const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟูแล้ว'],['22','วิดีโอที่ AI สร้างได้'],
              ['7','ท่าใหม่ที่เกิดในกระบวนการ'],['5','ขั้นตอนของกระบวนการ']]
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
-push({ dur:D.summary, dark:true, step:-1, span:true, wall:{
-  head:'สรุป', title:'ผลงานทั้งโครงการ',
+
+/* จอซ้าย — โลโก้ผู้สนับสนุนขนาดใหญ่พร้อมชื่อเต็ม (คนละชุดกับแถบโลโก้เล็กท้ายหน้า) */
+const SPONSOR_PANE = `<div class="sponsors">${SPONSORS.map((sp,i)=>
+  `<div class="sp" style="--i:${i};--k:${sp.k || 1}">
+     <div class="box"><img alt="${esc(sp.name.replace(/\n/g,' '))}"
+       data-logo='${esc(JSON.stringify(sp.name))}'
+       data-srcs='${esc(JSON.stringify([sp.file]))}' data-i="0" src="${enc(sp.file)}"></div>
+     <div class="nm">${sp.name.split('\n').map(esc).join('<br>')}</div>
+   </div>`).join('')}</div>`;
+
+/* เครดิตแยกเป็นคอลัมน์ เพื่อประกอบใหม่ได้ทั้งแบบเรียงลง (จอขวา) และเรียงข้าง (จอเดียว) */
+const CR_SRC = `<div class="col" style="--i:0"><h3>ต้นฉบับท่ารำ</h3>
+      <p>ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร<small>พ.ศ. ๒๔๖๖</small></p>
+      <p>โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)<small>จังหวัดนครศรีธรรมราช</small></p>
+      <p>ครูธรรมนิตย์ นิคมรัตน์<small>ศิลปินแห่งชาติ สาขาศิลปะการแสดง</small></p></div>`;
+const CR_ORG = `<div class="col" style="--i:1"><h3>ดำเนินโครงการ</h3>
+      <p>สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ<small>มหาวิทยาลัยสงขลานครินทร์</small></p>
+      <p>คณะศิลปกรรมศาสตร์<small>มหาวิทยาลัยทักษิณ</small></p></div>`;
+const CR_SUP = `<div class="col" style="--i:2"><h3>สนับสนุนโดย</h3>
+      <p>สำนักงานศิลปวัฒนธรรมร่วมสมัย<small>กระทรวงวัฒนธรรม</small></p>
+      <p>ชมผลงานทั้งหมดได้ที่<small style="font-size:44px;color:#E3C468;margin-top:12px">ainora.psu.ac.th</small></p></div>`;
+const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั้งหมดได้ที่</h3>
+      <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
+
+push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
+  head:'ปิดท้าย', title:'ผลงานทั้งโครงการ',
   rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','12 ท่า'],
         ['วิดีโอที่สร้างได้','22 คลิป'],
         ['ท่าใหม่ที่เกิดขึ้น','7 ท่า (A–G)'],
         ['ขั้นตอนของกระบวนการ','5 ขั้นตอน']],
   note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๒ ภาพ' },
-  wide:()=> `<div class="bgimg"></div>` + band({
-    eyebrow:'สรุปผลงาน', title:'จาก ๑๒ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
-    body:`<div class="sumgrid">${KPI}</div>` }),
-  html:`<div class="bgimg"></div>` + frame({ eyebrow:'สรุปผลงาน', title:'ผลงานทั้งโครงการ',
-    body:`<div class="sumgrid">${KPI}</div>` })});
-
-const CREDITS = `<div class="credits">
-    <div class="col" style="--i:0"><h3>ต้นฉบับท่ารำ</h3>
-      <p>ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร<small>พ.ศ. ๒๔๖๖</small></p>
-      <p>โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)<small>จังหวัดนครศรีธรรมราช</small></p>
-      <p>ครูธรรมนิตย์ นิคมรัตน์<small>ศิลปินแห่งชาติ สาขาศิลปะการแสดง</small></p></div>
-    <div class="col" style="--i:1"><h3>ดำเนินโครงการ</h3>
-      <p>สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ<small>มหาวิทยาลัยสงขลานครินทร์</small></p>
-      <p>คณะศิลปกรรมศาสตร์<small>มหาวิทยาลัยทักษิณ</small></p></div>
-    <div class="col" style="--i:2"><h3>สนับสนุนโดย</h3>
-      <p>สำนักงานศิลปวัฒนธรรมร่วมสมัย<small>กระทรวงวัฒนธรรม</small></p>
-      <p>ชมผลงานทั้งหมดได้ที่<small style="font-size:44px;color:#E3C468;margin-top:12px">ainora.psu.ac.th</small></p></div>
-  </div>`;
-push({ dur:D.credits, dark:true, step:-1, span:true, wall:{
-  head:'เครดิต', title:'ที่มาและผู้ร่วมงาน',
-  rows:[['ต้นฉบับท่ารำ','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
-        ['อ้างอิงการรำ','ครูธรรมนิตย์ นิคมรัตน์'],
-        ['ดำเนินโครงการ','DIIS ม.สงขลานครินทร์ · คณะศิลปกรรมศาสตร์ ม.ทักษิณ'],
-        ['สนับสนุน','สำนักงานศิลปวัฒนธรรมร่วมสมัย กระทรวงวัฒนธรรม']],
-  note:'ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่านที่ทำให้ท่ารำเหล่านี้ยังมีลมหายใจ' },
-  wide:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต', title:'ที่มาและผู้ร่วมงาน', body:CREDITS }),
-  html:`<div class="bgimg"></div>` + frame({ eyebrow:'เครดิต', title:'ที่มาและผู้ร่วมงาน', body:CREDITS })});
+  /* จอซ้าย ผู้สนับสนุน · จอกลาง สรุปโครงการ · จอขวา เครดิต — อยู่ในสไลด์เดียวกัน */
+  left: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'ด้วยการสนับสนุนจาก',
+    h2:96, title:'ผู้สนับสนุนโครงการ', nologo:true, body:SPONSOR_PANE }),
+  midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'สรุปผลงาน',
+    h2:88, title:'จาก ๑๒ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
+    body:`<div class="sumgrid grid2">${KPI}</div>` }),
+  right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
+    h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
+    body:`<div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>` }),
+  /* โหมดจอเดียว 16:9 รวมทั้งสามส่วนไว้ในหน้าเดียว — โลโก้ผู้สนับสนุนอยู่แถบท้ายหน้าของ frame() */
+  html:`<div class="bgimg"></div>` + frame({ eyebrow:'ปิดท้าย',
+    title:'ผลงานทั้งโครงการ',
+    sub:'จาก ๑๒ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
+    body:`<div class="endstack">
+      <div class="sumgrid">${KPI}</div>
+      <div class="credits">${CR_SRC}${CR_ORG}${CR_SUP}</div>
+    </div>` })});
 
 /* ================================================================
    4. RENDER + PLAYER
