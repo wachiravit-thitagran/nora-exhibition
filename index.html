@@ -425,6 +425,9 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 
 /* คู่ภาพ/วิดีโอในผืนกว้าง */
 .duowide{flex:1;min-width:0;height:100%;display:grid;grid-template-columns:1fr auto 1fr;gap:70px;align-items:stretch}
+/* สองแผงข้าง ๆ ต้องสูงเต็มผืน (stretch) แต่ลูกศรตรงกลางไม่ต้อง
+   ถ้าปล่อยให้ stretch ตามไปด้วย ตัวลูกศรจะไปเกาะขอบบนของช่อง ไม่ตรงกลางแกน Y */
+.duowide > .arrow{align-self:center}
 .trio{flex:1;display:flex;flex-direction:column;gap:0}
 .facebox{flex:0 0 auto;min-width:0;height:100%;display:flex;align-items:stretch;justify-content:center;
   background:rgba(255,255,255,.06);border:3px solid rgba(255,255,255,.16);border-radius:28px;padding:26px}
