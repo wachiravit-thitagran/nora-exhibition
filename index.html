@@ -457,6 +457,23 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .credits.stack .col p{font-size:58px}
 .credits.stack .col p small{font-size:42px;margin-top:8px}
 /* โหมดจอเดียว 16:9 ไม่มีจอซ้าย/ขวา จึงเรียงสรุปไว้บน เครดิตไว้ล่าง ในหน้าเดียว */
+/* หน้าชุดข้อมูลเปิด */
+.dscol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.dsgrid{flex:1;min-height:0;display:flex;flex-direction:column;gap:36px;justify-content:center}
+.dsgrid .ds{background:rgba(255,255,255,.06);border:3px solid rgba(227,196,104,.42);
+  border-radius:30px;padding:38px 44px;display:flex;flex-direction:column;gap:12px}
+.dsgrid .ds .nm{font-size:62px;font-weight:700;color:#fff;line-height:1.15}
+.dsgrid .ds .dd{font-size:42px;color:rgba(255,255,255,.72);line-height:1.35}
+.dsurl{flex:0 0 auto;margin-top:44px;display:flex;flex-direction:column;gap:14px;align-items:center;
+  text-align:center}
+.dsurl .lb{font-size:42px;color:rgba(255,255,255,.7)}
+.dsurl .u{font-size:104px;font-weight:700;letter-spacing:.01em;
+  background:linear-gradient(176deg,#F7E6B4 0%,#E3C468 48%,#C29B31 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.slide:not(.dark) .dsgrid .ds{background:var(--card);border-color:var(--line)}
+.slide:not(.dark) .dsgrid .ds .nm{color:var(--ink)}
+.slide:not(.dark) .dsgrid .ds .dd{color:var(--muted)}
+.slide:not(.dark) .dsurl .lb{color:var(--muted)}
 .endstack{flex:1;min-height:0;display:flex;flex-direction:column;gap:80px}
 .endstack .sumgrid{flex:0 0 640px;height:auto}
 .endstack .credits{flex:1;height:auto;align-items:flex-start}
@@ -468,6 +485,29 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 
 /* คู่ภาพ/วิดีโอในผืนกว้าง */
 .duowide{flex:1;min-width:0;height:100%;display:grid;grid-template-columns:1fr auto 1fr;gap:70px;align-items:stretch}
+/* เทียบภาพทรงตั้งบนจอเดียว — ล็อกความกว้างกรอบให้ใกล้สัดส่วนภาพ (ราว 0.6)
+   ถ้าปล่อยให้กรอบกว้างเต็มคอลัมน์ ภาพแนวตั้งจะถูกจำกัดด้วยความสูง
+   แล้วเหลือพื้นว่างซ้าย-ขวาข้างละเกือบครึ่งกรอบ */
+.duowide.tall{grid-template-columns:minmax(0,880px) auto minmax(0,880px);
+  justify-content:center;gap:56px}
+/* กฎรวมของ .panel ใช้ width/height:auto จึงไม่ขยายภาพที่เล็กกว่ากรอบ
+   ภาพสแกนจากหนังสือกว้างแค่ ~730px แต่กรอบกว้าง ~870px ภาพเลยลอยเล็กกลางกรอบ
+   ตรงนี้บังคับให้เต็มกรอบแล้วค่อย contain รักษาสัดส่วน */
+.panel.tight .body > img:only-child,.panel.tight .body > video:only-child{
+  inset:13px;width:calc(100% - 26px);height:calc(100% - 26px);
+  max-width:none;max-height:none;object-fit:contain}
+.cmpcol{flex:1;min-height:0;display:flex;flex-direction:column;gap:30px}
+.cmpcol .duowide{flex:1;min-height:0;height:auto}
+.cmpnote{flex:0 0 auto;font-size:36px;line-height:1.4;color:var(--muted);text-align:center;
+  max-width:1900px;margin:0 auto}
+/* การ์ดเทียบก่อน-หลังจากรายงาน เป็นภาพสำเร็จรูปใบเดียว ให้พอดีพื้นที่ที่เหลือ */
+/* การ์ดเทียบจากรายงานมีพื้นขาวในตัวอยู่แล้ว ถ้าใส่กรอบขาวซ้อนอีกชั้น
+   จะเห็นเป็นกล่องขาวใหญ่ว่าง ๆ ข้างละครึ่ง จึงปล่อยให้ภาพลอยกลางพื้นที่แทน
+   แล้วใช้ drop-shadow ซึ่งเกาะรูปจริงของภาพ ไม่ใช่กรอบ */
+.figbox{flex:1;min-height:0;position:relative}
+.figbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  filter:drop-shadow(0 26px 46px rgba(17,24,39,.32))}
+.slide.dark .cmpnote{color:rgba(255,255,255,.7)}
 /* สองแผงข้าง ๆ ต้องสูงเต็มผืน (stretch) แต่ลูกศรตรงกลางไม่ต้อง
    ถ้าปล่อยให้ stretch ตามไปด้วย ตัวลูกศรจะไปเกาะขอบบนของช่อง ไม่ตรงกลางแกน Y */
 .duowide > .arrow{align-self:center}
@@ -672,7 +712,7 @@ const CONFIG = {
     timeline  : 26,   // ไทม์ไลน์กระบวนการ
     divider   : 10,   // ปกขั้นตอน (5 ใบ)
     poses12   : 22,   // ภาพจากหนังสือ 2 หน้า หน้าละ 6 ท่า
-    compare   : 18,   // เปรียบเทียบ ต้นฉบับ/ซ่อมแซม (12)
+    compare   : 30,   // เปรียบเทียบ ต้นฉบับ/ซ่อมแซม (12)
     combine   : 25,   // ภาพท่า + ภาพท่า = วิดีโอ (22)
     colorize  : 19,   // ขาวดำ/ใส่สี (22)
     student   : 30,   // AI/นักศึกษารำ (4)
@@ -714,6 +754,7 @@ const CONFIG = {
        'compare' = ภาพท่าที่ฟื้นฟูจากตำรา (มีอยู่แล้วครบ ใช้ได้ทันที)
        'frames'  = เฟรมที่ตัดจากวิดีโอ (ต้องตัด 66 ภาพด้วย frame-picker.html ก่อน) */
   POSE_SRC      : 'compare',
+  DIR_RESTORE   : 'assets/restore/',   // การ์ดเทียบก่อน-หลัง จากรายงานฟื้นฟูภาพ ๖๔ ภาพ
   DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
   DIR_COLOR     : 'assets/color/',     // วิดีโอที่ใส่สีแล้ว
   DIR_STUDENT   : 'assets/students/',  // วิดีโอ/ภาพ นักศึกษา-นักเรียนรำ
@@ -910,8 +951,8 @@ function mediaVid(paths, extraClass){
   return `<video class="v ${extraClass||''}" muted playsinline preload="metadata"
     data-srcs='${esc(JSON.stringify(L))}' data-i="0" src="${enc(L[0])}"></video>`;
 }
-function panel(label, badge, inner, alt, twoUp){
-  return `<div class="panel${alt?' alt':''}">
+function panel(label, badge, inner, alt, twoUp, cls){
+  return `<div class="panel${alt?' alt':''}${cls?' '+cls:''}">
     <div class="cap">${badge?`<span class="badge">${esc(badge)}</span>`:''}<span class="lbl">${esc(label)}</span></div>
     <div class="body${twoUp?' two':''}">${inner}</div></div>`;
 }
@@ -1009,7 +1050,9 @@ function push(s){
 }
 
 function frame(o){
-  const sec = o.section ? `<span>${esc(o.section)}</span><span class="dot"></span>` : '';
+  // ไม่แสดงป้ายลำดับ ("03 สร้างการเคลื่อนไหว · 3/22") บนสไลด์แล้ว
+  // ผู้ชมไม่ต้องเห็นว่ากำลังอยู่หน้าที่เท่าไร ค่า section ยังส่งมาได้ แต่ใช้เป็นข้อมูลภายในเท่านั้น
+  const sec = '';
   return `
     <div class="hdr">
       <div class="hdr-txt">
@@ -1187,33 +1230,120 @@ const scanCell = (p, i) => {
 /* ---- ขั้นที่ 02 ฟื้นฟูภาพ ---- */
 divider(1);
 
-/* 12 คู่เปรียบเทียบ — โหมด 2｜1 */
-PAIRS.forEach((p,i)=>{
+/* เทียบภาพสแกน / ภาพที่ฟื้นฟู — หน้าละ 3 ท่า จอละท่า
+   เดิมท่าละหน้ากางเต็มสองจอ (spanLC) 12 ท่าจึงกิน 12 หน้า
+   ยุบมาจอละท่าเหลือ 4 หน้า และแต่ละจอครบในตัวเอง ทั้งภาพสแกน ภาพฟื้นฟู และคำอธิบาย */
+function poseCompare(p){
   const fixed = p.pending ? phBox('image', '') : imgFix(p).map(mediaImg).join('');
-  const cmpBody = `<div class="duowide portrait">
-      ${panel('ภาพสแกนจากตำรา', p.n, mediaImg(imgOrig(p)))}
-      <div class="arrow">»<small>ฟื้นฟู</small></div>
-      ${panel(p.pending ? 'ภาพที่ฟื้นฟูแล้ว (อยู่ระหว่างจัดเตรียม)' : 'ภาพที่ฟื้นฟูแล้ว',
-        p.n, fixed, true, p.two)}
-    </div>`;
-  const W = { head:stepEB(1), title:p.book,
-      rows:[['ชื่อท่า', p.book],
-            ['ผู้รำในภาพ', PERFORMER],
-            ['ลำดับในชุด', p.n + ' จาก ๑๒ ท่า'],
-            ['ชุดท่า', 'ท่าครู สิบสองท่า']]
-            .concat(p.two ? [['ลักษณะภาพต้นฉบับ', 'ภาพคู่ ๒ คน — ฟื้นฟูแยกเป็นซ้ายและขวา']] : []),
-      note:'ภาพขวาคือภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่จากภาพซ้าย ไม่ใช่การกู้คืนฟิล์มต้นฉบับ '
-         + 'สิ่งที่ยึดไว้คือท่าทาง สัดส่วนร่างกาย และเครื่องแต่งกายตามที่ปรากฏในตำรา',
-      };
-  const SUB = 'ท่าที่ ' + p.n + ' จาก ๑๒ · ภาพสแกนจากตำรา ๒๔๖๖ / ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์';
-  push({ dur:D.compare, step:1, spanLC:true, wall:W,
-    lc:()=> band({ eyebrow:stepEB(1),
-      title:esc(p.book), sub:SUB, body:cmpBody }),
-    section:stepFoot(1, i+1, PAIRS.length),
+  return band({ eyebrow:'ท่าที่ ' + thNum(+p.n) + ' จาก ๑๒', h2:82, title:esc(p.book),
+    sub:'ภาพสแกนจากหนังสือ → ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์',
+    nologo:true,
+    body:`<div class="cmpcol">
+      <div class="duowide portrait tall">
+        ${panel('ภาพสแกนจากหนังสือ', p.n, mediaImg(imgOrig(p)), false, false, 'tight')}
+        <div class="arrow">»<small>ฟื้นฟู</small></div>
+        ${panel(p.pending ? 'ภาพที่ฟื้นฟูแล้ว (อยู่ระหว่างจัดเตรียม)' : 'ภาพที่ฟื้นฟูแล้ว',
+          p.n, fixed, true, p.two, 'tight')}
+      </div>
+      <div class="cmpnote">${esc(p.note)}</div>
+    </div>` });
+}
+for(let i = 0; i < PAIRS.length; i += 3){
+  const set = PAIRS.slice(i, i + 3);
+  const rng = thNum(i + 1) + '–' + thNum(i + set.length);
+  push({ dur:D.compare, step:1, spanCU:true,
+    wall:{ head:stepEB(1), title:'ท่าที่ ' + rng + ' จาก ๑๒',
+      rows:set.map(p => [p.book, 'ท่าที่ ' + thNum(+p.n)])
+        .concat([['ผู้รำในภาพ', PERFORMER], ['ชุดท่า', 'ท่าครู สิบสองท่า']]),
+      note:'ภาพขวาของแต่ละคู่คือภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่จากภาพซ้าย ไม่ใช่การกู้คืนฟิล์มต้นฉบับ '
+         + 'สิ่งที่ยึดไว้คือท่าทาง สัดส่วนร่างกาย และเครื่องแต่งกายตามที่ปรากฏในตำรา' },
+    left: ()=> poseCompare(set[0]),
+    midU: ()=> set[1] ? poseCompare(set[1]) : '',
+    right:()=> set[2] ? poseCompare(set[2]) : '',
+    /* โหมดจอเดียว 16:9 — วางเรียงสามท่าไม่ไหว จึงโชว์ท่าแรกของหน้าเต็มจอ
+       ผู้ที่ดูจากจอเดียวใช้ปุ่มเลือกจอ 1/2/3 ดูอีกสองท่าได้ */
     html: frame({ eyebrow:stepEB(1),
-      section:stepFoot(1, i+1, PAIRS.length),
-      title:esc(p.book), sub:SUB, body:cmpBody })});
-});
+      title:esc(set[0].book),
+      sub:'ท่าที่ ' + thNum(+set[0].n) + ' จาก ๑๒ · ภาพสแกนจากหนังสือ → ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์',
+      body:`<div class="cmpcol">
+        <div class="duowide portrait tall">
+          ${panel('ภาพสแกนจากหนังสือ', set[0].n, mediaImg(imgOrig(set[0])), false, false, 'tight')}
+          <div class="arrow">»<small>ฟื้นฟู</small></div>
+          ${panel('ภาพที่ฟื้นฟูแล้ว', set[0].n,
+            set[0].pending ? phBox('image','') : imgFix(set[0]).map(mediaImg).join(''),
+            true, set[0].two, 'tight')}
+        </div>
+        <div class="cmpnote">${esc(set[0].note)}</div>
+      </div>` })});
+}
+
+/* ---- ขั้นที่ 02 (ต่อ): ฟื้นฟูภาพครูโนราท่านอื่น ----
+   นอกจากตำราฟ้อนรำ ๒๔๖๖ โครงการยังฟื้นฟูภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร
+   ตัวเลขและภาพเปรียบเทียบมาจากรายงาน nora_restoration_report_0164_FINAL
+   ภาพในโฟลเดอร์ assets/restore/ คือการ์ดเทียบก่อน-หลังสำเร็จรูปจากรายงานฉบับนั้น */
+const DOCSETS = [
+  { id:'fig13', set:'ชุดที่ ๒', name:'ท่าพนมจีบ',  kind:'ภาพพิมพ์สกรีน (halftone) ฉากสถานที่จริง', ssim:'0.915' },
+  { id:'fig25', set:'ชุดที่ ๓', name:'ท่าปฐม',     kind:'ภาพถ่ายสีฉากกลางแจ้ง',                  ssim:'0.877' },
+  { id:'fig37', set:'ชุดที่ ๔', name:'ท่าเทพพนม',  kind:'ภาพถ่ายสีบนเวทีฉากม่าน',                ssim:'0.925' },
+  { id:'fig49', set:'ชุดที่ ๕', name:'ภาพที่ ๑',   kind:'ภาพถ่ายดิจิทัลร่วมสมัยฉากดำ',           ssim:'1.000 — โหมดสงวนต้นฉบับ' },
+  { id:'fig51', set:'ชุดที่ ๖', name:'ภาพที่ ๑',   kind:'ภาพถ่ายฟิล์มขาวดำจดหมายเหตุ ริมสระน้ำ', ssim:'0.852' },
+  { id:'fig58', set:'ชุดที่ ๖', name:'ภาพที่ ๘',   kind:'ภาพถ่ายฟิล์มขาวดำจดหมายเหตุ ริมสระน้ำ', ssim:'0.859' },
+];
+const restorePane = f => band({ eyebrow:f.set, h2:82, title:esc(f.name), nologo:true,
+  sub:esc(f.kind),
+  body:`<div class="cmpcol">
+    <div class="figbox">${mediaImg([CONFIG.DIR_RESTORE + f.id + '.jpg'])}</div>
+    <div class="cmpnote">ก่อนฟื้นฟู · หลังฟื้นฟู · ขยายดูใบหน้าและเครื่องแต่งกาย — SSIM ${esc(f.ssim)}</div>
+  </div>` });
+
+/* หน้าเปิดหมวด — เล่าว่าฟื้นฟูอะไรบ้าง ก่อนโชว์ภาพจริง */
+const RESTORE_KPI = [['64','ภาพที่ฟื้นฟูทั้งชุด'],['6','ชุดเอกสารต้นทาง'],
+                     ['59','ผ่านเกณฑ์อัตโนมัติ'],['×2','ความละเอียดที่ส่งมอบ']]
+  .map(([a,b],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
+push({ dur:D.compare, step:1, dark:true, spanCU:true,
+  wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ฟื้นฟูภาพจดหมายเหตุอีก ๖๔ ภาพ',
+    rows:[['ชุดเอกสาร','๖ ชุด — ภาพสตูดิโอ ภาพพิมพ์สกรีน ภาพสี และฟิล์มขาวดำ'],
+          ['ผ่านเกณฑ์อัตโนมัติ','๕๙ ภาพ'],
+          ['ผ่านโดยการทบทวน','๒ ภาพ'],
+          ['โหมดสงวนต้นฉบับ','๒ ภาพ (คุณภาพดีอยู่แล้ว ไม่แตะต้อง)']],
+    note:'เกณฑ์ยอมรับ ๔ ข้อต่อภาพ วัดด้วยตัวชี้วัดแบบไม่อ้างอิง (BRISQUE / ความคมชัด / สัญญาณรบกวน / SSIM) '
+       + 'ภาพที่ไม่ผ่านเกณฑ์อัตโนมัติเข้าสู่การทบทวนโดยคน และบันทึกผลไว้อย่างโปร่งใส' },
+  left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
+  midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
+    h2:86, title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
+    sub:'ภาพถ่ายจดหมายเหตุของครูโนราท่านอื่นอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ผ่านกระบวนการเดียวกัน',
+    body:`<div class="sumgrid grid2">${RESTORE_KPI}</div>` }),
+  right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'ระเบียบวิธี', h2:88,
+    title:'ฟื้นฟูด้วยกติกาเดียวกันทุกภาพ', nologo:true,
+    body:`<div class="credits stack">
+      <div class="col" style="--i:0"><h3>๖ ขั้นตอนต่อภาพ</h3>
+        <p>ปรับสมดุลสีขาว → ขจัดสัญญาณรบกวน → กู้คอนทราสต์<small>แล้วเพิ่มความละเอียด ๒ เท่า ปิดท้ายด้วยการตรวจคุณภาพ</small></p></div>
+      <div class="col" style="--i:1"><h3>วัดผลทุกภาพ</h3>
+        <p>BRISQUE · ความคมชัด · สัญญาณรบกวน · SSIM<small>ไม่มีภาพต้นแบบให้เทียบ จึงใช้ตัวชี้วัดแบบไม่อ้างอิง</small></p></div>
+      <div class="col" style="--i:2"><h3>ไม่ผ่านเกณฑ์ ไม่ซ่อน</h3>
+        <p>ทบทวนโดยคน แล้วบันทึกเหตุผลไว้<small>๒ ภาพที่พลาดเกณฑ์เพียงเล็กน้อย ผ่านด้วยการตรวจพินิจ</small></p></div>
+    </div>` }),
+  html:`<div class="bgimg"></div>` + frame({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
+    title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
+    sub:'ภาพถ่ายจดหมายเหตุของครูโนราท่านอื่นอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ผ่านกระบวนการเดียวกัน',
+    body:`<div class="sumgrid">${RESTORE_KPI}</div>` })});
+
+for(let i = 0; i < DOCSETS.length; i += 3){
+  const set = DOCSETS.slice(i, i + 3);
+  push({ dur:D.compare, step:1, spanCU:true,
+    wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ผลการฟื้นฟูรายภาพ',
+      rows:set.map(f => [f.set + ' · ' + f.name, f.kind]),
+      note:'การ์ดเทียบก่อน-หลังนำมาจากรายงานผลการฟื้นฟูฉบับสมบูรณ์ ภาพที่ ๑–๖๔' },
+    left: ()=> restorePane(set[0]),
+    midU: ()=> set[1] ? restorePane(set[1]) : '',
+    right:()=> set[2] ? restorePane(set[2]) : '',
+    html: frame({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
+      title:esc(set[0].set + ' · ' + set[0].name), sub:esc(set[0].kind),
+      body:`<div class="cmpcol">
+        <div class="figbox">${mediaImg([CONFIG.DIR_RESTORE + set[0].id + '.jpg'])}</div>
+        <div class="cmpnote">ก่อนฟื้นฟู · หลังฟื้นฟู · ขยายดูใบหน้าและเครื่องแต่งกาย — SSIM ${esc(set[0].ssim)}</div>
+      </div>` })});
+}
 
 /* ---- ขั้นที่ 03 สร้างการเคลื่อนไหว — จอกลางกับจอขวาเล่นคนละคลิปพร้อมกัน ---- */
 divider(2);
@@ -1415,6 +1545,41 @@ const CR_SUP = `<div class="col" style="--i:2"><h3>สนับสนุนโ�
       <p>ชมผลงานทั้งหมดได้ที่<small style="font-size:44px;color:#E3C468;margin-top:12px">ainora.psu.ac.th</small></p></div>`;
 const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั้งหมดได้ที่</h3>
       <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
+
+/* ---- ก่อนสรุปโครงการ: เปิดให้ดาวน์โหลดชุดข้อมูล ----
+   จอซ้าย/จอขวา ใช้ชุดเดียวกับหน้าสรุป จอกลางเป็นเรื่องชุดข้อมูลเปิด */
+const DSBUNDLES = [
+  ['ภาพท่าครู ๑๒ ท่า', 'ภาพสแกนจากหนังสือ คู่กับภาพที่ฟื้นฟูแล้ว พร้อมไฟล์ชื่อท่า'],
+  ['วิดีโอที่ AI สร้าง',  'คลิปท่ารำที่สร้างจากภาพนิ่ง พร้อมลำดับท่าที่ใช้'],
+  ['ตำแหน่งท่ารำ',      'พิกัดข้อต่อที่สกัดด้วยคอมพิวเตอร์วิทัศน์ สำหรับงานวิจัย'],
+].map(([t, d], i) => `<div class="ds" style="--i:${i}">
+     <div class="nm">${esc(t)}</div><div class="dd">${esc(d)}</div></div>`).join('');
+const DSBODY = `<div class="dscol">
+      <div class="dsgrid">${DSBUNDLES}</div>
+      <div class="dsurl"><span class="lb">ชุดข้อมูลเปิดให้ขอดาวน์โหลดแล้วที่</span>
+        <span class="u">ainora.psu.ac.th/dataset</span></div>
+    </div>`;
+
+push({ dur:D.summary, dark:true, step:-1, spanCU:true,
+  wall:{ head:'ชุดข้อมูลเปิด', title:'ainora.psu.ac.th/dataset',
+    rows:[['ภาพท่าครู ๑๒ ท่า','ภาพสแกน + ภาพที่ฟื้นฟู พร้อมชื่อท่า'],
+          ['วิดีโอ','คลิปท่ารำที่ปัญญาประดิษฐ์สร้าง'],
+          ['ตำแหน่งท่ารำ','พิกัดข้อต่อที่สกัดด้วยคอมพิวเตอร์วิทัศน์'],
+          ['การขอใช้','กรอกแบบขอสิทธิ์บนหน้าเว็บ แล้วดาวน์โหลดได้ทันที']],
+    note:'เปิดให้ใช้เพื่อการศึกษาและงานวิจัย ขอให้อ้างอิงที่มาเมื่อนำไปเผยแพร่ต่อ '
+       + 'ภาพในหมวดฟื้นฟูเป็นภาพที่สร้างขึ้นใหม่ด้วยปัญญาประดิษฐ์ ไม่ใช่การกู้คืนภาพถ่ายเดิม' },
+  left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
+  midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'ชุดข้อมูลเปิด',
+    h2:88, title:'ท่ารำโนราที่นำไปใช้ต่อได้',
+    sub:'สิ่งที่ได้จากโครงการถูกจัดเป็นชุดข้อมูล เปิดให้นักวิจัยและครูโนราขอดาวน์โหลดไปใช้ต่อ',
+    body:DSBODY }),
+  right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
+    h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
+    body:`<div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>` }),
+  html:`<div class="bgimg"></div>` + frame({ eyebrow:'ชุดข้อมูลเปิด',
+    title:'ท่ารำโนราที่นำไปใช้ต่อได้',
+    sub:'สิ่งที่ได้จากโครงการถูกจัดเป็นชุดข้อมูล เปิดให้นักวิจัยและครูโนราขอดาวน์โหลดไปใช้ต่อ',
+    body:DSBODY })});
 
 /* ---- สรุปโครงการ (หน้า ๒): ท่าใหม่ทั้งหมดที่เกิดขึ้น ----
    จอซ้าย/จอขวา ใช้ชุดเดียวกับหน้าปิดท้าย จอกลางเป็นรายการท่าใหม่
