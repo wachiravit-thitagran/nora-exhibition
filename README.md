@@ -244,20 +244,31 @@ location /exhibition/ {
 
 | stage | branch | ทำอะไร |
 |---|---|---|
-| Checkout | develop, main | `checkout scm` + `stash` (รวม `assets/**`) |
-| Lint Dockerfile | develop | hadolint เก็บรายงานทั้งกรณีผ่านและไม่ผ่าน |
-| Build & Verify (parallel) | develop, main | `fetch-media.sh` → `docker build` → รายงานขนาดอิมเมจ ｜ เปิดสไลด์ตรวจ 4 โหมด |
-| Upload to registry | develop, main | push 3 แท็ก `<VERSION>` `<git sha>` `latest` |
-| Deploy to Production | main | `docker compose up -d` + curl ตรวจว่าหน้าเปิดได้จริง |
+| Prepare | ทุก branch | เก็บ git sha + ตรวจว่ามี docker บน agent |
+| Lint Dockerfile | develop | hadolint (เรียกผ่าน `docker run`) |
+| Verify deck | ทุก branch | เปิดสไลด์จริงด้วย Playwright ตรวจ 4 โหมด |
+| Build docker image | ทุก branch | `fetch-media.sh` → `docker build` 3 แท็ก |
+| Upload to registry | **main** | push `<VERSION>` `<git sha>` `latest` |
+| Deploy to Production | **main** | `docker compose up -d` + curl ตรวจว่าหน้าเปิดได้จริง |
 
-**ทุก stage รันบน agent เดียวคือ `ainora-agent`** และมีชุดเดียว ไม่มี staging
+**ทุก stage รันบน `ainora-agent` และใช้ workspace เดียวตลอดบิลด์**
+จงใจไม่ใช้ `agent { docker { … } }` และไม่ใช้ `parallel` เพราะสองอย่างนั้นทำให้
+Jenkins เปิด workspace เพิ่ม (`…@2@tmp`) แล้วปลั๊กอิน durable-task วางสคริปต์
+ในไดเรกทอรีที่คอนเทนเนอร์มองไม่เห็น จนขึ้น `process apparently never started`
+เครื่องมือที่ต้องใช้คอนเทนเนอร์จึงเรียกด้วย `docker run` ตรง ๆ จาก `sh` แทน
 
-| branch | ได้อะไร |
+ไม่ต้องใช้ `stash` / `unstash` อีกแล้วเพราะ workspace เดียวกันทั้งบิลด์
+(เดิม stash รวม `assets/**` ~46 MB ส่งขึ้น master ทุกครั้ง)
+
+**ถ้ายังเจอ `process apparently never started` อีก** ให้ไล่ตามนี้บนเครื่อง agent
+
+| เช็ค | คำสั่ง |
 |---|---|
-| `develop` | lint + build + ตรวจสไลด์ — ไม่ push ไม่ deploy (ไว้เช็คว่าของยังดีอยู่) |
-| `main` | ครบทุกอย่าง push อิมเมจแล้ว deploy ขึ้น production |
-
-`develop` ไม่ push อิมเมจ เพราะจะไปทับแท็ก `latest` ที่ production ดึงใช้
+| ดิสก์เต็ม | `df -h /home/jenkins` |
+| `/tmp` หรือ workspace เมานต์แบบ `noexec` | `mount \| grep -E "noexec.*(tmp\|jenkins)"` |
+| jenkins เขียน workspace ไม่ได้ | `sudo -u jenkins touch /home/jenkins/workspace/.probe` |
+| jenkins ไม่ได้อยู่กลุ่ม docker | `sudo -u jenkins docker ps` |
+| อยากได้ log ละเอียด | เพิ่ม `-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.LAUNCH_DIAGNOSTICS=true` ตอนสตาร์ต Jenkins |
 
 credential ที่ต้องมี: `CI_REGISTRY_TOKEN` (string) และตัวแปร global `REGISTRY_URL`
 
