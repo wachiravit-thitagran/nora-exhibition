@@ -159,6 +159,14 @@ ok(await p3.evaluate(() => document.querySelectorAll('.slide .pane.pC').length) 
    'เปิดด้วย ?panel=1 ก็ยังสร้าง pane จอกลางไว้ครบ — สั่งสลับโหมดทีหลังได้จริง');
 await ctx.close();
 
+// ---- แถบของสไลด์ต้องบอกด้วยว่าต่อรีเลย์ติดหรือยัง ----
+ok(!/ไม่ต่อรีเลย์/.test(await s2.textContent('#uiInfo')),
+   'จอที่ต่อรีเลย์ติด — แถบล่างไม่ขึ้นคำเตือน');
+const lone = await mk('?screen=lonely&sync=0&api=/exhibition/api-ไม่มีจริง');
+ok(/ไม่ต่อรีเลย์/.test(await lone.textContent('#uiInfo')),
+   'จอที่ต่อรีเลย์ไม่ติด — แถบล่างขึ้นว่า (ไม่ต่อรีเลย์) ให้เห็นตั้งแต่ที่ตัวจอ');
+await lone.close();
+
 // ---- ข้อความบอกสถานะต้องแยกสามกรณีให้ชัด ----
 await ctl.fill('#sid', 'ไม่มีจอนี้'); await ctl.click('#enter'); await ctl.waitForTimeout(500);
 ok(/ไม่มีจอชื่อนี้ในรีเลย์/.test(await ctl.textContent('#nowMeta')),

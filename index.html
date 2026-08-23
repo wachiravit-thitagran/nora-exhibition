@@ -1970,7 +1970,10 @@ function paintInfo(){
        : WALL_ON ? ' · 48:9 ยาว'
        : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
     + (SYNC ? ' · sync' : '')
-    + (CTRL_ON ? ' · ' + SCREEN_ID : '');
+    // บอกด้วยว่าต่อรีเลย์ติดหรือยัง ไม่ใช่แค่ชื่อจอ — เดิมขึ้นชื่อจอเฉย ๆ
+    // ทำให้เข้าใจผิดว่าจอพร้อมสั่งงานแล้ว ทั้งที่สาย SSE ยังต่อไม่ติดและ
+    // กำลังลองใหม่เงียบ ๆ อยู่ทุก 5 วินาที กว่าจะรู้ก็ตอนหยิบมือถือขึ้นมาสั่ง
+    + (CTRL_ON ? ' · ' + SCREEN_ID + (NORA.linked ? '' : ' (ไม่ต่อรีเลย์)') : '');
 }
 
 function tick(now){
@@ -2087,6 +2090,7 @@ const CTRL_ON  = QS.get('ctrl') !== '0';
 
 const NORA = {
   id: SCREEN_ID,
+  linked: false,            // สาย SSE ต่อติดอยู่จริงหรือไม่ (โชว์ท้ายแถบควบคุม)
   get state(){
     const s = SLIDES[cur];
     return { screen:SCREEN_ID, slide:cur + 1, total:SLIDES.length, playing,
@@ -2165,11 +2169,12 @@ const NORA = {
       es.addEventListener('cmd', ev => {
         try{ NORA.apply(JSON.parse(ev.data)); }catch(e){}
       });
-      es.addEventListener('open', () => NORA.report());
+      es.addEventListener('open', () => { NORA.linked = true; paintInfo(); NORA.report(); });
       // รีเลย์ล่มหรือยังไม่ได้ deploy ก็ไม่เป็นไร ลองใหม่เรื่อย ๆ แบบเงียบ ๆ
       // (สายที่ถูก rename ปิดไปแล้วต้องไม่มาตั้งเวลาต่อใหม่แข่งกับสายปัจจุบัน)
       es.onerror = () => {
         if(NORA._es !== es) return;
+        NORA.linked = false; paintInfo();
         try{ es.close(); }catch(e){}
         setTimeout(open, 5000);
       };
