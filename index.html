@@ -160,7 +160,9 @@ h1.title .thin{color:var(--muted);font-weight:600}
   flex:0 0 auto;font-size:32px;font-weight:700;letter-spacing:.1em;
   background:rgba(255,255,255,.18);border-radius:999px;padding:9px 26px;
 }
-.panel .cap .lbl{font-size:44px;font-weight:600;line-height:1.2}
+/* 1.34 ไม่ใช่ 1.2 — แถบหัวการ์ดอยู่ชิดขอบบนของ .panel ที่ overflow:hidden
+   หมึกของสระซ้อนวรรณยุกต์ (ที่ · ฟื้น) สูงกว่า ascent ของฟอนต์ จึงเฉี่ยวขอบจนปลายแหว่ง */
+.panel .cap .lbl{font-size:44px;font-weight:600;line-height:1.34}
 .panel.alt .cap{background:var(--gold)}
 .panel.alt .cap .lbl{color:#2E2405}
 .panel.alt .cap .badge{background:rgba(0,0,0,.16);color:#2E2405}
@@ -232,6 +234,27 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .slide.dark .eyebrow::before{background:var(--gold)}
 .slide.dark .progress{background:rgba(255,255,255,.14)}
 .hero{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 300px;gap:38px}
+/* ============================================================
+   สระบน + วรรณยุกต์ ต้องไม่โดนตัด
+   ============================================================
+   ฟอนต์ Anuphan วางหมึกของสระซ้อนวรรณยุกต์ (ที่ · นิ่ง · เคลื่อน · ครั้ง)
+   สูงถึง 1.119 em เหนือเส้นฐาน แต่ ascent ของฟอนต์คือ 1.025 em
+   หมึกส่วนบนจึงล้นออกนอกกล่องของตัวอักษรเสมอ — ปกติไม่เป็นไร เพราะ
+   เบราว์เซอร์วาดทับออกไปได้
+
+   แต่หัวเรื่องพวกนี้ใช้ background-clip:text ระบายไล่สีทองแทนสีตัน
+   ซึ่งวาดพื้นหลังได้แค่ "ในกล่องของตัวเอง" แล้วค่อยตัดตามรูปตัวอักษร
+   หมึกที่ล้นออกนอกกล่องจึงไม่มีสีมาลง = วรรณยุกต์หายไปเฉย ๆ
+   (สังเกตว่าหายเฉพาะตัวที่ซ้อนสองชั้น ส่วน ท่า ที่มีชั้นเดียวยังอยู่)
+
+   แก้ด้วยการดันขอบกล่องขึ้น-ลงด้วย padding แล้วหักกลับด้วย margin เท่ากัน
+   พื้นที่ระบายสีจึงกว้างพอคลุมหมึกส่วนที่ล้น ส่วนขนาดกล่องนอกเท่าเดิมเป๊ะ
+   เลย์เอาต์ทั้ง 64 หน้าไม่ขยับสักพิกเซล                                  */
+.hero .big, .wide-hero .big, .wide-sec .num, .sumgrid .kpi b, .dsurl .u{
+  padding-block:.32em;
+  margin-block:-.32em;
+}
+
 .hero .big{
   font-family:"Anuphan",sans-serif;font-weight:700;font-size:150px;line-height:1.06;letter-spacing:-.02em;
   background:linear-gradient(176deg,#F7E6B4 0%,#E3C468 48%,#C29B31 100%);

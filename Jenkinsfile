@@ -60,6 +60,7 @@ pipeline {
         stage('Verify deck') {
             steps {
                 // เปิดสไลด์จริงด้วย Playwright ตรวจ 4 โหมดการแสดงผล
+                // แล้วตรวจว่าสระบน+วรรณยุกต์ไทยไม่โดนตัดสักจุด
                 // แล้วต่อด้วยการทดสอบ controller ครบวง (เปิดจอ 2 บาน + หน้าสั่งงาน)
                 // เบราว์เซอร์อยู่ในอิมเมจแล้ว จึงข้ามการดาวน์โหลด
                 // รันด้วย uid ของ jenkins ไม่ใช่ root ไฟล์ที่เกิดใน workspace จะได้ลบได้
@@ -73,6 +74,8 @@ pipeline {
                         mcr.microsoft.com/playwright:v1.59.1-jammy \
                         sh -c 'npm install --no-save --no-audit --no-fund playwright@1.59.1 >/dev/null 2>&1 \
                                && node tests/check-deck.mjs /w \
+                               && echo "" \
+                               && node tests/check-thai.mjs /w \
                                && echo "" \
                                && node tests/check-control.mjs /w' | tee deck_report.txt
                 '''
