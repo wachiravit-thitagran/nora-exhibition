@@ -29,6 +29,8 @@ button[disabled]{opacity:.4}
 /* ปุ่มที่ "ติดอยู่" ตอนนี้ — ไฮไลต์จากสถานะจริงที่จอรายงานกลับมา
    ไม่ใช่จากปุ่มที่เพิ่งกด จอจึงเป็นแหล่งความจริงเสมอ */
 button.on{background:var(--gold);color:#2A2208;border-color:#8E7124}
+/* "ขั้นต่อไปกดอันนี้" — ตีกรอบทองไว้ ไม่ถมพื้น จะได้ไม่ชนกับปุ่มที่ติดอยู่ */
+button.next{color:var(--gold);border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 input{width:100%;min-height:46px;font:inherit;font-size:15px;color:var(--ink);background:#26221A;
   border:1px solid var(--line);border-radius:12px;padding:0 12px}
 label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
@@ -121,8 +123,9 @@ body.picked #pick{display:none}
       <button class="pri" id="curtain" data-cmd="curtain">🎭 เปิดม่าน</button>
     </div>
     <div class="hint" style="margin-top:10px">
-      <b>ตั้งม่าน</b> ขึ้นม่านแดงค้างไว้รอพิธีเปิด · <b>เปิดม่าน</b> แยกม่านออก
-      แล้วเริ่มชุดหลักจากหน้าแรก
+      <b>๑ ตั้งม่าน</b> ขึ้นม่านแดงค้างไว้รอพิธี ·
+      <b>๒ เปิดม่าน</b> แยกม่านออก แล้ว<b>ค้างหน้าแรกไว้</b> ไม่วิ่งต่อเอง ·
+      <b>๓ ชุดหลัก</b> กดเองเมื่อพร้อมเริ่มโชว์ 64 หน้า
     </div>
   </div>
 
@@ -300,7 +303,9 @@ function ago(ms){
    และกรณีที่สองโชว์เลขหน้าเก่าค้างไว้เหมือนจอยังเล่นอยู่ */
 const meta = s => !s ? 'ไม่มีจอชื่อนี้ในรีเลย์ — ยังไม่ได้เปิดสไลด์ หรือชื่อไม่ตรง'
   : !s.online ? 'ออฟไลน์ · เห็นล่าสุด ' + ago(s.seen)
-  : DECK[s.deck] ? DECK[s.deck] + ' · รอสั่งเปิดม่าน'
+  : s.deck === 'intro' ? (s.curtain === 'up'
+      ? 'ม่านเปิดแล้ว · ค้างหน้าแรก รอกดชุดหลัก'
+      : 'ม่านเปิดงาน · รอสั่งเปิดม่าน')
   : `${s.slide ? `หน้า ${s.slide} / ${s.total}` : '—'} · ${s.playing ? 'เล่นอยู่' : 'หยุด'}`
     + ` · ${MODE[s.mode] || s.mode || '?'}${s.sync ? ' · ตามนาฬิกา' : ' · เดินเอง'}`;
 
@@ -320,9 +325,19 @@ function markState(s){
     b.classList.toggle('on', !!m && b.dataset.arg === m));
   document.querySelectorAll('[data-cmd="deck"]').forEach(b =>
     b.classList.toggle('on', !!s && b.dataset.arg === (s.deck || 'main')));
-  // ปุ่มเปิดม่านมีความหมายเฉพาะตอนม่านขึ้นอยู่ — เวลาอื่นกดไปก็ไม่เกิดอะไร
+  // ปุ่มเปิดม่านกดได้เฉพาะตอนม่านยังปิดอยู่ เปิดไปแล้วกดซ้ำไม่มีความหมาย
   const cur = $('#curtain');
-  if(cur) cur.disabled = !(s && s.deck === 'intro');
+  if(cur){
+    const ready = !!s && s.deck === 'intro' && s.curtain !== 'up';
+    cur.disabled = !ready;
+    cur.textContent = (s && s.deck === 'intro' && s.curtain === 'up')
+      ? '🎭 ม่านเปิดแล้ว' : '🎭 เปิดม่าน';
+  }
+  // ม่านเปิดแล้ว = ขั้นต่อไปคือกดชุดหลัก ตีกรอบไว้ให้เห็นว่าต้องกดอันไหนต่อ
+  // ใช้กรอบ ไม่ใช่พื้นทอง จะได้ไม่ไปแข่งกับปุ่มที่ "ติดอยู่" ตอนนี้
+  const mainBtn = $('[data-cmd="deck"][data-arg="main"]');
+  if(mainBtn) mainBtn.classList.toggle('next',
+    !!s && s.deck === 'intro' && s.curtain === 'up');
   set('[data-cmd="sync"]:not([data-arg])', s && s.sync);
   set('[data-cmd="sync"][data-arg="0"]',   s && s.sync === false);
   set('[data-cmd="seam"]',   s && s.seam);

@@ -145,14 +145,32 @@ ok(!(await ctl2.evaluate(() => document.querySelector('[data-cmd="curtain"]').di
    'ปุ่มเปิดม่านกดได้เมื่อจอปลายทางอยู่ในชุด intro');
 
 await ctl2.click('[data-cmd="curtain"]'); await ctl2.waitForTimeout(3400);
-ok(await s2.evaluate(() => window.NORA.state.deck) === 'main', 'เปิดม่านแล้วกลับเข้าชุดหลัก');
-ok(await s2.evaluate(() => window.NORA.state.slide) === 1, 'เปิดม่านแล้วเริ่มที่หน้าแรกของชุดหลัก');
-ok(await s2.evaluate(() => window.NORA.state.playing) === true, 'เปิดม่านแล้วสไลด์เริ่มเดิน');
 ok(await s2.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none',
    'ม่านหายไปหลังเปิดสุด');
-await ctl2.waitForTimeout(1300);
+ok(await s2.evaluate(() => window.NORA.state.deck) === 'intro',
+   'เปิดม่านแล้วยังอยู่ในชุด intro ไม่กระโดดเข้าชุดหลักเอง');
+ok(await s2.evaluate(() => window.NORA.state.curtain) === 'up', 'สถานะม่านเป็น up');
+ok(await s2.evaluate(() => window.NORA.state.slide) === 1, 'ค้างที่หน้าแรก');
+ok(await s2.evaluate(() => window.NORA.state.playing) === true,
+   'วิดีโอหน้าแรกเดินอยู่ (ปล่อยให้ loop ได้)');
+await ctl2.waitForTimeout(1400);
 ok(await ctl2.evaluate(() => document.querySelector('[data-cmd="curtain"]').disabled),
-   'กลับเข้าชุดหลักแล้ว ปุ่มเปิดม่านถูกปิดไว้');
+   'ม่านเปิดแล้ว ปุ่มเปิดม่านถูกปิดไว้');
+ok(await ctl2.evaluate(() =>
+     document.querySelector('[data-cmd="deck"][data-arg="main"]').classList.contains('next')),
+   'ปุ่มชุดหลักถูกตีกรอบไว้ว่าเป็นขั้นต่อไป');
+
+// หน้าแรกต้องไม่วิ่งต่อเอง แม้เวลาผ่านไปเกินความยาวของหน้า
+const dwell = await s2.evaluate(() => durMs);
+await s2.waitForTimeout(Math.min(dwell + 1200, 9000));
+ok(await s2.evaluate(() => window.NORA.state.slide) === 1,
+   'ปล่อยไว้จนเลยเวลาของหน้าแล้วก็ยังค้างหน้าแรก ไม่วิ่งต่อเอง');
+
+// กดชุดหลักเองถึงจะเริ่มโชว์
+await ctl2.click('[data-cmd="deck"][data-arg="main"]'); await ctl2.waitForTimeout(900);
+ok(await s2.evaluate(() => window.NORA.state.deck) === 'main', 'กดชุดหลักแล้วเข้าชุดหลัก');
+ok(await s2.evaluate(() => window.NORA.state.slide) === 1, 'ชุดหลักเริ่มที่หน้าแรก');
+ok(await s2.evaluate(() => window.NORA.state.playing) === true, 'ชุดหลักเริ่มเดิน');
 
 // ---- ภาพตัวอย่างของจอที่กำลังคุม ----
 await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(4500);

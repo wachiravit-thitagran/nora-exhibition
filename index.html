@@ -704,6 +704,9 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
    ที่อยู่ข้างล่าง ถ้าใส่สีไว้ จะเปิดม่านมาเจอพื้นดำเปล่า ๆ แทนหน้าแรก */
 #curtain{position:absolute;inset:0;z-index:40;display:none;overflow:hidden;background:transparent}
 html.deck-intro #curtain{display:block}
+/* เปิดม่านแล้วแต่ยังอยู่ในชุด intro — ม่านหายไป เหลือหน้าแรกค้างไว้
+   รอสแตฟฟ์กดเข้าชุดหลักเอง ไม่ใช่ระบบพาไปเอง */
+html.deck-intro.curtain-up #curtain{display:none}
 
 /* ---- ผืนผ้า ----
    อ้างจากภาพม่านจริงที่ได้มา: แดงสด ผ้าด้าน ไม่มีทองเลย
@@ -1936,7 +1939,13 @@ if(MOTION_ON) document.documentElement.classList.add('motion');
 
    ชุดที่กำลังใช้ถูกจำไว้เหมือนค่าตั้งอื่น ๆ ก่อนพิธีเปิดตั้งไว้ที่ intro
    ไฟดับแล้วเปิดใหม่ม่านก็ยังปิดอยู่ พอเปิดม่านแล้วค่าเปลี่ยนเป็น main
-   รีสตาร์ตกลางงานจึงกลับมาเล่นต่อ ไม่ใช่ปิดม่านใส่ผู้ชม               */
+   รีสตาร์ตกลางงานจึงกลับมาเล่นต่อ ไม่ใช่ปิดม่านใส่ผู้ชม
+
+   ชุด intro มีสองสถานะในตัวมันเอง
+     ม่านปิด   ค้างรอสั่ง
+     ม่านเปิด  ม่านแยกออกแล้ว เหลือหน้าแรกค้างไว้ ยังไม่เริ่มวนลูป
+   จบพิธีแล้วสแตฟฟ์กด "ชุดหลัก" เอง ระบบไม่พาไปเอง เพราะช่วงกล่าวเปิดงาน
+   อาจยาวไม่เท่ากันทุกครั้ง จะให้สไลด์เดินหน้าตัดบทประธานไม่ได้            */
 const DECKS = {
   main:  { label: 'ชุดหลัก' },
   intro: { label: 'ม่านเปิดงาน', overlay: true },
@@ -1946,9 +1955,13 @@ let DECK = DECKS[DECK_Q] ? DECK_Q
          : DECKS[PREF.get('deck', '')] ? PREF.get('deck', '')
          : 'main';
 if(DECK_Q && DECKS[DECK_Q]) PREF.set('deck', DECK);
+let CURTAIN_UP = DECK === 'intro' && PREF.get('curtain', '') === 'up';
 if(DECK === 'intro'){
   SYNC = false;                 // ม่านต้องค้างรอ ไม่ใช่เดินตามนาฬิกาโลก
   document.documentElement.classList.add('deck-intro');
+  // ไฟดับหลังเปิดม่านแล้วแต่ยังไม่เริ่มโชว์ ต้องกลับมาที่ "ม่านเปิดแล้ว"
+  // ไม่ใช่ปิดม่านใหม่ให้ต้องเปิดซ้ำต่อหน้าผู้ชม
+  if(CURTAIN_UP) document.documentElement.classList.add('curtain-up');
 }
 /* ภาพพื้นหลังลายไทยจากหน้าเว็บ ainora.psu.ac.th (ถ้าโหลดไม่ได้ก็เหลือแค่ gradient) */
 if(CONFIG.HERO_BG){
@@ -2143,7 +2156,7 @@ function paintInfo(){
        : WALL_ON ? ' · 48:9 ยาว'
        : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
     + (SYNC ? ' · sync' : '')
-    + (DECK !== 'main' ? ' · ' + DECKS[DECK].label : '')
+    + (DECK !== 'main' ? ' · ' + (CURTAIN_UP ? 'ม่านเปิดแล้ว รอกดชุดหลัก' : DECKS[DECK].label) : '')
     // บอกด้วยว่าต่อรีเลย์ติดหรือยัง ไม่ใช่แค่ชื่อจอ — เดิมขึ้นชื่อจอเฉย ๆ
     // ทำให้เข้าใจผิดว่าจอพร้อมสั่งงานแล้ว ทั้งที่สาย SSE ยังต่อไม่ติดและ
     // กำลังลองใหม่เงียบ ๆ อยู่ทุก 5 วินาที กว่าจะรู้ก็ตอนหยิบมือถือขึ้นมาสั่ง
@@ -2165,7 +2178,9 @@ function tick(now){
   if(!playing){ t0 = now - Math.min(now - t0, durMs); return; }
   const p = Math.min(1, (now - t0) / durMs);
   if(s.bar) s.bar.style.width = (p*100).toFixed(2) + '%';
-  if(p >= 1) show(cur + 1);
+  // ชุด intro ค้างหน้าแรกไว้เสมอ วิดีโอยังวนเล่นได้ (loop) แต่ไม่ไปหน้าถัดไป
+  // ต้องรอสแตฟฟ์กด "ชุดหลัก" เอง
+  if(p >= 1 && DECK !== 'intro') show(cur + 1);
 }
 
 function setPlaying(v){
@@ -2187,7 +2202,12 @@ function setDeck(name){
   if(d === DECK) return;
   DECK = d;
   PREF.set('deck', d);
-  document.documentElement.classList.toggle('deck-intro', d === 'intro');
+  // กลับเข้าชุด intro = ตั้งม่านใหม่ตั้งแต่ต้น ไม่ใช่โผล่มาที่ม่านเปิดค้างอยู่
+  CURTAIN_UP = false;
+  PREF.set('curtain', 'down');
+  const root = document.documentElement;
+  root.classList.toggle('deck-intro', d === 'intro');
+  root.classList.remove('curtain-up');
   curtainEl().classList.remove('open');
   NORA.manual();                      // ทั้งสองทางต้องหลุดจากนาฬิกาโลกก่อน
   show(0);
@@ -2197,20 +2217,23 @@ function setDeck(name){
 
 /* เปิดม่าน: หน้าแรกเริ่มเดินตั้งแต่ม่านเริ่มแยก ผู้ชมจะได้เห็นภาพที่มีชีวิต
    ไม่ใช่ภาพนิ่งที่ค่อยขยับตอนม่านเปิดสุด
+
+   เปิดเสร็จแล้ว "ยังอยู่ในชุด intro" — ค้างหน้าแรกไว้ ไม่วิ่งต่อเอง
+   เพราะช่วงกล่าวเปิดงานยาวไม่เท่ากันทุกครั้ง สแตฟฟ์กด "ชุดหลัก" เองเมื่อพร้อม
+
    ใช้ตัวจับเวลาไม่ใช่ transitionend เพราะ transitionend หายได้ถ้าแท็บถูกพัก
-   แล้วจะค้างอยู่ในชุด intro ตลอดกาลโดยที่ม่านเปิดไปแล้ว */
+   แล้วม่านจะค้างครึ่ง ๆ กลาง ๆ อยู่อย่างนั้น */
 function openCurtain(){
-  if(DECK !== 'intro') return;
+  if(DECK !== 'intro' || CURTAIN_UP) return;
   const c = curtainEl();
-  if(c.classList.contains('open')) return;
   NORA.manual();
   show(0);
-  setPlaying(true);
+  setPlaying(true);                   // วิดีโอหน้าแรกเดิน แต่ tick ไม่พาไปหน้าถัดไป
   c.classList.add('open');
   setTimeout(() => {
-    DECK = 'main';
-    PREF.set('deck', 'main');
-    document.documentElement.classList.remove('deck-intro');
+    CURTAIN_UP = true;
+    PREF.set('curtain', 'up');
+    document.documentElement.classList.add('curtain-up');
     c.classList.remove('open');
     paintInfo();
     NORA.report();
@@ -2269,8 +2292,13 @@ addEventListener('keydown', e=>{
   if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   if((e.key==='r'||e.key==='R') && !SYNC) show(0);
-  // C = ตั้งม่าน / เปิดม่าน — ไว้ซ้อมที่ตัวเครื่องโดยไม่ต้องหยิบมือถือ
-  if(e.key==='c'||e.key==='C'){ DECK === 'intro' ? openCurtain() : setDeck('intro'); }
+  // C = วนสามจังหวะ ตั้งม่าน → เปิดม่าน → เข้าชุดหลัก
+  // ไว้ซ้อมลำดับพิธีที่ตัวเครื่องโดยไม่ต้องหยิบมือถือ
+  if(e.key==='c'||e.key==='C'){
+    if(DECK !== 'intro')  setDeck('intro');
+    else if(!CURTAIN_UP)  openCurtain();
+    else                  setDeck('main');
+  }
   if(e.key==='u'||e.key==='U'){       // วน 16:9 → จอ1 → จอ2 → จอ3 → 48:9 แบ่ง 3
     const order = ['0','1','2','3','w'];
     const now = PANEL_ON ? String(PANEL_ON) : (ULTRA_ON && !WALL_ON ? 'w' : '0');
@@ -2309,7 +2337,8 @@ const NORA = {
     const s = SLIDES[cur];
     return { screen:SCREEN_ID, slide:cur + 1, total:SLIDES.length, playing,
       sync:SYNC, mode:(PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'))),
-      deck:DECK, seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
+      deck:DECK, curtain:(CURTAIN_UP ? 'up' : 'down'),
+      seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
       title:(s && s.wall && s.wall.title) || '' };
   },
   /* คำสั่งเดินหน้า/ถอยหลังต้องหลุดจากโหมดนาฬิกาโลกก่อน
@@ -2415,8 +2444,10 @@ function boot(){
     const n = Math.max(0, (parseInt(QS.get('slide'), 10) || 1) - 1);
     show(Math.min(n, SLIDES.length - 1));
   }
-  // ชุด intro: ค้างหน้าแรกไว้ใต้ม่าน รอสั่งเปิด ไม่ให้เดินหน้าไปเอง
-  if(DECK === 'intro'){ show(0); setPlaying(false); }
+  // ชุด intro: ค้างหน้าแรกไว้เสมอ ไม่ให้เดินหน้าไปเอง
+  // ม่านยังปิด = หยุดวิดีโอไว้ด้วย (ไม่มีใครเห็น เปลืองเปล่า)
+  // ม่านเปิดแล้ว = ปล่อยวิดีโอวนเล่น แต่ tick ก็ยังไม่พาไปหน้าถัดไป
+  if(DECK === 'intro'){ show(0); setPlaying(CURTAIN_UP); }
   markMode(PANEL_ON ? String(PANEL_ON)
                     : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')));
   raf = requestAnimationFrame(tick);

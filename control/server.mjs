@@ -141,8 +141,8 @@ const srv = http.createServer(async (req, res) => {
     // ไม่งั้นหน้า controller จะไม่เห็นค่านั้นเลย (ปุ่มไฮไลต์ไม่ติด)
     cur.state = { slide: body.slide, total: body.total, playing: !!body.playing,
                   mode: body.mode, title: body.title, sync: !!body.sync,
-                  deck: body.deck, seam: !!body.seam, motion: !!body.motion,
-                  full: !!body.full };
+                  deck: body.deck, curtain: body.curtain,
+                  seam: !!body.seam, motion: !!body.motion, full: !!body.full };
     screens.set(id, cur);
     pushScreens();
     return json(res, 200, { ok: true });
