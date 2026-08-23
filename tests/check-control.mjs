@@ -126,6 +126,27 @@ await ctl2.waitForTimeout(1400);
 ok(await ctl2.evaluate(() => document.querySelector('[data-cmd="seam"]').classList.contains('on')),
    'ปุ่มไฮไลต์ตามสถานะที่จอรายงานกลับมา');
 
+// ---- ชุด intro: ตั้งม่าน แล้วเปิดม่าน ----
+await ctl2.click('[data-cmd="deck"][data-arg="intro"]'); await ctl2.waitForTimeout(900);
+ok(await s2.evaluate(() => window.NORA.state.deck) === 'intro', 'สั่งตั้งม่าน — จอเข้าชุด intro');
+ok(await s2.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'block',
+   'ม่านขึ้นคลุมจอจริง');
+ok(await s2.evaluate(() => window.NORA.state.playing) === false,
+   'ตั้งม่านแล้วสไลด์ค้างรอใต้ม่าน ไม่เดินไปเอง');
+await ctl2.waitForTimeout(1300);
+ok(!(await ctl2.evaluate(() => document.querySelector('[data-cmd="curtain"]').disabled)),
+   'ปุ่มเปิดม่านกดได้เมื่อจอปลายทางอยู่ในชุด intro');
+
+await ctl2.click('[data-cmd="curtain"]'); await ctl2.waitForTimeout(3400);
+ok(await s2.evaluate(() => window.NORA.state.deck) === 'main', 'เปิดม่านแล้วกลับเข้าชุดหลัก');
+ok(await s2.evaluate(() => window.NORA.state.slide) === 1, 'เปิดม่านแล้วเริ่มที่หน้าแรกของชุดหลัก');
+ok(await s2.evaluate(() => window.NORA.state.playing) === true, 'เปิดม่านแล้วสไลด์เริ่มเดิน');
+ok(await s2.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none',
+   'ม่านหายไปหลังเปิดสุด');
+await ctl2.waitForTimeout(1300);
+ok(await ctl2.evaluate(() => document.querySelector('[data-cmd="curtain"]').disabled),
+   'กลับเข้าชุดหลักแล้ว ปุ่มเปิดม่านถูกปิดไว้');
+
 // ---- เปลี่ยนชื่อจอจากมือถือ ----
 await ctl2.fill('#rn', 'hall-z'); await ctl2.click('#ren');
 await ctl2.waitForTimeout(1800);
@@ -157,6 +178,14 @@ const p3 = await mkc('?screen=forced&panel=1&ctrl=0&sync=0');
 ok(await p3.evaluate(() => window.NORA.id) === 'forced', 'query string ยังชนะค่าที่จำไว้');
 ok(await p3.evaluate(() => document.querySelectorAll('.slide .pane.pC').length) > 0,
    'เปิดด้วย ?panel=1 ก็ยังสร้าง pane จอกลางไว้ครบ — สั่งสลับโหมดทีหลังได้จริง');
+const p4 = await mkc('?deck=intro&ctrl=0&sync=0');
+ok(await p4.evaluate(() => window.NORA.state.deck) === 'intro', '?deck=intro เข้าชุดม่านได้');
+await p4.close();
+const p5 = await mkc('?ctrl=0&sync=0');
+ok(await p5.evaluate(() => window.NORA.state.deck) === 'intro',
+   'เปิดใหม่แบบไม่มี query string — จำชุดม่านไว้ (ไฟดับก่อนพิธีเปิดก็ยังปิดม่านอยู่)');
+await p5.close();
+
 await ctx.close();
 
 // ---- แถบของสไลด์ต้องบอกด้วยว่าต่อรีเลย์ติดหรือยัง ----

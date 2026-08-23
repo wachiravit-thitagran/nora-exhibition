@@ -685,6 +685,58 @@ html.motion .slide.dark.on .hero .meta  {animation:riseIn .8s cubic-bezier(.2,.7
 html.motion .slide.dark.on .secnum      {animation:numIn 1.1s cubic-bezier(.2,.7,.3,1) .3s both}
 html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
 
+/* ============================================================
+   ชุด intro — ม่านเปิดงาน
+   ============================================================
+   ม่านเป็น "เลเยอร์คลุม" ไม่ใช่หน้าหนึ่งใน SLIDES
+   จึงไม่ไปยุ่งกับไทม์ไลน์ เลขหน้า หรือนาฬิกาโลกเลย — 64 หน้ายังเป็น 64 หน้า
+   และวางไว้ใน #viewport ไม่ใช่ใน #stage เพราะต้องคลุม "จอจริง" ทั้งบาน
+   ไม่ใช่ผืนเวทีที่ถูกย่อด้วย transform (ไม่งั้นม่านจะโดนย่อไปด้วย)      */
+/* พื้นหลังต้องโปร่ง ไม่ใช่สีเข้ม — ตอนม่านแยกออก สิ่งที่ต้องโผล่มาคือสไลด์
+   ที่อยู่ข้างล่าง ถ้าใส่สีไว้ จะเปิดม่านมาเจอพื้นดำเปล่า ๆ แทนหน้าแรก */
+#curtain{position:absolute;inset:0;z-index:40;display:none;overflow:hidden;background:transparent}
+html.deck-intro #curtain{display:block}
+
+.cpanel{
+  position:absolute;top:0;bottom:0;width:52%;      /* เกิน 50% ให้เหลื่อมกัน ไม่มีร่องกลาง */
+  /* กำมะหยี่สีแดง — ไล่เฉดซ้ำเป็นจีบผ้าแนวตั้ง แล้วทับด้วยเงาขอบนอก */
+  background-image:
+    linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,0) 22%, rgba(0,0,0,0) 78%, rgba(0,0,0,.42)),
+    linear-gradient(180deg, rgba(0,0,0,.34), rgba(0,0,0,0) 26%, rgba(0,0,0,0) 68%, rgba(0,0,0,.5)),
+    repeating-linear-gradient(90deg,
+      #4E0A11 0px, #7C1219 34px, #9C1B25 74px, #7C1219 116px, #470910 156px, #4E0A11 186px);
+  transition:transform 2.2s cubic-bezier(.62,.02,.18,1);
+  will-change:transform;
+}
+.cpanel.l{left:0}
+.cpanel.r{right:0;transform:scaleX(-1)}            /* พลิกจีบผ้าให้สมมาตรกับฝั่งซ้าย */
+#curtain.open .cpanel.l{transform:translateX(-101%)}
+#curtain.open .cpanel.r{transform:scaleX(-1) translateX(-101%)}
+
+/* คิ้วทองด้านบน ปิดรอยต่อของผ้าและทำให้ดูเป็นเวทีจริง */
+.cpelmet{
+  position:absolute;top:0;left:0;right:0;height:5.2%;z-index:2;
+  background:linear-gradient(180deg,#F0D480,#C79A2C 46%,#8A6413);
+  box-shadow:0 10px 26px rgba(0,0,0,.55);
+}
+
+/* ชื่องานกลางม่าน — จางหายก่อนม่านแยก จะได้ไม่โดนผ่าครึ่ง */
+.cmid{
+  position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:28px;text-align:center;
+  transition:opacity .45s ease;
+}
+#curtain.open .cmid{opacity:0}
+.cmid img{width:clamp(180px,17vw,420px);height:auto;filter:drop-shadow(0 6px 22px rgba(0,0,0,.6))}
+.cmid .ct{
+  font-size:clamp(22px,2.6vw,58px);font-weight:600;letter-spacing:.01em;color:#F7E7BE;
+  text-shadow:0 3px 20px rgba(0,0,0,.6);
+}
+.cmid .cs{
+  font-size:clamp(13px,1.1vw,24px);font-weight:400;color:#E0BE79;letter-spacing:.14em;
+}
+.cmid .crule{width:clamp(80px,7vw,190px);height:2px;background:linear-gradient(90deg,transparent,#D8B45E,transparent)}
+
 /* ---------- controls ---------- */
 #ui{
   position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
@@ -708,7 +760,20 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
 </style>
 </head>
 <body>
-<div id="viewport"><div id="stage"></div></div>
+<div id="viewport">
+  <div id="stage"></div>
+  <div id="curtain">
+    <div class="cpanel l"></div>
+    <div class="cpanel r"></div>
+    <div class="cpelmet"></div>
+    <div class="cmid">
+      <img src="brand/logo-light.png" alt="AI NORA">
+      <div class="crule"></div>
+      <div class="ct">ลมหายใจของโนรา</div>
+      <div class="cs">BREATH OF NORA</div>
+    </div>
+  </div>
+</div>
 
 <div id="ui">
   <button data-act="prev">◀</button>
@@ -1777,6 +1842,31 @@ let MOTION_ON = CONFIG.ANIMATE
   && (QS.has('nomotion') ? QS.get('nomotion') !== '1' : PREF.get('motion', '1') === '1')
   && !matchMedia('(prefers-reduced-motion: reduce)').matches;
 if(MOTION_ON) document.documentElement.classList.add('motion');
+
+/* ---------- ชุดสไลด์ ----------------------------------------------
+   main   รายการ 64 หน้าที่วนลูปตามปกติ
+   intro  ม่านแดงหน้าเดียว ค้างรอสั่ง "เปิดม่าน" จาก controller
+          แล้วเล่นอนิเมชันแยกม่านเผยหน้าแรกของชุดหลัก
+
+   ชุดที่เป็น overlay ไม่ได้เพิ่มหน้าเข้าไปในไทม์ไลน์ — เลขหน้า ความยาวรอบ
+   และนาฬิกาโลกไม่เปลี่ยนเลย เพิ่มชุดใหม่แบบนี้จึงไม่กระทบของเดิม
+
+   ชุดที่กำลังใช้ถูกจำไว้เหมือนค่าตั้งอื่น ๆ ก่อนพิธีเปิดตั้งไว้ที่ intro
+   ไฟดับแล้วเปิดใหม่ม่านก็ยังปิดอยู่ พอเปิดม่านแล้วค่าเปลี่ยนเป็น main
+   รีสตาร์ตกลางงานจึงกลับมาเล่นต่อ ไม่ใช่ปิดม่านใส่ผู้ชม               */
+const DECKS = {
+  main:  { label: 'ชุดหลัก' },
+  intro: { label: 'ม่านเปิดงาน', overlay: true },
+};
+const DECK_Q = QS.get('deck');
+let DECK = DECKS[DECK_Q] ? DECK_Q
+         : DECKS[PREF.get('deck', '')] ? PREF.get('deck', '')
+         : 'main';
+if(DECK_Q && DECKS[DECK_Q]) PREF.set('deck', DECK);
+if(DECK === 'intro'){
+  SYNC = false;                 // ม่านต้องค้างรอ ไม่ใช่เดินตามนาฬิกาโลก
+  document.documentElement.classList.add('deck-intro');
+}
 /* ภาพพื้นหลังลายไทยจากหน้าเว็บ ainora.psu.ac.th (ถ้าโหลดไม่ได้ก็เหลือแค่ gradient) */
 if(CONFIG.HERO_BG){
   document.head.insertAdjacentHTML('beforeend',
@@ -1970,6 +2060,7 @@ function paintInfo(){
        : WALL_ON ? ' · 48:9 ยาว'
        : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
     + (SYNC ? ' · sync' : '')
+    + (DECK !== 'main' ? ' · ' + DECKS[DECK].label : '')
     // บอกด้วยว่าต่อรีเลย์ติดหรือยัง ไม่ใช่แค่ชื่อจอ — เดิมขึ้นชื่อจอเฉย ๆ
     // ทำให้เข้าใจผิดว่าจอพร้อมสั่งงานแล้ว ทั้งที่สาย SSE ยังต่อไม่ติดและ
     // กำลังลองใหม่เงียบ ๆ อยู่ทุก 5 วินาที กว่าจะรู้ก็ตอนหยิบมือถือขึ้นมาสั่ง
@@ -2003,6 +2094,44 @@ function setPlaying(v){
     if(pn && pn.offsetWidth === 0) return;
     v ? x.play().catch(()=>{}) : x.pause();
   });
+}
+
+/* ---------- สลับชุดสไลด์ / เปิดม่าน ---------- */
+const curtainEl = () => document.getElementById('curtain');
+
+function setDeck(name){
+  const d = DECKS[name] ? name : 'main';
+  if(d === DECK) return;
+  DECK = d;
+  PREF.set('deck', d);
+  document.documentElement.classList.toggle('deck-intro', d === 'intro');
+  curtainEl().classList.remove('open');
+  NORA.manual();                      // ทั้งสองทางต้องหลุดจากนาฬิกาโลกก่อน
+  show(0);
+  setPlaying(d !== 'intro');          // ตั้งม่าน = ค้างหน้าแรกไว้ใต้ม่าน
+  paintInfo();
+}
+
+/* เปิดม่าน: หน้าแรกเริ่มเดินตั้งแต่ม่านเริ่มแยก ผู้ชมจะได้เห็นภาพที่มีชีวิต
+   ไม่ใช่ภาพนิ่งที่ค่อยขยับตอนม่านเปิดสุด
+   ใช้ตัวจับเวลาไม่ใช่ transitionend เพราะ transitionend หายได้ถ้าแท็บถูกพัก
+   แล้วจะค้างอยู่ในชุด intro ตลอดกาลโดยที่ม่านเปิดไปแล้ว */
+function openCurtain(){
+  if(DECK !== 'intro') return;
+  const c = curtainEl();
+  if(c.classList.contains('open')) return;
+  NORA.manual();
+  show(0);
+  setPlaying(true);
+  c.classList.add('open');
+  setTimeout(() => {
+    DECK = 'main';
+    PREF.set('deck', 'main');
+    document.documentElement.classList.remove('deck-intro');
+    c.classList.remove('open');
+    paintInfo();
+    NORA.report();
+  }, MOTION_ON ? 2600 : 0);
 }
 
 /* controls */
@@ -2057,6 +2186,8 @@ addEventListener('keydown', e=>{
   if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
   if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   if((e.key==='r'||e.key==='R') && !SYNC) show(0);
+  // C = ตั้งม่าน / เปิดม่าน — ไว้ซ้อมที่ตัวเครื่องโดยไม่ต้องหยิบมือถือ
+  if(e.key==='c'||e.key==='C'){ DECK === 'intro' ? openCurtain() : setDeck('intro'); }
   if(e.key==='u'||e.key==='U'){       // วน 16:9 → จอ1 → จอ2 → จอ3 → 48:9 แบ่ง 3
     const order = ['0','1','2','3','w'];
     const now = PANEL_ON ? String(PANEL_ON) : (ULTRA_ON && !WALL_ON ? 'w' : '0');
@@ -2095,7 +2226,7 @@ const NORA = {
     const s = SLIDES[cur];
     return { screen:SCREEN_ID, slide:cur + 1, total:SLIDES.length, playing,
       sync:SYNC, mode:(PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'))),
-      seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
+      deck:DECK, seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
       title:(s && s.wall && s.wall.title) || '' };
   },
   /* คำสั่งเดินหน้า/ถอยหลังต้องหลุดจากโหมดนาฬิกาโลกก่อน
@@ -2120,6 +2251,8 @@ const NORA = {
       case 'mode':    if(['0','1','2','3','w','wall'].includes(String(m.arg)))
                         setMode(String(m.arg));
                       break;
+      case 'deck':    setDeck(String(m.arg)); break;
+      case 'curtain': openCurtain(); break;
       case 'name':    NORA.rename(m.arg); break;
       case 'seam':    NORA.flag('seam', m.arg); break;
       case 'motion':  NORA.flag('motion', m.arg); break;
@@ -2199,6 +2332,8 @@ function boot(){
     const n = Math.max(0, (parseInt(QS.get('slide'), 10) || 1) - 1);
     show(Math.min(n, SLIDES.length - 1));
   }
+  // ชุด intro: ค้างหน้าแรกไว้ใต้ม่าน รอสั่งเปิด ไม่ให้เดินหน้าไปเอง
+  if(DECK === 'intro'){ show(0); setPlaying(false); }
   markMode(PANEL_ON ? String(PANEL_ON)
                     : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')));
   raf = requestAnimationFrame(tick);

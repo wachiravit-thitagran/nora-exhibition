@@ -91,6 +91,21 @@ body.picked #pick{display:none}
 </div>
 
 <div id="ctl">
+  <div class="card" id="deckCard">
+    <label>ชุดสไลด์</label>
+    <div class="row">
+      <button class="sm" data-cmd="deck" data-arg="main">ชุดหลัก</button>
+      <button class="sm" data-cmd="deck" data-arg="intro">ตั้งม่าน</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="pri" id="curtain" data-cmd="curtain">🎭 เปิดม่าน</button>
+    </div>
+    <div class="hint" style="margin-top:10px">
+      <b>ตั้งม่าน</b> ขึ้นม่านแดงค้างไว้รอพิธีเปิด · <b>เปิดม่าน</b> แยกม่านออก
+      แล้วเริ่มชุดหลักจากหน้าแรก
+    </div>
+  </div>
+
   <div class="card">
     <div class="row" style="margin-bottom:8px">
       <button class="pri" data-cmd="toggle">⏯ เล่น / หยุด</button>
@@ -240,6 +255,7 @@ $('#rn').addEventListener('keydown', e => { if(e.key === 'Enter') doRename(); })
 /* จอรายงานโหมดกลับมาเป็นรหัสสั้น ๆ ('0','1','w') แปลให้ตรงกับป้ายบนปุ่ม
    ไม่งั้นบนมือถือจะขึ้นว่า "โหมด w" ซึ่งอ่านไม่รู้เรื่องตอนยืนอยู่หน้างาน */
 const MODE = { '0':'16:9', '1':'จอ 1', '2':'จอ 2', '3':'จอ 3', 'w':'48:9', 'wall':'48:9 ยาว' };
+const DECK = { intro:'ม่านเปิดงาน' };   // ชุดหลักเป็นค่าปกติ ไม่ต้องบอกซ้ำทุกบรรทัด
 function ago(ms){
   if(!ms) return 'ไม่ทราบ';
   const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
@@ -255,6 +271,7 @@ function ago(ms){
    และกรณีที่สองโชว์เลขหน้าเก่าค้างไว้เหมือนจอยังเล่นอยู่ */
 const meta = s => !s ? 'ไม่มีจอชื่อนี้ในรีเลย์ — ยังไม่ได้เปิดสไลด์ หรือชื่อไม่ตรง'
   : !s.online ? 'ออฟไลน์ · เห็นล่าสุด ' + ago(s.seen)
+  : DECK[s.deck] ? DECK[s.deck] + ' · รอสั่งเปิดม่าน'
   : `${s.slide ? `หน้า ${s.slide} / ${s.total}` : '—'} · ${s.playing ? 'เล่นอยู่' : 'หยุด'}`
     + ` · ${MODE[s.mode] || s.mode || '?'}${s.sync ? ' · ตามนาฬิกา' : ' · เดินเอง'}`;
 
@@ -264,6 +281,11 @@ function markState(s){
   const set = (sel, on) => { const b = $(sel); if(b) b.classList.toggle('on', !!on); };
   document.querySelectorAll('[data-cmd="mode"]').forEach(b =>
     b.classList.toggle('on', !!s && b.dataset.arg === s.mode));
+  document.querySelectorAll('[data-cmd="deck"]').forEach(b =>
+    b.classList.toggle('on', !!s && b.dataset.arg === (s.deck || 'main')));
+  // ปุ่มเปิดม่านมีความหมายเฉพาะตอนม่านขึ้นอยู่ — เวลาอื่นกดไปก็ไม่เกิดอะไร
+  const cur = $('#curtain');
+  if(cur) cur.disabled = !(s && s.deck === 'intro');
   set('[data-cmd="sync"]:not([data-arg])', s && s.sync);
   set('[data-cmd="sync"][data-arg="0"]',   s && s.sync === false);
   set('[data-cmd="seam"]',   s && s.seam);
