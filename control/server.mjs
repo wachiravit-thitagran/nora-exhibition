@@ -18,6 +18,9 @@ import http from 'node:http';
 const PORT   = Number(process.env.PORT || 10097);
 const TOKEN  = process.env.CONTROL_TOKEN || '';
 const STALE  = Number(process.env.STALE_MS || 45000);
+// หายไปนานเท่านี้และไม่มีสายเปิดค้าง = ลืมไปเลย
+// จำเป็นเพราะชื่อจอเปลี่ยนได้จากมือถือ ชื่อเก่าจะกลายเป็นซากค้างในรายการตลอดไป
+const FORGET = Number(process.env.FORGET_MS || 3600000);
 const MAXBODY = 16 * 1024;
 
 /** จอที่ต่ออยู่: id -> { id, res, state, seen } */
@@ -32,8 +35,13 @@ const json = (res, code, obj) => {
     'content-length': b.length, 'cache-control': 'no-store' });
   res.end(b);
 };
+/* online ต้องดูทั้งสองอย่าง
+     s.res  = ยังมีสาย SSE เปิดค้างอยู่จริง — จอปิดหน้าเมื่อไหร่ สายปิดทันที
+     seen   = เผื่อกรณีสายตายเงียบ ๆ โดยไม่มี event close (เน็ตหลุดกลางทาง)
+   ถ้าดูแค่ seen อย่างเดียว จอที่เพิ่งปิดไปจะยังขึ้นว่าออนไลน์ต่ออีก 45 วินาที
+   พร้อมเลขหน้าเก่าค้างอยู่ เหมือนยังเล่นอยู่ทั้งที่ดับไปแล้ว */
 const snapshot = () => [...screens.values()]
-  .map(s => ({ id: s.id, seen: s.seen, online: now() - s.seen < STALE, ...s.state }))
+  .map(s => ({ id: s.id, seen: s.seen, online: !!s.res && now() - s.seen < STALE, ...s.state }))
   .sort((a, b) => a.id.localeCompare(b.id));
 
 function sse(res, event, data){
@@ -145,10 +153,12 @@ const srv = http.createServer(async (req, res) => {
   return json(res, 404, { error: 'ไม่พบปลายทาง' });
 });
 
-/* กันสายตายเงียบ ๆ ระหว่างทาง — ส่งคอมเมนต์ทุก 15 วินาที */
+/* กันสายตายเงียบ ๆ ระหว่างทาง — ส่งคอมเมนต์ทุก 15 วินาที
+   และเก็บกวาดชื่อจอที่ไม่มีใครใช้แล้วออกจากรายการ */
 setInterval(() => {
   for(const s of screens.values()) if(s.res){ try{ s.res.write(': ping\n\n'); }catch(e){} }
   for(const c of controllers){ try{ c.write(': ping\n\n'); }catch(e){} }
+  for(const [id, s] of screens) if(!s.res && now() - s.seen > FORGET) screens.delete(id);
   pushScreens();
 }, 15000).unref?.();
 

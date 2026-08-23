@@ -23,7 +23,10 @@ const srv = http.createServer((req, res) => {
   if(p0.startsWith('/exhibition/api/')){
     const opt = { host:'127.0.0.1', port:10197, path:req.url, method:req.method, headers:req.headers };
     const up = http.request(opt, r2 => { res.writeHead(r2.statusCode, r2.headers); r2.pipe(res); });
-    up.on('error', () => { res.writeHead(502); res.end('bad'); });
+    up.on('error', () => { try{ res.writeHead(502); res.end('bad'); }catch(e){} });
+    // ลูกค้าปิดเบราว์เซอร์ = ต้องตัดสายฝั่ง upstream ด้วย ไม่งั้นรีเลย์ยังนึกว่าจอต่ออยู่
+    // (nginx จริงทำให้อยู่แล้ว ที่นี่เป็น proxy ของเล่นจึงต้องเขียนเอง)
+    res.on('close', () => { try{ up.destroy(); }catch(e){} });
     req.pipe(up); return;
   }
   let p = p0.startsWith('/exhibition') ? p0.slice(11) : p0;
@@ -155,6 +158,16 @@ ok(await p3.evaluate(() => window.NORA.id) === 'forced', 'query string ยัง
 ok(await p3.evaluate(() => document.querySelectorAll('.slide .pane.pC').length) > 0,
    'เปิดด้วย ?panel=1 ก็ยังสร้าง pane จอกลางไว้ครบ — สั่งสลับโหมดทีหลังได้จริง');
 await ctx.close();
+
+// ---- ข้อความบอกสถานะต้องแยกสามกรณีให้ชัด ----
+await ctl.fill('#sid', 'ไม่มีจอนี้'); await ctl.click('#enter'); await ctl.waitForTimeout(500);
+ok(/ไม่มีจอชื่อนี้ในรีเลย์/.test(await ctl.textContent('#nowMeta')),
+   'ชื่อจอที่ไม่มีอยู่จริง — บอกว่าไม่มีจอชื่อนี้ ไม่ใช่โทษรีเลย์');
+await s1.close(); await ctl.waitForTimeout(2200);
+await ctl.click('#leave'); await ctl.fill('#sid', 'hall-a');
+await ctl.click('#enter'); await ctl.waitForTimeout(500);
+ok(/ออฟไลน์/.test(await ctl.textContent('#nowMeta')),
+   'จอที่ปิดไปแล้ว — ขึ้นว่าออฟไลน์ ไม่ใช่โชว์เลขหน้าเก่าค้างไว้');
 
 // ---- โทเคนผิดต้องถูกปฏิเสธ ----
 const bad = await ctl.evaluate(async api => {
