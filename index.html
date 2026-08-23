@@ -1923,7 +1923,8 @@ function show(i, seekMs){
     + (PANEL_ON ? ' · จอ ' + PANEL_ON
        : WALL_ON ? ' · 48:9 ยาว'
        : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
-    + (SYNC ? ' · sync' : '');
+    + (SYNC ? ' · sync' : '')
+    + (CTRL_ON ? ' · ' + SCREEN_ID : '');
 }
 
 function tick(now){
@@ -2023,8 +2024,24 @@ addEventListener('keydown', e=>{
    ถ้าไม่มีรีเลย์ให้ต่อ ทุกอย่างทำงานเหมือนเดิมทุกประการ
    สไลด์ไม่ได้พึ่งรีเลย์ในการเดินหน้า — จอยังตรงกันเองด้วยนาฬิกาโลก
    รีเลย์เป็นแค่ทางให้ "แทรกคำสั่ง" เข้ามาเท่านั้น                        */
+/* ชื่อจอ = ชื่อของ "เครื่อง" ไม่ใช่ของโหมดที่กำลังแสดง
+   ตั้งครั้งเดียวตอนโหลด สลับโหมดทีหลังชื่อไม่เปลี่ยน
+   (controller เห็นโหมดปัจจุบันแยกอยู่แล้วในรายการสถานะ)
+
+   ค่าเริ่มต้นเมื่อไม่ใส่ ?screen=
+     ?panel=1|2|3  -> screen-1 / screen-2 / screen-3   หนึ่งเครื่องต่อหนึ่งจอ
+     ?ultra=1      -> wall        เครื่องเดียวขับทั้งผนัง 3 จอ (48:9 แบ่ง 3)
+     ?wall=1       -> wall-long   จอ LED ผืนเดียวยาว
+     ไม่ใส่อะไร     -> single      จอเดียว 16:9
+
+   ถ้ามีหลายเครื่องที่ค่าเริ่มต้นชนกัน (เช่นสองเครื่องเปิด 48:9 ทั้งคู่ = wall
+   ทั้งคู่) เครื่องหลังจะเตะเครื่องแรกออกจากรีเลย์ — หน้างานจริงควรตั้ง
+   ?screen= ให้ชัดทุกเครื่องเสมอ                                        */
 const SCREEN_ID = (QS.get('screen') || '').slice(0, 40)
-  || (PANEL ? 'screen-' + PANEL : (WALL_ON ? 'wall' : 'single'));
+  || (PANEL ? 'screen-' + PANEL
+      : WALL_ON ? 'wall-long'
+      : (CONFIG.ULTRA || QS.get('ultra') === '1') ? 'wall'
+      : 'single');
 const API_BASE = (QS.get('api') || (CONFIG.AINORA_BASE + '/api')).replace(/\/$/, '');
 const CTRL_ON  = QS.get('ctrl') !== '0';
 
