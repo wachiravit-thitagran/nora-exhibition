@@ -144,7 +144,7 @@ await ctl2.waitForTimeout(1300);
 ok(!(await ctl2.evaluate(() => document.querySelector('[data-cmd="curtain"]').disabled)),
    'ปุ่มเปิดม่านกดได้เมื่อจอปลายทางอยู่ในชุด intro');
 
-await ctl2.click('[data-cmd="curtain"]'); await ctl2.waitForTimeout(3400);
+await ctl2.click('[data-cmd="curtain"]'); await ctl2.waitForTimeout(5400);   // .25s หน่วง + 4.2s รูด + เผื่อ
 ok(await s2.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none',
    'ม่านหายไปหลังเปิดสุด');
 ok(await s2.evaluate(() => window.NORA.state.deck) === 'intro',

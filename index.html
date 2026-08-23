@@ -768,20 +768,40 @@ html.deck-intro.curtain-up #curtain{display:none}
     rgba(0,0,0,0) 178px, rgba(0,0,0,0) 300px);
 }
 
-/* เปิดม่านสองจังหวะ — รูดเข้าหาข้างจนจีบอัดกันก่อน แล้วค่อยหลุดออกนอกจอ
-   ม่านจริงไม่ได้เลื่อนเป็นแผ่นแข็ง แต่ยู่เข้าหากองที่ข้างเวที */
+/* ---- เปิดม่าน ----
+   ผ้าหนักไม่ได้ออกตัวทันทีและไม่ได้เลื่อนเป็นแผ่นแข็ง จังหวะจึงเป็น
+     ออกตัวช้า ๆ (ความเฉื่อยของผ้า) → รูดเข้าหาข้างจนจีบอัดกัน → ค่อยหลุดออกนอกจอ
+
+   skewX ที่ค่อย ๆ เพิ่มแล้วคลายกลับ = ชายล่างลากตามหลังหัวผ้า
+   เป็นตัวที่ทำให้ดู "พริ้ว" มากที่สุด ผ้าที่ถูกดึงไม่ได้ตั้งฉากตลอดเวลา  */
 @keyframes curtainL{
-  0%   { transform:scaleX(1)   translateX(0) }
-  60%  { transform:scaleX(.17) translateX(0) }
-  100% { transform:scaleX(.17) translateX(-600%) }
+  0%   { transform:skewX(0deg)    scaleX(1)   translateX(0) }
+  16%  { transform:skewX(1.5deg)  scaleX(.90) translateX(0) }
+  42%  { transform:skewX(2.4deg)  scaleX(.58) translateX(0) }
+  66%  { transform:skewX(2.0deg)  scaleX(.30) translateX(0) }
+  84%  { transform:skewX(1.0deg)  scaleX(.19) translateX(-120%) }
+  100% { transform:skewX(0deg)    scaleX(.17) translateX(-600%) }
 }
 @keyframes curtainR{
-  0%   { transform:scaleX(1)   translateX(0) }
-  60%  { transform:scaleX(.17) translateX(0) }
-  100% { transform:scaleX(.17) translateX(600%) }
+  0%   { transform:skewX(0deg)    scaleX(1)   translateX(0) }
+  16%  { transform:skewX(-1.5deg) scaleX(.90) translateX(0) }
+  42%  { transform:skewX(-2.4deg) scaleX(.58) translateX(0) }
+  66%  { transform:skewX(-2.0deg) scaleX(.30) translateX(0) }
+  84%  { transform:skewX(-1.0deg) scaleX(.19) translateX(120%) }
+  100% { transform:skewX(0deg)    scaleX(.17) translateX(600%) }
 }
-html.motion #curtain.open .cpanel.l{animation:curtainL 2.4s cubic-bezier(.5,.02,.24,1) forwards}
-html.motion #curtain.open .cpanel.r{animation:curtainR 2.4s cubic-bezier(.5,.02,.24,1) forwards}
+/* จีบแต่ละชั้นเลื่อนคนละระยะ ทำให้จีบไถลผ่านกันเองระหว่างรูด
+   ไม่ใช่ลายที่ถูกบีบลงมาเฉย ๆ — ชั้นเงาบน/เงาขอบอยู่กับที่ ไม่ต้องขยับ */
+@keyframes cripple{
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0, 0 0 }
+  100% { background-position: 0 0, 0 0, -52px 0, -138px 0, -26px 0 }
+}
+html.motion #curtain.open .cpanel.l{
+  animation:curtainL 4.2s cubic-bezier(.42,0,.14,1) .25s forwards}
+html.motion #curtain.open .cpanel.r{
+  animation:curtainR 4.2s cubic-bezier(.42,0,.14,1) .25s forwards}
+html.motion #curtain.open .cfabric{
+  animation:cripple 4.2s cubic-bezier(.42,0,.14,1) .25s forwards}
 /* ปิดอนิเมชันไว้ = ไม่ต้องรูด ม่านหายไปพร้อมกับที่ชุดสลับเป็นชุดหลัก */
 
 /* รางม่านสีเข้มด้านบน อยู่กับที่ ไม่เลื่อนตามผ้า */
@@ -798,7 +818,8 @@ html.motion #curtain.open .cpanel.r{animation:curtainR 2.4s cubic-bezier(.5,.02,
   position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:3840px;
   z-index:7;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:56px;text-align:center;
-  transition:opacity .45s ease;
+  /* จางก่อนผ้าจะเริ่มขยับ (ผ้าหน่วง .25s) ชื่องานจึงไม่โดนลากไปกับม่าน */
+  transition:opacity .75s ease;
 }
 #curtain.open .cmid{opacity:0}
 /* ผ้าแดงสดทำให้ตัวอักษรอ่านยากกว่าตอนผ้าเข้ม จึงหรี่ผ้าเป็นวงนุ่ม ๆ หลังข้อความ
@@ -2237,7 +2258,7 @@ function openCurtain(){
     c.classList.remove('open');
     paintInfo();
     NORA.report();
-  }, MOTION_ON ? 2600 : 0);
+  }, MOTION_ON ? 4600 : 0);          // .25s หน่วง + 4.2s รูด + เผื่ออีกนิด
 }
 
 /* controls */
