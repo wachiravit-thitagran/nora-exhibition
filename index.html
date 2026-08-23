@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- จอ Maxhub Pivot เป็น Android WebView ที่แคชดื้อ แก้สไลด์แล้วรีเฟรชอาจยังเห็นของเก่า
+     ตัวจริงที่กันคือ header จาก nginx (ดู deploy/nginx.conf) สามบรรทัดนี้เป็นตัวสำรอง
+     เผื่อกรณีเปิดไฟล์ตรง ๆ หรือผ่านพร็อกซีที่ไปตัด header ทิ้ง -->
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>AI NORA — นิทรรศการ Breath of Nora</title>
 <style>
 /* ฟอนต์ Anuphan (Cadson Demak, SIL OFL 1.1) — ดูสัญญาอนุญาตที่ brand/Anuphan-OFL.txt */

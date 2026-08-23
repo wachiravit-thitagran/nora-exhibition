@@ -97,6 +97,14 @@ pipeline {
                         -t "$REGISTRY_NORAEXHIBITION_IMAGE:latest" .
                 '''
                 sh 'docker image ls "$REGISTRY_NORAEXHIBITION_IMAGE" --format "{{.Tag}}\t{{.Size}}"'
+
+                // ตรวจคอนฟิก nginx ในอิมเมจจริง — พิมพ์ผิดในไฟล์คอนฟิกทำให้
+                // คอนเทนเนอร์ตายตอนสตาร์ต ซึ่งจะไปรู้เอาตอน deploy ขึ้น production แล้ว
+                // ที่นี่ล้มก่อน ยังไม่ทันได้ push อิมเมจขึ้น registry
+                sh '''
+                    docker run --rm --entrypoint nginx \
+                        "$REGISTRY_NORAEXHIBITION_IMAGE:$GIT_SHA" -t
+                '''
             }
         }
 

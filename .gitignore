@@ -21,4 +21,5 @@ node_modules/
 # ไฟล์ที่สร้างใหม่ได้เสมอ
 standalone.html
 preview-full.html
-# ไฟล์พรีวิวก้อนเดียว (standalone + ภาพฝังเป็น data URI ~3.4 MB)
+# ไฟล์พรีวิวก้อนเดียว (standalone + ภาพใน assets/ ฝังเป็น data URI ~17 MB)
+# สร้างใหม่ด้วย python3 make-standalone.py && python3 make-preview.py

@@ -94,27 +94,44 @@ controller เห็นโหมดปัจจุบันแยกอยู่
 ด้วยนาฬิกาโลก รีเลย์เป็นแค่ทางให้แทรกคำสั่งเข้ามา ไม่ใช่ตัวขับสไลด์
 (ปิดการต่อรีเลย์ด้วย `?ctrl=0`)
 
-### จะกันคนนอกสั่งจอยังไง
+### เรื่องการกั้นสิทธิ์
 
-`/exhibition/` เปิดสู่อินเทอร์เน็ต ถ้าไม่กั้นอะไรเลย ใครเดา URL ถูกก็กดเปลี่ยนหน้าจอนิทรรศการได้
-มีสองด่านให้เลือกใช้ ใช้ด่านเดียวก็พอ
+ระบบนี้ใช้ในวงภายในของหน่วยงาน จึง **ไม่มี `allow/deny` และไม่บังคับโทเคน**
+เปิด `/exhibition/control` จากมือถือได้เลย ไม่ต้องกรอกอะไร
 
-**ด่านที่ ๑ — จำกัดวงเครือข่าย (แนะนำ ไม่ต้องมีโทเคน)**
-`nginx.conf` จำกัด `/exhibition/api/cmd` และ `/exhibition/control` ไว้เฉพาะ IP วงภายในแล้ว
-สแตฟฟ์ที่ต่อไวไฟงานเปิดหน้า controller ได้เลย ไม่ต้องกรอกอะไร คนนอกได้ 403
-แก้ช่วง IP ใน `deploy/nginx.conf` และ `deploy/ainora-nginx-exhibition.conf` ให้ตรงวงของงานจริง
+ถ้าวันหนึ่งต้องเปิดสู่ภายนอกจริง มีสองด่านที่กลับมาเปิดได้
 
-> ⚠️ ก่อนหน้านี้กฎ `allow/deny` ใน `nginx.conf` **ไม่มีผลจริง** เพราะคอนเทนเนอร์อยู่หลัง nginx
-> `$remote_addr` จึงเป็น IP ของ docker bridge (172.17.x) ซึ่งตกอยู่ในช่วง `172.16.0.0/12`
-> ที่เขียน `allow` ไว้พอดี = อนุญาตทุกคน แก้ด้วย `set_real_ip_from` + `real_ip_header`
-> ที่เพิ่มไว้แล้ว (มีผลกับ `/exhibition/tools/` ที่ใช้กฎเดียวกันด้วย)
-
-**ด่านที่ ๒ — โทเคน (ถ้าต้องเปิดหน้า controller จากนอกวง)**
-ตั้ง `CONTROL_TOKEN` ใน `.env` ข้าง `docker-compose.yml` แล้วกรอกโทเคนเดียวกันในหน้า controller
-ถ้าไม่ได้ตั้ง หน้า controller จะไม่ขึ้นช่องให้กรอกเลย (อ่านจาก `/api/healthz`)
+- **จำกัดวงเครือข่าย** — ใส่ `allow`/`deny` ที่ `location ^~ /exhibition/api/`
+  ใน `deploy/nginx.conf` (มี `set_real_ip_from` + `real_ip_header` ตั้งไว้ให้แล้ว
+  ถ้าไม่มีสองบรรทัดนี้ `$remote_addr` จะเป็น IP ของ docker bridge คือ 172.17.x
+  ซึ่งตกในช่วง `172.16.0.0/12` พอดี = อนุญาตทุกคนโดยไม่ตั้งใจ)
+- **โทเคน** — ตั้ง `CONTROL_TOKEN` ใน `.env` ข้าง `docker-compose.yml`
+  หน้า controller จะขึ้นช่องให้กรอกเอง (อ่านจาก `/api/healthz`) ถ้าไม่ตั้งก็ไม่ขึ้น
 
 คำสั่งที่สั่งได้แย่ที่สุดคือเปลี่ยนหน้าจอ/หยุดเล่น ไม่มีการเข้าถึงข้อมูลหรือรันโค้ด
-แต่ที่งานจริงจอค้างกลางคันก็กวนพอสมควร
+
+### เรื่องแคช (จอ Maxhub Pivot)
+
+จอ Maxhub Pivot เป็น Android WebView ที่เก็บแคชดื้อ แก้สไลด์แล้วรีเฟรชอาจยังเห็นของเก่า
+`deploy/nginx.conf` จึงตั้งไว้ว่า **ห้ามใช้ของเก่าโดยไม่ถามทั้งไซต์**
+
+| อะไร | header | ผล |
+| --- | --- | --- |
+| `index.html`, `control.html`, `/api/*` | `no-store, no-cache, must-revalidate, max-age=0` | ไม่เก็บเลย โหลดใหม่ทุกครั้ง |
+| `assets/`, `brand/` | `no-cache, must-revalidate` | เก็บได้ แต่ต้องถามก่อนใช้ทุกครั้ง |
+
+ที่ไฟล์สื่อใช้ `no-cache` ไม่ใช่ `no-store` เพราะ `no-cache` ยังยิง conditional request ได้
+ไฟล์ไม่เปลี่ยนก็ตอบ 304 ตัวเปล่า วิดีโอหลายสิบ MB จึงไม่ต้องโหลดซ้ำทุกรอบลูป
+แต่พอเปลี่ยนไฟล์เมื่อไหร่ ETag เปลี่ยน จอเห็นทันทีตอนรีเฟรช
+(ถ้าใช้ `no-store` กับวิดีโอ จอจะดาวน์โหลดคลิปใหม่ทุกรอบจนภาพกระตุก)
+
+`index.html` กับ `control.html` มี `<meta http-equiv="Cache-Control">` เป็นตัวสำรองไว้ด้วย
+เผื่อกรณีเปิดไฟล์ตรง ๆ หรือผ่านพร็อกซีที่ไปตัด header ทิ้ง
+
+> จอที่เปิดค้างไว้อยู่แล้วยังถือ HTML เดิมไว้ในหน่วยความจำ deploy ใหม่แล้วต้องรีเฟรช
+> กด **โหลดหน้าใหม่** ในหน้า controller สั่งได้ทุกจอพร้อมกัน ไม่ต้องเดินไปแตะทีละจอ
+
+> ตรวจว่ามาถูก: `curl -sI https://ainora.psu.ac.th/exhibition/ | grep -i cache-control`
 
 ## 2. ผังรายการ 30 นาที (64 หน้า)
 
@@ -289,7 +306,7 @@ docker run -d --name nora-exhibition-web -p 10096:80 nora-exhibition:local
 |---|---|
 | `http://<host>:10096/exhibition/` | ตัวสไลด์ (ต่อ `?ultra=1` / `?wall=1` / `?panel=1\|2\|3` ได้) |
 | `http://<host>:10096/exhibition/healthz` | health check |
-| `http://<host>:10096/exhibition/tools/frame-picker.html` | เครื่องมือเลือกเฟรม (จำกัด IP วงใน) |
+| `http://<host>:10096/exhibition/tools/frame-picker.html` | เครื่องมือเลือกเฟรม (ของทีมงาน) |
 | path อื่นนอก `/exhibition/` | 404 ทั้งหมด |
 
 หรือใช้ compose (ไม่มี volume ไม่มีตัวแปรอะไรให้ตั้ง)
@@ -297,6 +314,19 @@ docker run -d --name nora-exhibition-web -p 10096:80 nora-exhibition:local
 ```sh
 REGISTRY_NORAEXHIBITION_IMAGE=<registry>/diis-itoc/nora-exhibition \
 docker compose up -d
+```
+
+ตรวจคอนฟิก nginx โดยไม่ต้องรันจริง (CI ทำขั้นนี้ให้อยู่แล้วหลัง build)
+
+```sh
+docker run --rm --entrypoint nginx nora-exhibition:local -t
+```
+
+**ไฟล์เดียวจบ (ไม่ต้องมี server)** — ใช้ส่งให้คนอื่นดู หรือเปิดพรีวิวบนเครื่องตัวเอง
+
+```sh
+python3 make-standalone.py    # standalone.html — ฝังฟอนต์+โลโก้ ยังต้องมี assets/ วางข้าง ๆ
+python3 make-preview.py       # preview-full.html — ฝังภาพใน assets/ ลงไปด้วย (วิดีโอไม่ฝัง)
 ```
 
 ### 3.4 ต่อกับ nginx ตัวหน้าของ ainora.psu.ac.th
