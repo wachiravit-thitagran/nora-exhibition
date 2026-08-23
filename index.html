@@ -705,64 +705,65 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
 #curtain{position:absolute;inset:0;z-index:40;display:none;overflow:hidden;background:transparent}
 html.deck-intro #curtain{display:block}
 
-/* ---- ผืนผ้ากำมะหยี่ ----
-   จีบผ้าเกิดจาก repeating-linear-gradient สามชั้นที่คาบไม่ลงตัวกัน
-   (232 / 97 / 1150 px) ตั้งใจให้หารกันไม่ลงตัว ลายจึงไม่ซ้ำเป็นบล็อกให้จับได้
-   ผ้าจริงจีบไม่เท่ากันและเป็นกลุ่มสว่าง-กลุ่มมืด ไม่ใช่ซี่เท่ากันทั้งผืน
+/* ---- ผืนผ้า ----
+   อ้างจากภาพม่านจริงที่ได้มา: แดงสด ผ้าด้าน ไม่มีทองเลย
+   จีบเป็นคลื่นกว้างและนุ่ม ไม่ใช่ซี่ถี่คอนทราสต์จัด
+   หัวผ้าเข้มชัดเพราะอยู่ในเงาของราง แล้วค่อยสว่างลงมาและสว่างค้างไว้จนถึงชายผ้า
 
-   สันจีบใช้ไฮไลต์ "อุ่น" (ส้มอมชมพู) ไม่ใช่ขาว เพราะกำมะหยี่สะท้อนแสงแล้ว
-   สีจะจางลงไปทางส้ม ไม่ใช่ซีดเป็นเทา  */
+   คาบของจีบสามชั้น 300 / 137 / 1130 px ตั้งใจให้หารกันไม่ลงตัว
+   ลายจึงไม่ซ้ำเป็นบล็อกให้จับได้ เหมือนผ้าจริงที่จีบไม่เท่ากันทุกลูก        */
 .cfabric{
   position:absolute;inset:0;
-  background-color:#5E0D14;
+  background-color:#C4132A;
   background-image:
-    /* ไฟเวทีสาดจากด้านบน */
-    radial-gradient(120% 72% at 50% -14%, rgba(255,198,132,.22), rgba(255,198,132,0) 62%),
-    /* มืดใต้ระบาย สว่างช่วงกลาง แล้วมืดลงที่ชายผ้า */
+    /* เงาจากรางด้านบน · ชายผ้าเข้มลงเล็กน้อย */
     linear-gradient(180deg,
-      rgba(0,0,0,.66) 0%, rgba(0,0,0,.20) 13%, rgba(0,0,0,0) 34%,
-      rgba(0,0,0,.05) 60%, rgba(0,0,0,.40) 87%, rgba(0,0,0,.66) 100%),
+      rgba(0,0,0,.76) 0%, rgba(0,0,0,.50) 4%, rgba(0,0,0,.20) 13%,
+      rgba(0,0,0,.04) 26%, rgba(0,0,0,0) 44%,
+      rgba(0,0,0,0) 88%, rgba(0,0,0,.18) 100%),
     /* เงาขอบนอก (ชิดผนัง) กับขอบใน (ชายที่มาชนกลาง) */
-    linear-gradient(90deg, rgba(0,0,0,.52) 0%, rgba(0,0,0,0) 15%,
-      rgba(0,0,0,0) 82%, rgba(0,0,0,.36) 100%),
-    /* จีบใหญ่ — ร่องคม สันลาด แบบผ้าหนักที่พับทับกัน */
+    linear-gradient(90deg, rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 12%,
+      rgba(0,0,0,0) 86%, rgba(0,0,0,.28) 100%),
+    /* จีบใหญ่ — กว้าง นุ่ม คอนทราสต์ต่ำ */
     repeating-linear-gradient(90deg,
-      rgba(0,0,0,.58) 0px,
-      rgba(0,0,0,.12) 42px,
-      rgba(255,168,138,.20) 94px,
-      rgba(255,168,138,.06) 130px,
-      rgba(0,0,0,.32) 184px,
-      rgba(0,0,0,.58) 232px),
-    /* จีบย่อยคนละจังหวะ ทำลายความสม่ำเสมอของชั้นบน */
+      rgba(0,0,0,.42) 0px,
+      rgba(0,0,0,.15) 52px,
+      rgba(255,196,186,.07) 140px,
+      rgba(0,0,0,.13) 222px,
+      rgba(0,0,0,.42) 300px),
+    /* คลื่นย่อยกับคลื่นกว้าง คนละจังหวะ ทำลายความสม่ำเสมอของชั้นบน */
     repeating-linear-gradient(90deg,
-      rgba(0,0,0,.17) 0px, rgba(255,168,138,.07) 38px, rgba(0,0,0,.17) 97px),
-    /* คลื่นกว้าง — จีบเป็นกลุ่มสว่างสลับกลุ่มมืดทั้งผืน */
+      rgba(0,0,0,.10) 0px, rgba(255,196,186,.05) 70px, rgba(0,0,0,.10) 137px),
     repeating-linear-gradient(90deg,
-      rgba(0,0,0,.22) 0px, rgba(255,168,138,.08) 430px, rgba(0,0,0,.22) 1150px);
+      rgba(0,0,0,.15) 0px, rgba(255,196,186,.06) 470px, rgba(0,0,0,.15) 1130px);
 }
 
 .cpanel{
   position:absolute;top:0;bottom:0;width:52%;      /* เกิน 50% ให้เหลื่อมกัน ไม่มีร่องกลาง */
   will-change:transform;
 }
-/* บานซ้ายทับบานขวาตรงกลาง และทอดเงาลงบนบานที่อยู่ใต้ — เหมือนม่านจริงที่ชายผ้าซ้อนกัน */
-.cpanel.l{left:0;transform-origin:left center;z-index:2;box-shadow:20px 0 64px rgba(0,0,0,.55)}
+/* บานซ้ายทับบานขวาตรงกลาง และทอดเงาลงบานที่อยู่ใต้ — เหมือนม่านจริงที่ชายผ้าซ้อนกัน */
+.cpanel.l{left:0;transform-origin:left center;z-index:2;box-shadow:22px 0 70px rgba(0,0,0,.5)}
 .cpanel.r{right:0;transform-origin:right center;z-index:1}
 .cpanel.r .cfabric{transform:scaleX(-1)}           /* พลิกจีบให้สมมาตรกับฝั่งซ้าย */
 
-/* ชายผ้าด้านใน — เห็นริ้วทองเฉพาะบานที่อยู่ข้างบน (ซ้าย)
-   บานที่อยู่ใต้ได้แค่เงา ถ้าใส่ทองทั้งสองบานจะกลายเป็นแถบทองพาดกลางจอ
-   ซึ่งไม่มีม่านจริงบานไหนเป็นแบบนั้น */
+/* ชายผ้าด้านในเป็นรอยพับเข้ม ไม่มีริ้วทอง — ม่านในภาพอ้างอิงไม่มีทองเลยสักจุด */
 .cedge{position:absolute;top:0;bottom:0;z-index:3}
-/* ริ้วทองต้องรับแสงเงาแนวตั้งชุดเดียวกับผ้า ไม่งั้นจะเป็นเส้นสว่างเท่ากันตลอด
-   ตั้งแต่บนถึงล่าง ซึ่งอ่านออกทันทีว่าไม่ใช่ของจริง */
-.cpanel.l .cedge{right:0;width:15px;
-  background-image:
-    linear-gradient(180deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.25) 14%, rgba(0,0,0,0) 36%,
-      rgba(0,0,0,.10) 62%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.8) 100%),
-    linear-gradient(90deg, rgba(0,0,0,.55), #9C7C33 55%, #5E430C)}
-.cpanel.r .cedge{left:0;width:56px;
-  background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0))}
+.cpanel.l .cedge{right:0;width:26px;
+  background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.55))}
+.cpanel.r .cedge{left:0;width:64px;
+  background:linear-gradient(90deg,rgba(0,0,0,.5),rgba(0,0,0,0))}
+
+/* ตะขอแขวนสีเข้ม — อยู่ "ใน" บานม่าน ไม่ใช่ติดกับราง
+   เวลารูดม่าน ตะขอจึงเลื่อนและอัดกันไปพร้อมผ้า เหมือนของจริง
+   คาบเท่าจีบใหญ่ ตะขอจึงตกตรงหัวจีบพอดี */
+.chooks{
+  position:absolute;top:44px;left:0;right:0;height:62px;z-index:4;
+  background-image:repeating-linear-gradient(90deg,
+    rgba(0,0,0,0) 0px, rgba(0,0,0,0) 116px,
+    #241D1F 116px, #241D1F 178px,
+    rgba(0,0,0,0) 178px, rgba(0,0,0,0) 300px);
+}
 
 /* เปิดม่านสองจังหวะ — รูดเข้าหาข้างจนจีบอัดกันก่อน แล้วค่อยหลุดออกนอกจอ
    ม่านจริงไม่ได้เลื่อนเป็นแผ่นแข็ง แต่ยู่เข้าหากองที่ข้างเวที */
@@ -780,34 +781,11 @@ html.motion #curtain.open .cpanel.l{animation:curtainL 2.4s cubic-bezier(.5,.02,
 html.motion #curtain.open .cpanel.r{animation:curtainR 2.4s cubic-bezier(.5,.02,.24,1) forwards}
 /* ปิดอนิเมชันไว้ = ไม่ต้องรูด ม่านหายไปพร้อมกับที่ชุดสลับเป็นชุดหลัก */
 
-/* ---- ระบายบน (valance) ----
-   ชายล่างเป็นวงโค้งซ้ำ ๆ ทำด้วย mask จาก SVG ในบรรทัดเดียว
-   ตั้ง mask-size เป็นพิกเซลคงที่ วงโค้งจึงกว้างเท่ากันจริงทั้งโหมด 16:9 และ 48:9
-   ไม่ใช่ยืดตามความกว้างเวทีจนบานเป็นคนละทรง                                */
-.cval, .cvaltrim{
-  position:absolute;left:0;right:0;height:340px;
-  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0 H100 V52 Q50 100 0 52 Z' fill='%23fff'/%3E%3C/svg%3E");
-  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0 H100 V52 Q50 100 0 52 Z' fill='%23fff'/%3E%3C/svg%3E");
-  -webkit-mask-size:460px 100%; mask-size:460px 100%;
-  -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x;
-}
-/* ริ้วทองซ่อนอยู่หลังระบาย เลื่อนลงนิดเดียว จึงโผล่เป็นขอบทองตามวงโค้งพอดี */
-.cvaltrim{top:20px;z-index:4;background:linear-gradient(180deg,#8A6413,#E7C871 62%,#F3E0A6)}
-.cval{top:0;z-index:5;overflow:hidden}
-/* ระบายอยู่ใกล้ไฟกว่าผืนหลัง จึงต้องสว่างกว่า ไม่ใช่มืดกว่า
-   ถ้าทำให้มืด มันจะกลืนไปกับผ้าด้านหลังจนเหลือแต่เส้นทองลอย ๆ */
-.cval .cfabric{filter:brightness(1.32) saturate(1.06)}
-/* เงาที่ระบายทอดลงบนผ้าด้านหลัง */
-.cval::after{
-  content:'';position:absolute;left:0;right:0;bottom:0;height:120px;
-  background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.45));
-}
-
-/* รางม่านด้านบน ปิดหัวผ้าทั้งหมด */
+/* รางม่านสีเข้มด้านบน อยู่กับที่ ไม่เลื่อนตามผ้า */
 .crod{
-  position:absolute;top:0;left:0;right:0;height:46px;z-index:6;
-  background:linear-gradient(180deg,#F3E0A6,#C79A2C 52%,#7A570F);
-  box-shadow:0 12px 34px rgba(0,0,0,.6);
+  position:absolute;top:0;left:0;right:0;height:50px;z-index:6;
+  background:linear-gradient(180deg,#453B3D,#1A1516 58%,#0C0A0A);
+  box-shadow:0 14px 32px rgba(0,0,0,.5);
 }
 
 /* ชื่องานกลางม่าน — กว้างเท่าจอกลางหนึ่งบาน (3840) เสมอ
@@ -820,6 +798,13 @@ html.motion #curtain.open .cpanel.r{animation:curtainR 2.4s cubic-bezier(.5,.02,
   transition:opacity .45s ease;
 }
 #curtain.open .cmid{opacity:0}
+/* ผ้าแดงสดทำให้ตัวอักษรอ่านยากกว่าตอนผ้าเข้ม จึงหรี่ผ้าเป็นวงนุ่ม ๆ หลังข้อความ
+   ใช้ position:absolute มันจึงไม่กลายเป็น flex item ของ .cmid */
+.cmid::before{
+  content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:2200px;height:920px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side, rgba(48,0,8,.44), rgba(48,0,8,0));
+}
 .cmid img{width:620px;height:auto;filter:drop-shadow(0 10px 40px rgba(0,0,0,.6))}
 .cmid .ct{
   font-size:104px;font-weight:600;letter-spacing:.01em;color:#F7E7BE;line-height:1.2;
@@ -854,10 +839,8 @@ html.motion #curtain.open .cpanel.r{animation:curtainR 2.4s cubic-bezier(.5,.02,
 <div id="viewport">
   <div id="stage">
     <div id="curtain">
-      <div class="cpanel l"><div class="cfabric"></div><div class="cedge"></div></div>
-      <div class="cpanel r"><div class="cfabric"></div><div class="cedge"></div></div>
-      <div class="cvaltrim"></div>
-      <div class="cval"><div class="cfabric"></div></div>
+      <div class="cpanel l"><div class="cfabric"></div><div class="chooks"></div><div class="cedge"></div></div>
+      <div class="cpanel r"><div class="cfabric"></div><div class="chooks"></div><div class="cedge"></div></div>
       <div class="crod"></div>
       <div class="cmid">
         <img src="brand/logo-light.png" alt="AI NORA">
