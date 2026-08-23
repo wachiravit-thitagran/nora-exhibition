@@ -1,5 +1,8 @@
 # รันบน ainora-agent — มีชุดเดียว ไม่มี staging
-# สื่อทั้งหมดอยู่ในอิมเมจ ไม่ต้อง mount อะไร
+#
+# คอนเทนเนอร์เดียวจบ: สไลด์ ไฟล์สื่อ และรีเลย์คำสั่งอยู่ในอิมเมจเดียวกันหมด
+# ไม่มี volume ไม่มี network พิเศษ ไม่มี service ที่ต้องขึ้นตามกัน
+# จะใช้ docker run เปล่า ๆ แทน compose ก็ได้ผลเหมือนกัน
 name: nora-exhibition
 services:
   nora-exhibition:
@@ -10,27 +13,8 @@ services:
       - "${EXHIBITION_PORT:-10096}:80"
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-production}
-    logging:
-      driver: json-file
-      options: { max-size: "10m", max-file: "3" }
-
-  # รีเลย์คำสั่งจาก controller — เล็กมาก ไม่มี dependency ใช้ Node ล้วน
-  # ไม่ publish พอร์ตออกนอก เข้าถึงผ่าน nginx ของสไลด์ที่ /exhibition/api/ เท่านั้น
-  # CONTROL_TOKEN เป็นทางเลือก — ด่านหลักคือ nginx ที่จำกัด /exhibition/api/cmd
-  # และ /exhibition/control ไว้เฉพาะวงภายใน เว้นว่างได้ถ้ากั้นวงเรียบร้อยแล้ว
-  nora-exhibition-control:
-    image: node:22-alpine
-    container_name: nora-exhibition-control
-    restart: unless-stopped
-    working_dir: /app
-    command: ["node", "server.mjs"]
-    volumes:
-      - ./control/server.mjs:/app/server.mjs:ro
-    environment:
-      - PORT=10097
+      # โทเคนสั่งงานเป็นทางเลือก ระบบอยู่วงในอยู่แล้ว เว้นว่างได้
       - CONTROL_TOKEN=${CONTROL_TOKEN:-}
-    expose:
-      - "10097"
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }

@@ -105,6 +105,28 @@ pipeline {
                     docker run --rm --entrypoint nginx \
                         "$REGISTRY_NORAEXHIBITION_IMAGE:$GIT_SHA" -t
                 '''
+
+                // เปิดคอนเทนเนอร์จริงขึ้นมาแล้วยิงทั้งสไลด์และรีเลย์
+                // รีเลย์อยู่ในอิมเมจเดียวกันแล้ว ถ้ามันไม่ขึ้นต้องรู้ตรงนี้
+                // ไม่ใช่ตอนหยิบมือถือขึ้นมาสั่งหน้างานแล้วจอขึ้น (ไม่ต่อรีเลย์)
+                sh '''
+                    cid=$(docker run -d "$REGISTRY_NORAEXHIBITION_IMAGE:$GIT_SHA")
+                    trap 'docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT
+                    fail=1
+                    for i in $(seq 1 20); do
+                        if docker exec "$cid" wget -qO- http://127.0.0.1/exhibition/ >/dev/null 2>&1 \
+                           && docker exec "$cid" wget -qO- http://127.0.0.1/exhibition/api/healthz >/dev/null 2>&1; then
+                            fail=0; break
+                        fi
+                        sleep 1
+                    done
+                    if [ "$fail" != 0 ]; then
+                        echo "อิมเมจไม่ผ่าน: สไลด์หรือรีเลย์ไม่ตอบภายใน 20 วินาที" >&2
+                        docker logs "$cid" >&2 || true
+                        exit 1
+                    fi
+                    echo "อิมเมจผ่าน — สไลด์เสิร์ฟได้ และรีเลย์ตอบ /exhibition/api/healthz"
+                '''
             }
         }
 
@@ -170,9 +192,7 @@ pipeline {
                     exit 1
                 '''
 
-                // ตรวจรีเลย์คำสั่งด้วย — ยิงผ่าน nginx ของสไลด์ เท่ากับตรวจทั้งเส้นทาง
-                // ที่หน้า controller ใช้จริง (nginx -> resolver -> คอนเทนเนอร์รีเลย์)
-                //
+                // ตรวจรีเลย์คำสั่งบน production ที่เพิ่ง deploy — อยู่ในคอนเทนเนอร์เดียวกันแล้ว
                 // ไม่ทำให้บิลด์ล้มถ้าไม่ผ่าน เพราะรีเลย์เป็นของเสริม สไลด์เล่นได้อยู่แล้ว
                 // แต่ต้องเห็นใน log ไม่งั้นจะไปรู้เอาตอนหยิบมือถือขึ้นมาสั่งหน้างาน
                 sh '''
@@ -183,7 +203,7 @@ pipeline {
                     else
                         echo "เตือน: รีเลย์คำสั่งไม่ตอบ /exhibition/api/healthz" >&2
                         echo "       สไลด์ยังเล่นปกติ แต่สั่งจากมือถือไม่ได้" >&2
-                        docker logs --tail 50 nora-exhibition-control >&2 || true
+                        docker logs --tail 50 nora-exhibition-web >&2 || true
                     fi
                 '''
             }

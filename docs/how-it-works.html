@@ -1,0 +1,674 @@
+<title>กลไกสไลด์ AI NORA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#FBF8F1;
+  --surface:#FFFFFF;
+  --surface-2:#F5F0E4;
+  --ink:#191510;
+  --body:#4B4234;
+  --muted:#7C7061;
+  --line:#E6DECB;
+  --line-strong:#CDC1A6;
+  --gold:#8A6D14;
+  --gold-soft:#F6ECCD;
+  --relay:#A8500F;
+  --relay-soft:#FBEAD8;
+  --code:#33291A;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#13110C;
+    --surface:#1C1913;
+    --surface-2:#241F17;
+    --ink:#F4EFE2;
+    --body:#CBC1AE;
+    --muted:#968B78;
+    --line:#332D22;
+    --line-strong:#4C4232;
+    --gold:#E3C468;
+    --gold-soft:#2B2413;
+    --relay:#F0932A;
+    --relay-soft:#2E1E0E;
+    --code:#E8DFC9;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#13110C;
+  --surface:#1C1913;
+  --surface-2:#241F17;
+  --ink:#F4EFE2;
+  --body:#CBC1AE;
+  --muted:#968B78;
+  --line:#332D22;
+  --line-strong:#4C4232;
+  --gold:#E3C468;
+  --gold-soft:#2B2413;
+  --relay:#F0932A;
+  --relay-soft:#2E1E0E;
+  --code:#E8DFC9;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--body);
+  font-family:'Anuphan','Noto Sans Thai',system-ui,sans-serif;
+  font-weight:400;
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 96px}
+.col{max-width:640px}
+
+/* ---------- หัวเรื่อง ---------- */
+header{
+  padding:72px 0 40px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:56px;
+}
+.eyebrow{
+  font-family:'IBM Plex Mono',ui-monospace,monospace;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 18px;
+}
+h1{
+  font-size:clamp(34px,6vw,52px);
+  line-height:1.14;font-weight:600;letter-spacing:-.01em;
+  color:var(--ink);margin:0 0 22px;text-wrap:balance;
+}
+.lede{font-size:clamp(18px,2.4vw,21px);line-height:1.62;color:var(--body);margin:0;max-width:600px}
+.lede strong{color:var(--ink);font-weight:600}
+
+/* ---------- ตัวเลข ---------- */
+.figures{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:4px;
+  overflow:hidden;margin:36px 0 0;
+}
+.fig{background:var(--surface);padding:16px 18px}
+.fig b{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;
+  color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.3;
+}
+.fig span{display:block;font-size:13px;color:var(--muted);line-height:1.45;margin-top:2px}
+
+/* ---------- ส่วน ---------- */
+section{margin:0 0 68px}
+h2{
+  font-size:27px;font-weight:600;line-height:1.3;color:var(--ink);
+  margin:0 0 6px;letter-spacing:-.005em;text-wrap:balance;
+}
+h2 .n{
+  font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:400;
+  color:var(--gold);margin-inline-end:12px;vertical-align:.14em;
+}
+.sub{color:var(--muted);font-size:15px;margin:0 0 26px}
+h3{
+  font-size:19px;font-weight:600;line-height:1.4;color:var(--ink);
+  margin:40px 0 4px;letter-spacing:-.003em;
+}
+p{margin:0 0 18px;max-width:640px}
+p:last-child{margin-bottom:0}
+strong{color:var(--ink);font-weight:600}
+
+code{
+  font-family:'IBM Plex Mono',ui-monospace,monospace;
+  font-size:.88em;background:var(--surface-2);color:var(--code);
+  padding:.12em .42em;border-radius:3px;
+}
+
+/* ---------- ภาพ ---------- */
+figure{margin:32px 0;padding:0}
+.dg{
+  display:block;width:100%;height:auto;
+  color:var(--line-strong);
+  background:var(--surface);
+  border:1px solid var(--line);border-radius:4px;
+}
+.dg .box{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.4}
+.dg .box-2{fill:var(--surface-2);stroke:var(--line-strong);stroke-width:1.4}
+/* คลาสต้องชนะ presentation attribute เสมอ — เขียน stroke="…" บนแท็กแล้วคลาสทับ
+   จนกรอบรีเลย์กลายเป็นสีเส้นธรรมดา ไม่ใช่สีส้มที่ตั้งใจ */
+.dg .box-relay{fill:var(--relay-soft);stroke:var(--relay);stroke-width:1.4;stroke-dasharray:6 4}
+.dg .ln{stroke:var(--line-strong);stroke-width:1.4;fill:none}
+.dg .ln-gold{stroke:var(--gold);stroke-width:1.6;fill:none}
+.dg .ln-relay{stroke:var(--relay);stroke-width:1.6;fill:none}
+.dg .dash{stroke-dasharray:5 4}
+.dg .mk{fill:var(--line-strong)}
+.dg .mk-gold{fill:var(--gold)}
+.dg .mk-relay{fill:var(--relay)}
+.dg .t{fill:var(--ink);font-family:'Anuphan',sans-serif;font-size:13px;font-weight:500}
+.dg .t-s{fill:var(--muted);font-family:'Anuphan',sans-serif;font-size:11.5px;font-weight:400}
+.dg .t-m{fill:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11.5px}
+.dg .t-gold{fill:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500}
+.dg .t-relay{fill:var(--relay);font-family:'Anuphan',sans-serif;font-size:11.5px}
+.dg .fill-gold{fill:var(--gold-soft);stroke:var(--gold);stroke-width:1.4}
+.dg .fill-mute{fill:var(--surface-2);stroke:var(--line-strong);stroke-width:1.2}
+figcaption{
+  font-size:14px;line-height:1.6;color:var(--muted);
+  margin-top:12px;max-width:640px;
+}
+
+/* ---------- กล่องเน้น ---------- */
+.note{
+  border-inline-start:2px solid var(--gold);
+  background:var(--gold-soft);
+  padding:16px 20px;border-radius:0 4px 4px 0;
+  margin:26px 0;max-width:640px;font-size:16px;
+}
+.note.relay{border-color:var(--relay);background:var(--relay-soft)}
+.note p{margin:0}
+.note p + p{margin-top:10px}
+
+/* ---------- ตาราง ---------- */
+.scroll{overflow-x:auto;margin:26px 0;border:1px solid var(--line);border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:15px;background:var(--surface)}
+th,td{text-align:start;padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+th{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  background:var(--surface-2);white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+
+/* ---------- ลำดับ ---------- */
+ol.steps{margin:24px 0;padding:0;list-style:none;counter-reset:s;max-width:640px}
+ol.steps li{
+  counter-increment:s;position:relative;padding-inline-start:38px;margin-bottom:16px;
+}
+ol.steps li::before{
+  content:counter(s);position:absolute;inset-inline-start:0;top:2px;
+  width:24px;height:24px;border-radius:50%;
+  background:var(--surface-2);border:1px solid var(--line-strong);
+  color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+ol.steps li:last-child{margin-bottom:0}
+
+footer{
+  border-top:1px solid var(--line);padding-top:28px;margin-top:12px;
+  font-size:14px;color:var(--muted);
+}
+footer code{font-size:12.5px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">PSU DiiS · นิทรรศการ Breath of Nora</p>
+  <h1>สไลด์ที่รู้เองว่าตอนนี้ควรอยู่หน้าไหน</h1>
+  <p class="lede">
+    ทั้งระบบคือ <strong>ไฟล์ HTML ไฟล์เดียว</strong> ที่เปิดในเบราว์เซอร์
+    ไม่มีเซิร์ฟเวอร์คอยสั่ง ไม่มีฐานข้อมูล ไม่มี build step
+    จอหลายเครื่องเล่นตรงกันได้เพราะทุกเครื่องคิดเลขจากนาฬิกาชุดเดียวกัน
+    ไม่ใช่เพราะมีใครสั่ง
+  </p>
+
+  <div class="figures">
+    <div class="fig"><b>64</b><span>หน้า</span></div>
+    <div class="fig"><b>30:00</b><span>นาทีต่อรอบ</span></div>
+    <div class="fig"><b>11520</b><span>พิกเซลกว้างสุด</span></div>
+    <div class="fig"><b>4</b><span>โหมดจอ</span></div>
+    <div class="fig"><b>0</b><span>dependency ตอนรัน</span></div>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">01</span>ผืนเวทีเดียว มองได้สี่แบบ</h2>
+  <p class="sub">โหมดจอไม่ใช่สไลด์คนละชุด แต่เป็นหน้าต่างคนละบานที่มองผืนเดียวกัน</p>
+
+  <p>
+    ทุกหน้าถูกวาดลงผืนกว้าง <code>11520 × 2160</code> ซึ่งคือจอ 16:9 ขนาด
+    <code>3840 × 2160</code> สามจอเรียงกัน แต่ละช่องมีหน้าที่ของตัวเอง —
+    ซ้ายบอกตำแหน่งในกระบวนการ กลางคือเนื้อหาหลัก ขวาคือป้ายกำกับนิทรรศการ
+  </p>
+  <p>
+    เบราว์เซอร์ไม่ได้ย่อภาพทีหลัง แต่ใช้ CSS <code>transform: scale()</code>
+    ย่อทั้งเวทีลงให้พอดีจอจริง ตัวอักษรกับเส้นจึงคมทุกความละเอียด
+    ตั้งแต่โน้ตบุ๊กไปจนถึงผนัง 4K สามจอ
+  </p>
+
+  <figure>
+    <svg class="dg" viewBox="0 0 720 300" role="img"
+         aria-label="ผืนเวที 11520 พิกเซลแบ่งเป็นสามช่อง และหน้าต่างสี่แบบที่ครอปผืนนี้ต่างกัน">
+      <text class="t-s" x="40" y="30">ผืนที่วาดไว้ · 11520 × 2160</text>
+
+      <rect class="box" x="40" y="42" width="640" height="76" rx="2"/>
+      <line class="ln" x1="253" y1="42" x2="253" y2="118"/>
+      <line class="ln" x1="466" y1="42" x2="466" y2="118"/>
+      <text class="t" x="146" y="74" text-anchor="middle">pL</text>
+      <text class="t-s" x="146" y="94" text-anchor="middle">ตำแหน่งในกระบวนการ</text>
+      <text class="t" x="360" y="74" text-anchor="middle">pC</text>
+      <text class="t-s" x="360" y="94" text-anchor="middle">เนื้อหาหลัก</text>
+      <text class="t" x="573" y="74" text-anchor="middle">pR</text>
+      <text class="t-s" x="573" y="94" text-anchor="middle">ป้ายกำกับ</text>
+      <text class="t-m" x="146" y="136" text-anchor="middle">3840</text>
+      <text class="t-m" x="360" y="136" text-anchor="middle">3840</text>
+      <text class="t-m" x="573" y="136" text-anchor="middle">3840</text>
+
+      <text class="t-s" x="40" y="180">หน้าต่างที่เลือกดู</text>
+
+      <g>
+        <text class="t" x="40" y="212">16:9</text>
+        <rect class="fill-mute" x="40" y="222" width="46" height="34" rx="2"/>
+        <rect class="fill-gold" x="86" y="222" width="46" height="34" rx="2"/>
+        <rect class="fill-mute" x="132" y="222" width="46" height="34" rx="2"/>
+        <text class="t-s" x="40" y="276">ยุบซ้าย–ขวาลงมารวมในจอเดียว</text>
+      </g>
+
+      <g>
+        <text class="t" x="212" y="212">จอ 1 / 2 / 3</text>
+        <rect class="fill-mute" x="212" y="222" width="46" height="34" rx="2"/>
+        <rect class="fill-gold" x="258" y="222" width="46" height="34" rx="2"/>
+        <rect class="fill-mute" x="304" y="222" width="46" height="34" rx="2"/>
+        <text class="t-s" x="212" y="276">ครอปช่องเดียว · เครื่องละจอ</text>
+      </g>
+
+      <g>
+        <text class="t" x="384" y="212">48:9 แบ่ง 3</text>
+        <rect class="fill-gold" x="384" y="222" width="46" height="34" rx="2"/>
+        <rect class="fill-gold" x="430" y="222" width="46" height="34" rx="2"/>
+        <rect class="fill-gold" x="476" y="222" width="46" height="34" rx="2"/>
+        <line class="ln-gold" x1="430" y1="222" x2="430" y2="256"/>
+        <line class="ln-gold" x1="476" y1="222" x2="476" y2="256"/>
+        <text class="t-s" x="384" y="276">ทั้งผืน · เลี่ยงขอบจอคั่น</text>
+      </g>
+
+      <g>
+        <text class="t" x="556" y="212">48:9 ยาว</text>
+        <rect class="fill-gold" x="556" y="222" width="138" height="34" rx="2"/>
+        <text class="t-s" x="556" y="276">จอ LED ผืนเดียว · โลโก้ไม่ซ้ำ</text>
+      </g>
+    </svg>
+    <figcaption>
+      ช่องสีทองคือส่วนที่จอนั้นแสดงจริง ทุกโหมดอ่านจากผืนเดียวกัน
+      เปลี่ยนโหมดจึงเป็นแค่การเปลี่ยนหน้าต่าง ไม่ต้องโหลดสไลด์ชุดใหม่
+    </figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="n">02</span>นาฬิกาโลกแทนสายสัญญาณ</h2>
+  <p class="sub">หัวใจของระบบ และเหตุผลที่ไม่ต้องมีเซิร์ฟเวอร์คอยสั่งจอ</p>
+
+  <p>
+    แต่ละหน้ามีเวลาคงที่ตามชนิดของมัน (หน้าเปิด 14 วินาที · หน้าเทียบภาพ 30 วินาที และอื่น ๆ)
+    ตอนโหลด สไลด์บวกเวลาทั้ง 64 หน้าเข้าด้วยกัน แล้วคูณตัวเลขเดียวให้รอบลงตัว
+    <code>30:00</code> พอดี ได้เป็นไทม์ไลน์ที่ <strong>เหมือนกันเป๊ะทุกเครื่อง</strong>
+  </p>
+  <p>
+    จากนั้นทุกเครื่องถามคำถามเดียวกัน — นับจาก <code>SYNC_EPOCH</code>
+    (๑ มกราคม ๒๕๖๙) ถึงตอนนี้ผ่านไปกี่มิลลิวินาที หารเอาเศษด้วยความยาวรอบ
+    ก็ได้ตำแหน่งในรอบ แล้วเปิดหน้านั้นที่วินาทีนั้น
+    วิดีโอก็ถูกเลื่อนไปที่ <code>เวลา % ความยาวคลิป</code> ด้วย
+    คลิปยาว 2 วินาทีจึงอยู่เฟรมเดียวกันทุกจอ
+  </p>
+
+  <figure>
+    <svg class="dg" viewBox="0 0 720 300" role="img"
+         aria-label="สามเครื่องคำนวณตำแหน่งในรอบ 30 นาทีจากนาฬิกาของตัวเอง โดยไม่มีสายเชื่อมถึงกัน">
+      <defs>
+        <marker id="a2g" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <polygon class="mk-gold" points="0,0 10,5 0,10"/>
+        </marker>
+      </defs>
+
+      <text class="t-s" x="40" y="30">รอบ 30 นาที · 64 หน้า · วนไม่รู้จบ</text>
+      <rect class="box-2" x="40" y="42" width="640" height="26" rx="2"/>
+      <line class="ln" x1="130" y1="42" x2="130" y2="68"/>
+      <line class="ln" x1="220" y1="42" x2="220" y2="68"/>
+      <line class="ln" x1="310" y1="42" x2="310" y2="68"/>
+      <line class="ln" x1="490" y1="42" x2="490" y2="68"/>
+      <line class="ln" x1="580" y1="42" x2="580" y2="68"/>
+
+      <rect class="fill-gold" x="310" y="42" width="180" height="26" rx="2"/>
+      <text class="t-gold" x="400" y="60" text-anchor="middle">หน้า 27</text>
+
+      <line class="ln-gold" x1="400" y1="34" x2="400" y2="42"/>
+      <text class="t-gold" x="400" y="26" text-anchor="middle">ตอนนี้</text>
+
+      <text class="t-m" x="40" y="86">SYNC_EPOCH</text>
+      <text class="t-m" x="680" y="86" text-anchor="end">+30:00 → วนใหม่</text>
+
+      <rect class="box-2" x="196" y="108" width="328" height="34" rx="2"/>
+      <text class="t-m" x="360" y="130" text-anchor="middle">t = (Date.now() − SYNC_EPOCH) mod CYCLE</text>
+
+      <line class="ln-gold" x1="130" y1="196" x2="352" y2="146" marker-end="url(#a2g)"/>
+      <line class="ln-gold" x1="360" y1="196" x2="360" y2="146" marker-end="url(#a2g)"/>
+      <line class="ln-gold" x1="590" y1="196" x2="368" y2="146" marker-end="url(#a2g)"/>
+
+      <rect class="box" x="40" y="200" width="180" height="62" rx="2"/>
+      <text class="t" x="130" y="224" text-anchor="middle">เครื่อง A</text>
+      <text class="t-s" x="130" y="244" text-anchor="middle">ผนัง 48:9</text>
+
+      <rect class="box" x="270" y="200" width="180" height="62" rx="2"/>
+      <text class="t" x="360" y="224" text-anchor="middle">เครื่อง B</text>
+      <text class="t-s" x="360" y="244" text-anchor="middle">จอ 16:9 โถงหน้า</text>
+
+      <rect class="box" x="500" y="200" width="180" height="62" rx="2"/>
+      <text class="t" x="590" y="224" text-anchor="middle">เครื่อง C</text>
+      <text class="t-s" x="590" y="244" text-anchor="middle">เปิดกลางคันก็เข้าจังหวะ</text>
+
+      <line class="ln dash" x1="228" y1="231" x2="262" y2="231"/>
+      <line class="ln dash" x1="458" y1="231" x2="492" y2="231"/>
+      <line class="ln" x1="239" y1="224" x2="251" y2="238"/>
+      <line class="ln" x1="251" y1="224" x2="239" y2="238"/>
+      <line class="ln" x1="469" y1="224" x2="481" y2="238"/>
+      <line class="ln" x1="481" y1="224" x2="469" y2="238"/>
+
+      <text class="t-s" x="360" y="286" text-anchor="middle">ไม่มีสายเชื่อมระหว่างเครื่อง · ไม่มีเครื่องไหนเป็นตัวหลัก</text>
+    </svg>
+    <figcaption>
+      ทุกเครื่องคำนวณตำแหน่งเดียวกันจากนาฬิกาของตัวเอง จึงตรงกันโดยไม่ต้องคุยกัน
+      เปิดเครื่องใหม่กลางงานก็กระโดดเข้าจังหวะที่ถูกต้องทันที ไม่ต้องกดอะไร
+    </figcaption>
+  </figure>
+
+  <div class="note">
+    <p>
+      <strong>ผลพลอยได้ที่สำคัญที่สุด:</strong> ไม่มีจุดเดียวที่พังแล้วดับทั้งงาน
+      เน็ตหลุด รีเลย์ล่ม มือถือแบตหมด — จอยังเล่นครบรอบเหมือนเดิม
+      เพราะไม่มีอะไรในเส้นทางนั้นที่จอต้องพึ่ง
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">03</span>รีเลย์คือทางแทรกคำสั่ง ไม่ใช่ตัวขับสไลด์</h2>
+  <p class="sub">ชั้นที่ถอดออกได้ทั้งชั้นโดยสไลด์ไม่รู้สึกอะไร</p>
+
+  <p>
+    บางครั้งหน้างานก็ต้องแทรกมือ — มีคนมายืนถามแล้วอยากค้างหน้านั้นไว้
+    หรืออยากกระโดดไปหน้าที่ต้องการให้ผู้บริหารดู
+    งานนี้จึงมีคอนเทนเนอร์เล็ก ๆ อีกตัว (Node ล้วน ไม่มี dependency)
+    ทำหน้าที่ส่งต่อคำสั่งจากมือถือไปยังจอ
+  </p>
+  <p>
+    ใช้ <strong>SSE</strong> ไม่ใช่ WebSocket เพราะจอต้องการแค่ <em>รับ</em> คำสั่ง
+    ส่วนสถานะส่งกลับด้วย POST ธรรมดาก็พอ — SSE เป็น HTTP ปกติ
+    ผ่าน nginx ได้โดยไม่ต้องตั้ง proxy upgrade
+  </p>
+
+  <figure>
+    <svg class="dg" viewBox="0 0 860 300" role="img"
+         aria-label="จอเปิดสาย SSE ค้างไว้กับรีเลย์และรายงานสถานะกลับ มือถือส่งคำสั่งเข้ารีเลย์แล้วรีเลย์ส่งต่อไปยังจอ">
+      <defs>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <polygon class="mk" points="0,0 10,5 0,10"/>
+        </marker>
+        <marker id="a3r" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <polygon class="mk-relay" points="0,0 10,5 0,10"/>
+        </marker>
+      </defs>
+
+      <rect class="box" x="20" y="88" width="180" height="118" rx="2"/>
+      <text class="t" x="110" y="126" text-anchor="middle">จอนิทรรศการ</text>
+      <text class="t-m" x="110" y="148" text-anchor="middle">index.html</text>
+      <text class="t-s" x="110" y="174" text-anchor="middle">เดินตามนาฬิกาอยู่แล้ว</text>
+
+      <rect class="box-relay" x="340" y="76" width="180" height="142" rx="2"/>
+      <text class="t" x="430" y="118" text-anchor="middle">รีเลย์คำสั่ง</text>
+      <text class="t-m" x="430" y="140" text-anchor="middle">server.mjs</text>
+      <text class="t-s" x="430" y="166" text-anchor="middle">จำว่าจอไหนต่ออยู่</text>
+      <text class="t-relay" x="430" y="244" text-anchor="middle">ตัดชั้นนี้ออกได้ทั้งชั้น</text>
+      <text class="t-relay" x="430" y="262" text-anchor="middle">สไลด์ยังเล่นครบรอบ</text>
+
+      <rect class="box" x="660" y="88" width="180" height="118" rx="2"/>
+      <text class="t" x="750" y="126" text-anchor="middle">มือถือสแตฟฟ์</text>
+      <text class="t-m" x="750" y="148" text-anchor="middle">control.html</text>
+      <text class="t-s" x="750" y="174" text-anchor="middle">คุมทีละจอตามชื่อ</text>
+
+      <text class="t-m" x="270" y="106" text-anchor="middle">GET /api/events</text>
+      <line class="ln" x1="200" y1="118" x2="334" y2="118" marker-end="url(#a3)"/>
+      <text class="t-s" x="270" y="134" text-anchor="middle">เปิดสายค้างไว้</text>
+
+      <text class="t-m" x="270" y="162" text-anchor="middle">event: cmd</text>
+      <line class="ln-relay" x1="334" y1="174" x2="200" y2="174" marker-end="url(#a3r)"/>
+
+      <text class="t-m" x="270" y="202" text-anchor="middle">POST /api/state</text>
+      <line class="ln" x1="200" y1="214" x2="334" y2="214" marker-end="url(#a3)"/>
+      <text class="t-s" x="270" y="230" text-anchor="middle">ทุก 10 วินาที</text>
+
+      <text class="t-m" x="590" y="118" text-anchor="middle">POST /api/cmd</text>
+      <line class="ln-relay" x1="654" y1="130" x2="526" y2="130" marker-end="url(#a3r)"/>
+
+      <text class="t-m" x="590" y="176" text-anchor="middle">event: screens</text>
+      <line class="ln" x1="526" y1="188" x2="654" y2="188" marker-end="url(#a3)"/>
+      <text class="t-s" x="590" y="204" text-anchor="middle">สถานะจอทุกตัว</text>
+
+      <text class="t-s" x="20" y="44">เส้นสีส้มคือคำสั่งที่คนกด · เส้นสีเทาคือการรายงานตัวที่เกิดขึ้นเองตลอดเวลา</text>
+    </svg>
+    <figcaption>
+      รีเลย์ไม่เคยบอกจอว่า “ตอนนี้หน้าอะไร” — มันแค่ส่งต่อคำสั่งที่คนกด
+      สิ่งเดียวที่มันเก็บคือรายชื่อจอที่ต่ออยู่และสถานะล่าสุดที่จอรายงานเข้ามา
+    </figcaption>
+  </figure>
+
+  <div class="note relay">
+    <p>
+      พอกด <strong>ถัดไป / ย้อน / กระโดดหน้า</strong> จอนั้นจะหลุดจากนาฬิกาโลก
+      แล้วเดินเวลาของตัวเองต่อไป ถ้ามีหลายเครื่องจะเริ่มไม่ตรงกัน
+      เสร็จธุระแล้วกด <strong>กลับเข้าจังหวะนาฬิกา</strong> เพื่อดึงกลับเข้าแถว
+    </p>
+  </div>
+
+  <h3>กดหนึ่งครั้งแล้วเกิดอะไรขึ้นบ้าง</h3>
+
+  <figure>
+    <svg class="dg" viewBox="0 0 720 342" role="img"
+         aria-label="ลำดับเหตุการณ์จากกดปุ่มบนมือถือ ผ่านรีเลย์ ไปถึงจอ แล้วจอรายงานสถานะกลับมาถึงมือถือ">
+      <defs>
+        <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <polygon class="mk" points="0,0 10,5 0,10"/>
+        </marker>
+        <marker id="a4r" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <polygon class="mk-relay" points="0,0 10,5 0,10"/>
+        </marker>
+      </defs>
+
+      <rect class="box" x="30" y="24" width="160" height="34" rx="2"/>
+      <text class="t" x="110" y="46" text-anchor="middle">มือถือ</text>
+      <rect class="box-relay" x="280" y="24" width="160" height="34" rx="2"/>
+      <text class="t" x="360" y="46" text-anchor="middle">รีเลย์</text>
+      <rect class="box" x="530" y="24" width="160" height="34" rx="2"/>
+      <text class="t" x="610" y="46" text-anchor="middle">จอชื่อ diis</text>
+
+      <line class="ln dash" x1="110" y1="58" x2="110" y2="318"/>
+      <line class="ln dash" x1="360" y1="58" x2="360" y2="318"/>
+      <line class="ln dash" x1="610" y1="58" x2="610" y2="318"/>
+
+      <text class="t-m" x="235" y="88" text-anchor="middle">POST /api/cmd</text>
+      <line class="ln-relay" x1="110" y1="100" x2="354" y2="100" marker-end="url(#a4r)"/>
+      <text class="t-s" x="235" y="116" text-anchor="middle">{ cmd: 'next', target: 'diis' }</text>
+
+      <text class="t-m" x="485" y="146" text-anchor="middle">event: cmd</text>
+      <line class="ln-relay" x1="360" y1="158" x2="604" y2="158" marker-end="url(#a4r)"/>
+      <text class="t-s" x="485" y="174" text-anchor="middle">ส่งลงสายที่เปิดค้างอยู่แล้ว</text>
+
+      <rect class="box-2" x="530" y="192" width="160" height="42" rx="2"/>
+      <text class="t-m" x="610" y="210" text-anchor="middle">NORA.apply()</text>
+      <text class="t-s" x="610" y="226" text-anchor="middle">หลุดนาฬิกา → เปลี่ยนหน้า</text>
+
+      <text class="t-m" x="485" y="258" text-anchor="middle">POST /api/state</text>
+      <line class="ln" x1="604" y1="270" x2="360" y2="270" marker-end="url(#a4)"/>
+
+      <text class="t-m" x="235" y="298" text-anchor="middle">event: screens</text>
+      <line class="ln" x1="354" y1="310" x2="110" y2="310" marker-end="url(#a4)"/>
+      <text class="t-s" x="235" y="326" text-anchor="middle">ปุ่มบนมือถือไฮไลต์ตามของจริง</text>
+    </svg>
+    <figcaption>
+      รีเลย์ไม่ต้องเปิดการเชื่อมต่อใหม่ไปหาจอ เพราะจอเปิดสายค้างรอไว้ตั้งแต่ตอนโหลดแล้ว
+      คำสั่งจึงถึงจอในเสี้ยววินาที และสถานะจริงเด้งกลับมาถึงมือถือทันทีในรอบเดียวกัน
+    </figcaption>
+  </figure>
+
+  <p>
+    สังเกตว่า <strong>รีเลย์ไม่ตรวจคำสั่งเลย</strong> — ไม่รู้ว่าสไลด์มีกี่หน้า
+    ไม่รู้ว่า <code>next</code> แปลว่าอะไร มันแค่หาสายของจอที่ชื่อตรงกับ
+    <code>target</code> แล้วเทข้อความลงไป ความรู้เรื่องสไลด์อยู่ที่จอฝ่ายเดียว
+    เพิ่มคำสั่งใหม่จึงแก้แค่สองที่ — ปุ่มบนมือถือ กับ <code>switch</code> ในจอ
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>รีเลย์เก็บอะไร</th><th>ได้มาจากไหน</th><th>หายไปเมื่อไหร่</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>สาย SSE ของแต่ละจอ</td>
+          <td>จอเปิดค้างไว้ตอนโหลด</td>
+          <td>จอปิดหน้า → ขึ้นออฟไลน์ทันที</td>
+        </tr>
+        <tr>
+          <td>สถานะล่าสุดที่จอบอก</td>
+          <td><code>POST /api/state</code> ทุก 10 วิ และทุกครั้งที่เปลี่ยนหน้า</td>
+          <td>ไม่มีใครใช้ชื่อนั้นเกิน 1 ชม. → ลืมทิ้ง</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    ทั้งหมดนี้อยู่ในหน่วยความจำ ไม่มีไฟล์ ไม่มีฐานข้อมูล
+    รีสตาร์ตรีเลย์กลางงานได้โดยไม่ต้องแตะจอเลย — จอลองต่อใหม่เองทุก 5 วินาที
+    แล้วรายงานตัวกลับเข้ามาพร้อมสถานะปัจจุบัน
+  </p>
+
+  <div class="note">
+    <p>
+      <strong>สองอย่างที่ทำให้สายไม่ตายเงียบ:</strong>
+      รีเลย์ส่งคอมเมนต์ <code>: ping</code> ทุก 15 วินาทีกัน proxy ตัดสายที่เงียบเกินไป
+      และตอบ <code>x-accel-buffering: no</code> เพื่อไม่ให้ nginx อมคำสั่งไว้ในบัฟเฟอร์จนไม่ถึงจอ
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">04</span>เครื่องจำค่าของตัวเอง</h2>
+  <p class="sub">ทุกจอเปิดด้วย URL เดียวกัน แล้วค่อยตั้งค่าทีหลัง</p>
+
+  <p>
+    เดิมต้องเดินไปพิมพ์ URL ยาว ๆ ให้แต่ละเครื่อง ตอนนี้เปิด
+    <code>/exhibition/</code> เปล่า ๆ เหมือนกันหมด แล้วตั้งชื่อจอ โหมด และค่าอื่น ๆ
+    จากมือถือ เครื่องเก็บไว้ใน <code>localStorage</code> ของตัวเอง
+    ไฟดับหรือรีเฟรชก็กลับมาเหมือนเดิม
+  </p>
+
+  <ol class="steps">
+    <li><strong>query string ชนะเสมอ</strong> — <code>?screen=diis</code> บังคับได้ทันที และจำค่าให้ด้วย</li>
+    <li><strong>ค่าที่จำไว้</strong> — สิ่งที่ตั้งจากมือถือครั้งก่อน</li>
+    <li><strong>ค่าตั้งต้น</strong> — ชื่อ <code>main</code> โหมด 16:9</li>
+  </ol>
+
+  <p>
+    ชื่อจอเป็นชื่อของ <strong>เครื่อง</strong> ไม่ใช่ของโหมด — เครื่องเดียวที่ขับผนัง 48:9
+    ยังนับเป็นจอเดียวในสายตารีเลย์ ส่วนเลข 1/2/3 ใน 16:9 เป็นเรื่องของโหมด
+    สลับได้ตลอดโดยชื่อไม่เปลี่ยน
+  </p>
+</section>
+
+<section>
+  <h2><span class="n">05</span>ทางที่ไฟล์เดินทางถึงจอ</h2>
+  <p class="sub">อิมเมจเดียวจบ ไม่ต้องต่อเน็ตออกไปไหนตอนรัน</p>
+
+  <p>
+    วิดีโอ ภาพ ฟอนต์ โลโก้ ทั้งหมดถูกฝังลงอิมเมจตอน build
+    คอนเทนเนอร์ที่รันขึ้นมาจึงไม่ต้องพึ่งเน็ตหรือเครื่องใครเลย
+    ตอบเฉพาะพาธใต้ <code>/exhibition/</code> นอกนั้น 404 ทั้งหมด
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>ชั้น</th><th>ทำอะไร</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>เบราว์เซอร์บนจอ</strong></td>
+          <td>สร้างสไลด์ 64 หน้าใน JS · คำนวณตำแหน่งจากนาฬิกา · เปิดสาย SSE รอคำสั่ง</td>
+        </tr>
+        <tr>
+          <td><strong>nginx ของ ainora</strong></td>
+          <td>รับ <code>ainora.psu.ac.th/exhibition/</code> แล้วส่งต่อไปพอร์ต 10096</td>
+        </tr>
+        <tr>
+          <td><strong>nginx ในคอนเทนเนอร์</strong></td>
+          <td>เสิร์ฟไฟล์ · บังคับ no-cache ทั้งไซต์ (จอ Maxhub Pivot แคชดื้อ) · proxy <code>/api/</code> ไปรีเลย์ที่ <code>127.0.0.1</code></td>
+        </tr>
+        <tr>
+          <td><strong>รีเลย์ (คอนเทนเนอร์เดียวกัน)</strong></td>
+          <td>node ที่ถูกสั่งให้ขึ้นพร้อม nginx · ตายแล้วลุกเองทุก 2 วินาที · ไม่ขึ้นก็ไม่กระทบสไลด์</td>
+        </tr>
+        <tr>
+          <td><strong>Jenkins</strong></td>
+          <td>lint → เปิดจริงด้วย Playwright ตรวจ 4 โหมด/64 หน้า และคำสั่งอีก 31 ข้อ → build → <code>nginx -t</code> → push → deploy → health check</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">06</span>พังตรงไหนแล้วเห็นเป็นอะไร</h2>
+  <p class="sub">อาการที่ต่างกันชี้ไปคนละจุดเสมอ</p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>เห็นแบบนี้</th><th>อยู่ตรงไหน</th><th>สไลด์ยังเล่นไหม</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>แถบจอขึ้น <code>(ไม่ต่อรีเลย์)</code></td>
+          <td>จอไปไม่ถึงรีเลย์ — คนละ origin หรือรีเลย์ไม่ขึ้น</td>
+          <td>เล่นปกติ</td>
+        </tr>
+        <tr>
+          <td>มือถือขึ้น <code>ต่อรีเลย์ไม่ได้</code></td>
+          <td>รีเลย์ล่ม หรือ nginx ยังไม่ได้ต่อ <code>/exhibition/api/</code></td>
+          <td>เล่นปกติ</td>
+        </tr>
+        <tr>
+          <td>มือถือขึ้น <code>ไม่มีจอชื่อนี้ในรีเลย์</code></td>
+          <td>ยังไม่ได้เปิดสไลด์ หรือพิมพ์ชื่อจอไม่ตรง</td>
+          <td>เล่นปกติ</td>
+        </tr>
+        <tr>
+          <td>มือถือขึ้น <code>ออฟไลน์ · เห็นล่าสุด …</code></td>
+          <td>จอถูกปิด เน็ตหลุด หรือเบราว์เซอร์ค้าง</td>
+          <td>ต้องไปดูที่เครื่อง</td>
+        </tr>
+        <tr>
+          <td>แก้สไลด์แล้วจอยังเห็นของเก่า</td>
+          <td>จอถือ HTML เดิมในหน่วยความจำ</td>
+          <td>กด <strong>โหลดใหม่</strong> จากมือถือ</td>
+        </tr>
+        <tr>
+          <td>จอเดินไม่ตรงกัน</td>
+          <td>มีคนกดเลื่อนหน้าที่จอนั้น</td>
+          <td>กด <strong>กลับเข้าจังหวะนาฬิกา</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  รายละเอียดระดับโค้ดอยู่ใน <code>README.md</code> ของ repo ·
+  ทดสอบด้วย <code>node tests/check-deck.mjs</code> และ <code>node tests/check-control.mjs</code>
+</footer>
+
+</div>
