@@ -1,5 +1,8 @@
 /* ทดสอบ controller ครบวง — เปิดจอ 2 บาน + หน้า controller จริง
-   แล้วสั่งจากหน้า controller ดูว่าจอขยับตามและรายงานสถานะกลับ */
+   แล้วสั่งจากหน้า controller ดูว่าจอขยับตามและรายงานสถานะกลับ
+
+   โมเดลคือ "หนึ่งเครื่อง = หนึ่งชื่อจอ" — controller คุมทีละจอ
+   ต้องกรอก (หรือกดเลือก) ชื่อจอก่อน ปุ่มสั่งงานถึงจะโผล่ */
 import { chromium } from 'playwright';
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -42,9 +45,18 @@ const mk = async q => { const pg = await b.newPage({ viewport:{width:900,height:
   pg.on('pageerror', e => fail.push('js error: ' + e.message));
   await pg.goto(base + '/index.html' + q); await pg.waitForTimeout(1500); return pg; };
 
-const s1 = await mk('?screen=left&panel=1&sync=0');
-const s2 = await mk('?screen=right&panel=3&sync=0');
-const ctl = await b.newPage({ viewport:{width:420,height:800} });
+// ---- ชื่อจอมาจาก ?screen= อย่างเดียว ไม่ผูกกับโหมด ----
+// ใส่ ?ctrl=0 ไม่ให้สองบานนี้ไปรายงานตัวกับรีเลย์ ไม่งั้นจะค้างเป็นจอชื่อ main
+// ในรายการ แล้วไปทำให้ข้อที่นับจำนวนจอด้านล่างเพี้ยน
+const dflt = await mk('?sync=0&ctrl=0');
+ok(await dflt.evaluate(() => window.NORA.id) === 'main', 'ไม่ใส่ ?screen= ได้ชื่อ main');
+const ultra = await mk('?ultra=1&sync=0&ctrl=0');
+ok(await ultra.evaluate(() => window.NORA.id) === 'main', '48:9 ก็ยังชื่อ main — ชื่อไม่ผูกกับโหมด');
+await dflt.close(); await ultra.close();
+
+const s1 = await mk('?screen=hall-a&panel=1&sync=0');
+const s2 = await mk('?screen=hall-b&panel=3&sync=0');
+const ctl = await b.newPage({ viewport:{width:420,height:900} });
 ctl.on('pageerror', e => fail.push('ctl js error: ' + e.message));
 await ctl.goto(base + '/control.html');
 await ctl.fill('#tok', 't0ken');
@@ -53,40 +65,106 @@ await ctl.waitForTimeout(1800);
 const conn = await ctl.textContent('#conn');
 ok(/จอออนไลน์ 2/.test(conn), 'controller เห็นจอครบ 2 จอ — "' + conn.trim() + '"');
 
+// ---- ยังไม่เลือกจอ ปุ่มสั่งงานต้องยังไม่โผล่ ----
+ok(!(await ctl.isVisible('#ctl')), 'ยังไม่เลือกจอ — ปุ่มสั่งงานยังไม่โผล่');
+ok(await ctl.isVisible('#pick'),  'ยังไม่เลือกจอ — ขึ้นช่องกรอกชื่อจอ');
+
 const slideOf = pg => pg.evaluate(() => window.NORA.state.slide);
 const before1 = await slideOf(s1), before2 = await slideOf(s2);
 
-// สั่งทุกจอ: ถัดไป
+// ---- กรอกชื่อจอเข้าควบคุม ----
+await ctl.fill('#sid', 'hall-a');
+await ctl.click('#enter');
+await ctl.waitForTimeout(400);
+ok(await ctl.isVisible('#ctl'), 'กรอกชื่อจอแล้ว — ปุ่มสั่งงานโผล่');
+ok((await ctl.textContent('#nowId')).trim() === 'hall-a', 'การ์ดบนบอกว่ากำลังคุมจอ hall-a');
+
 await ctl.click('button[data-cmd="next"]'); await ctl.waitForTimeout(900);
-ok(await slideOf(s1) === before1 + 1, 'สั่ง next ทุกจอ — จอ left ขยับ');
-ok(await slideOf(s2) === before2 + 1, 'สั่ง next ทุกจอ — จอ right ขยับ');
+ok(await slideOf(s1) === before1 + 1, 'สั่ง next — hall-a ขยับ');
+ok(await slideOf(s2) === before2,     'สั่ง next — hall-b ไม่ขยับ (คุมทีละจอ)');
 
-// เลือกเป้าหมายเฉพาะจอ left แล้วสั่ง goto 5
-await ctl.click('#tgt button[data-t="left"]'); await ctl.waitForTimeout(200);
 await ctl.fill('#n', '5'); await ctl.click('#go'); await ctl.waitForTimeout(900);
-ok(await slideOf(s1) === 5, 'สั่งเฉพาะจอ left — left ไปหน้า 5');
-ok(await slideOf(s2) === before2 + 1, 'สั่งเฉพาะจอ left — right ไม่ขยับ');
+ok(await slideOf(s1) === 5, 'สั่ง goto 5 — hall-a ไปหน้า 5');
 
-// หยุดเล่นเฉพาะ left
+// ---- กดเลือกจากรายการจอเพื่อสลับไปคุมอีกจอ ----
+await ctl.click('#list button[data-pick="hall-b"]'); await ctl.waitForTimeout(400);
+ok((await ctl.textContent('#nowId')).trim() === 'hall-b', 'กดจากรายการจอแล้วสลับมาคุม hall-b');
 await ctl.click('button[data-cmd="toggle"]'); await ctl.waitForTimeout(700);
-ok(await s1.evaluate(() => window.NORA.state.playing) === false, 'สั่ง toggle — left หยุด');
-ok(await s2.evaluate(() => window.NORA.state.playing) === true,  'สั่ง toggle — right ยังเล่น');
+ok(await s2.evaluate(() => window.NORA.state.playing) === false, 'สั่ง toggle — hall-b หยุด');
+ok(await s1.evaluate(() => window.NORA.state.playing) === true,  'สั่ง toggle — hall-a ยังเล่น');
 
-// สถานะกลับมาถึง controller
+// ---- สถานะกลับมาถึง controller ----
 await ctl.waitForTimeout(1200);
 const list = await ctl.textContent('#list');
-ok(/left/.test(list) && /right/.test(list), 'controller เห็นสถานะทั้งสองจอ');
+ok(/hall-a/.test(list) && /hall-b/.test(list), 'controller เห็นสถานะทั้งสองจอ');
 ok(/หน้า 5/.test(list), 'controller เห็นเลขหน้าที่อัปเดตแล้ว');
 
-// โทเคนผิดต้องถูกปฏิเสธ
+// ---- เปลี่ยนจอ กลับไปหน้ากรอกชื่อ ----
+await ctl.click('#leave'); await ctl.waitForTimeout(300);
+ok(await ctl.isVisible('#pick') && !(await ctl.isVisible('#ctl')), 'กดเปลี่ยนจอ — กลับไปหน้ากรอกชื่อ');
+
+// ---- เปิดหน้า controller พร้อม ?screen= แล้วเข้าคุมได้เลย (ทำ QR ติดข้างเครื่อง) ----
+const ctl2 = await b.newPage({ viewport:{width:420,height:900} });
+ctl2.on('pageerror', e => fail.push('ctl2 js error: ' + e.message));
+await ctl2.goto(base + '/control.html?screen=hall-b');
+await ctl2.waitForTimeout(1200);
+ok((await ctl2.textContent('#nowId')).trim() === 'hall-b'
+   && await ctl2.isVisible('#ctl'), 'เปิดด้วย ?screen=hall-b เข้าคุมให้เลย');
+
+// ---- สั่งได้ทุกอย่าง: โหมด wall · เส้นแบ่งจอ · ปุ่มไฮไลต์ตามสถานะจริง ----
+await ctl2.fill('#tok', 't0ken');
+await ctl2.click('[data-cmd="mode"][data-arg="wall"]'); await ctl2.waitForTimeout(800);
+ok(await s2.evaluate(() => document.documentElement.classList.contains('wall')),
+   'สั่งโหมด 48:9 ยาว (wall) จากมือถือได้ — เดิมมีแต่ ?wall=1');
+await ctl2.click('[data-cmd="seam"]'); await ctl2.waitForTimeout(800);
+ok(await s2.evaluate(() => document.documentElement.classList.contains('seam')),
+   'สั่งเปิดเส้นแบ่งจอได้ — เดิมมีแต่ ?seam=1');
+await ctl2.waitForTimeout(1400);
+ok(await ctl2.evaluate(() => document.querySelector('[data-cmd="seam"]').classList.contains('on')),
+   'ปุ่มไฮไลต์ตามสถานะที่จอรายงานกลับมา');
+
+// ---- เปลี่ยนชื่อจอจากมือถือ ----
+await ctl2.fill('#rn', 'hall-z'); await ctl2.click('#ren');
+await ctl2.waitForTimeout(1800);
+ok(await s2.evaluate(() => window.NORA.id) === 'hall-z', 'เปลี่ยนชื่อจอจากมือถือ — จอรับชื่อใหม่');
+ok((await ctl2.textContent('#nowId')).trim() === 'hall-z', 'หน้า controller ย้ายเป้าไปชื่อใหม่ให้เอง');
+const beforeZ = await slideOf(s2);
+await ctl2.click('button[data-cmd="next"]'); await ctl2.waitForTimeout(1000);
+ok(await slideOf(s2) === beforeZ + 1, 'ชื่อใหม่แล้วยังสั่งงานได้ (ต่อสาย SSE ใหม่สำเร็จ)');
+
+// ---- จำค่าไว้ในเครื่อง เปิดใหม่ไม่ต้องมี query string ----
+// ใช้ context แยกเพื่อให้ localStorage สะอาด ไม่ปนกับจอด้านบน
+const ctx = await b.newContext();
+const mkc = async q => { const pg = await ctx.newPage();
+  pg.on('pageerror', e => fail.push('ctx js error: ' + e.message));
+  await pg.goto(base + '/index.html' + q); await pg.waitForTimeout(1200); return pg; };
+
+const p1 = await mkc('?screen=remembered&ctrl=0&sync=0');
+await p1.evaluate(() => window.NORA.apply({ cmd:'mode', arg:'w' }));
+await p1.waitForTimeout(400); await p1.close();
+
+const p2 = await mkc('?ctrl=0&sync=0');
+ok(await p2.evaluate(() => window.NORA.id) === 'remembered',
+   'เปิดใหม่แบบไม่มี query string — จำชื่อจอไว้');
+ok(await p2.evaluate(() => document.documentElement.classList.contains('ultra')),
+   'เปิดใหม่แบบไม่มี query string — จำโหมด 48:9 ไว้');
+await p2.close();
+
+const p3 = await mkc('?screen=forced&panel=1&ctrl=0&sync=0');
+ok(await p3.evaluate(() => window.NORA.id) === 'forced', 'query string ยังชนะค่าที่จำไว้');
+ok(await p3.evaluate(() => document.querySelectorAll('.slide .pane.pC').length) > 0,
+   'เปิดด้วย ?panel=1 ก็ยังสร้าง pane จอกลางไว้ครบ — สั่งสลับโหมดทีหลังได้จริง');
+await ctx.close();
+
+// ---- โทเคนผิดต้องถูกปฏิเสธ ----
 const bad = await ctl.evaluate(async api => {
   const r = await fetch(api, { method:'POST', headers:{'content-type':'application/json'},
-    body:JSON.stringify({ cmd:'next', target:'*', token:'ผิด' }) });
+    body:JSON.stringify({ cmd:'next', target:'hall-a', token:'ผิด' }) });
   return r.status;
 }, base + '/api/cmd');
 ok(bad === 401, 'โทเคนผิดถูกปฏิเสธ (ได้ ' + bad + ')');
 
-// ปิดรีเลย์แล้วสไลด์ต้องเล่นต่อได้
+// ---- ปิดรีเลย์แล้วสไลด์ต้องเล่นต่อได้ ----
 relay.kill();
 await new Promise(r => setTimeout(r, 800));
 const s3 = await mk('?screen=solo&sync=0');

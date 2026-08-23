@@ -26,20 +26,39 @@ button:active{transform:translateY(1px)}
 button.pri{background:linear-gradient(180deg,#E3C468,#C29B31);color:#2A2208;border-color:#8E7124}
 button.sm{min-height:40px;font-size:13px;flex:0 0 auto;padding:0 14px}
 button[disabled]{opacity:.4}
+/* ปุ่มที่ "ติดอยู่" ตอนนี้ — ไฮไลต์จากสถานะจริงที่จอรายงานกลับมา
+   ไม่ใช่จากปุ่มที่เพิ่งกด จอจึงเป็นแหล่งความจริงเสมอ */
+button.on{background:var(--gold);color:#2A2208;border-color:#8E7124}
 input{width:100%;min-height:46px;font:inherit;font-size:15px;color:var(--ink);background:#26221A;
   border:1px solid var(--line);border-radius:12px;padding:0 12px}
 label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-.tgt{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:-2px 0 12px}
-.tgt button{flex:0 0 auto;min-height:40px;font-size:13px;padding:0 14px;border-radius:999px}
-.tgt button.on{background:var(--gold);color:#2A2208;border-color:#8E7124}
-.scr{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
-.scr:first-child{border-top:0}
+
+/* ---- การ์ด "กำลังคุมจอนี้" ---- */
+#now{border-color:var(--gold-dk)}
+.nowrow{display:flex;align-items:center;gap:10px}
+.nowrow .id{font-weight:700;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nowrow button{margin-left:auto}
+#nowMeta{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--off);flex:0 0 auto}
 .dot.on{background:var(--ok);box-shadow:0 0 0 4px rgba(95,191,122,.16)}
-.scr .id{font-weight:700;font-size:15px;flex:0 0 auto}
-.scr .meta{font-size:12px;color:var(--muted);margin-left:auto;text-align:right;line-height:1.35}
+
+/* ---- รายการจอ (กดเพื่อเข้าคุมได้) ---- */
+button.scr{display:flex;align-items:center;gap:10px;width:100%;min-height:0;padding:11px 0;
+  background:none;border:0;border-top:1px solid var(--line);border-radius:0;
+  text-align:left;font-weight:400;font-size:13px}
+button.scr:first-child{border-top:0}
+button.scr .id{font-weight:700;font-size:15px;flex:0 0 auto}
+button.scr .meta{color:var(--muted);margin-left:auto;text-align:right;line-height:1.35}
+button.scr.cur .id{color:var(--gold)}
+
 .hint{font-size:12px;color:var(--muted);line-height:1.5}
 .hint code{background:#26221A;border-radius:6px;padding:1px 6px}
+
+/* ยังไม่ได้เลือกจอ = ยังไม่ต้องเห็นปุ่มสั่งงาน
+   กันกดปุ่มแล้วงงว่าทำไมไม่มีอะไรเกิดขึ้น */
+body:not(.picked) #now, body:not(.picked) #ctl{display:none}
+body.picked #pick{display:none}
+
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
   background:#26221A;border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:13px;
   opacity:0;transition:.2s;pointer-events:none}
@@ -50,40 +69,82 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
 <h1>ควบคุมจอนิทรรศการ</h1>
 <div class="sub" id="conn">กำลังต่อ…</div>
 
-<div class="tgt" id="tgt"></div>
-
-<div class="card">
-  <div class="row" style="margin-bottom:8px">
-    <button class="pri" data-cmd="toggle">⏯ เล่น / หยุด</button>
-  </div>
+<div class="card" id="pick">
+  <label for="sid">ชื่อจอที่จะควบคุม</label>
   <div class="row">
-    <button data-cmd="prev">◀ ย้อน</button>
-    <button data-cmd="next">ถัดไป ▶</button>
-    <button data-cmd="restart">↻ หน้าแรก</button>
+    <input id="sid" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="เช่น main">
+    <button class="sm pri" id="enter" style="min-height:46px">เข้าควบคุม</button>
+  </div>
+  <div class="hint" style="margin-top:10px">
+    จอที่เปิดมาเปล่า ๆ ชื่อ <code>main</code> — ชื่อจอแสดงอยู่ท้ายแถบควบคุมของจอนั้น<br>
+    หรือกดเลือกจากรายการจอด้านล่างก็ได้
   </div>
 </div>
 
-<div class="card">
-  <label for="n">กระโดดไปหน้าที่</label>
-  <div class="row">
-    <input id="n" type="number" min="1" step="1" inputmode="numeric" placeholder="เช่น 12">
-    <button class="sm pri" id="go" style="min-height:46px">ไป</button>
+<div class="card" id="now">
+  <div class="nowrow">
+    <span class="dot" id="nowDot"></span>
+    <span class="id" id="nowId"></span>
+    <button class="sm" id="leave">เปลี่ยนจอ</button>
   </div>
+  <div id="nowMeta">—</div>
 </div>
 
-<div class="card">
-  <label>โหมดจอ</label>
-  <div class="row">
-    <button class="sm" data-cmd="mode" data-arg="0">16:9</button>
-    <button class="sm" data-cmd="mode" data-arg="1">จอ 1</button>
-    <button class="sm" data-cmd="mode" data-arg="2">จอ 2</button>
-    <button class="sm" data-cmd="mode" data-arg="3">จอ 3</button>
-    <button class="sm" data-cmd="mode" data-arg="w">48:9</button>
+<div id="ctl">
+  <div class="card">
+    <div class="row" style="margin-bottom:8px">
+      <button class="pri" data-cmd="toggle">⏯ เล่น / หยุด</button>
+    </div>
+    <div class="row">
+      <button data-cmd="prev">◀ ย้อน</button>
+      <button data-cmd="next">ถัดไป ▶</button>
+      <button data-cmd="restart">↻ หน้าแรก</button>
+    </div>
   </div>
-  <div class="row" style="margin-top:8px">
-    <button class="sm" data-cmd="sync">กลับเข้าจังหวะนาฬิกา</button>
-    <button class="sm" data-cmd="full">เต็มจอ</button>
-    <button class="sm" data-cmd="reload">โหลดใหม่</button>
+
+  <div class="card">
+    <label for="n">กระโดดไปหน้าที่</label>
+    <div class="row">
+      <input id="n" type="number" min="1" step="1" inputmode="numeric" placeholder="เช่น 12">
+      <button class="sm pri" id="go" style="min-height:46px">ไป</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>โหมดจอ</label>
+    <div class="row">
+      <button class="sm" data-cmd="mode" data-arg="0">16:9</button>
+      <button class="sm" data-cmd="mode" data-arg="1">จอ 1</button>
+      <button class="sm" data-cmd="mode" data-arg="2">จอ 2</button>
+      <button class="sm" data-cmd="mode" data-arg="3">จอ 3</button>
+      <button class="sm" data-cmd="mode" data-arg="w">48:9 แบ่ง 3</button>
+      <button class="sm" data-cmd="mode" data-arg="wall">48:9 ยาว</button>
+    </div>
+
+    <label style="margin-top:14px">จังหวะเดินหน้า</label>
+    <div class="row">
+      <button class="sm" data-cmd="sync">ตามนาฬิกา</button>
+      <button class="sm" data-cmd="sync" data-arg="0">เดินเอง</button>
+    </div>
+
+    <label style="margin-top:14px">อื่น ๆ</label>
+    <div class="row">
+      <button class="sm" data-cmd="full">เต็มจอ</button>
+      <button class="sm" data-cmd="seam">เส้นแบ่งจอ</button>
+      <button class="sm" data-cmd="motion">อนิเมชัน</button>
+      <button class="sm" data-cmd="reload">โหลดใหม่</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label for="rn">เปลี่ยนชื่อจอนี้</label>
+    <div class="row">
+      <input id="rn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ชื่อใหม่">
+      <button class="sm" id="ren" style="min-height:46px">เปลี่ยนชื่อ</button>
+    </div>
+    <div class="hint" style="margin-top:10px">
+      จอจะจำชื่อใหม่ไว้เอง ไม่ต้องแก้ URL — ครั้งหน้าเปิด <code>/exhibition/</code> เปล่า ๆ ก็ยังชื่อเดิม
+    </div>
   </div>
 </div>
 
@@ -96,22 +157,26 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
   </div>
   <div class="hint" id="guard" style="margin-bottom:10px"></div>
   <div class="hint">
-    เปิดจอด้วย <code>?screen=&lt;ชื่อจอ&gt;</code> เช่น
-    <code>/exhibition/?panel=1&amp;screen=left</code><br>
-    ไม่ใส่ ระบบจะตั้งให้เองเป็น <code>screen-1/2/3</code> ตามโหมดจอ
+    เปิดจอด้วย <code>/exhibition/</code> เปล่า ๆ ได้เลย แล้วตั้งชื่อ · โหมด · ทุกอย่างจากหน้านี้
+    จอจะจำไว้เอง ปิดเปิดใหม่ก็ยังเหมือนเดิม<br>
+    <code>?screen=</code> <code>?ultra=1</code> <code>?panel=2</code> ยังใช้ได้และชนะค่าที่จำไว้
+    เอาไว้บังคับตอนตั้งเครื่อง<br>
+    เปิดหน้านี้พร้อมชื่อจอก็ได้ <code>/exhibition/control?screen=main</code> (ทำเป็น QR ติดข้างเครื่อง)
   </div>
 </div>
 
 <div id="toast"></div>
 <script>
-const API = new URLSearchParams(location.search).get('api')
-  || location.pathname.replace(/\/[^/]*$/, '') + '/api';
+const QS = new URLSearchParams(location.search);
+const API = QS.get('api') || location.pathname.replace(/\/[^/]*$/, '') + '/api';
 const $ = s => document.querySelector(s);
 const tokBox = $('#tok');
 tokBox.value = sessionStorage.getItem('nora-token') || '';
 tokBox.addEventListener('input', () => sessionStorage.setItem('nora-token', tokBox.value));
 
-let target = '*';
+/* คุมทีละจอ — ไม่มีโหมดสั่งพร้อมกันทุกจอแล้ว
+   หนึ่งเครื่อง = หนึ่งชื่อจอ ส่วนจะแสดง 16:9 หรือ 48:9 เป็นเรื่องของ "โหมด" ไม่ใช่ชื่อ */
+let target = '';
 let screens = [];
 
 function toast(t){
@@ -119,14 +184,32 @@ function toast(t){
   clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1600);
 }
 
+function enter(id){
+  id = String(id || '').trim().slice(0, 40);
+  if(!id) return toast('กรอกชื่อจอก่อน');
+  target = id;
+  try{ localStorage.setItem('nora-screen', id); }catch(e){}
+  document.body.classList.add('picked');
+  $('#sid').value = id;
+  drawNow(); drawList();
+  if(!screens.some(s => s.id === id)) toast('ยังไม่เห็นจอชื่อนี้ออนไลน์');
+}
+function leave(){
+  target = '';
+  document.body.classList.remove('picked');
+  drawList();
+  $('#sid').focus();
+}
+
 async function send(cmd, arg){
+  if(!target) return toast('เลือกจอก่อน');
   try{
     const r = await fetch(API + '/cmd', { method:'POST',
       headers:{ 'content-type':'application/json' },
       body:JSON.stringify({ cmd, arg, target, token:tokBox.value }) });
     const j = await r.json();
     if(!r.ok) return toast(j.error || 'สั่งไม่สำเร็จ');
-    toast(j.sent ? `ส่ง ${cmd} ไป ${j.sent} จอ` : 'ไม่มีจอที่ตรงเป้าหมาย');
+    toast(j.sent ? `ส่ง ${cmd} แล้ว` : `จอ ${target} ไม่ได้ต่ออยู่`);
   }catch(e){ toast('ต่อรีเลย์ไม่ได้'); }
 }
 
@@ -134,28 +217,61 @@ document.body.addEventListener('click', e => {
   const b = e.target.closest('button[data-cmd]');
   if(b) send(b.dataset.cmd, b.dataset.arg);
 });
+$('#enter').addEventListener('click', () => enter($('#sid').value));
+$('#sid').addEventListener('keydown', e => { if(e.key === 'Enter') enter($('#sid').value); });
+$('#leave').addEventListener('click', leave);
 $('#go').addEventListener('click', () => {
   const v = parseInt($('#n').value, 10);
   if(v > 0) send('goto', v); else toast('ใส่เลขหน้าก่อน');
 });
+/* เปลี่ยนชื่อจอ — จอจะต่อสายใหม่ด้วยชื่อใหม่ หน้านี้จึงต้องย้ายเป้าหมายตามไปด้วย
+   ไม่งั้นจะค้างอยู่กับชื่อเก่าที่ไม่มีใครฟังแล้ว */
+function doRename(){
+  const v = $('#rn').value.trim().slice(0, 40);
+  if(!v) return toast('ใส่ชื่อใหม่ก่อน');
+  if(v === target) return toast('ชื่อเดิมอยู่แล้ว');
+  send('name', v);
+  $('#rn').value = '';
+  setTimeout(() => enter(v), 900);      // รอให้จอต่อสายใหม่เสร็จก่อนค่อยย้ายเป้า
+}
+$('#ren').addEventListener('click', doRename);
+$('#rn').addEventListener('keydown', e => { if(e.key === 'Enter') doRename(); });
 
-function drawTargets(){
-  const el = $('#tgt');
-  const opts = [['*', 'ทุกจอ'], ...screens.map(s => [s.id, s.id])];
-  if(!screens.some(s => s.id === target)) if(target !== '*') target = '*';
-  el.innerHTML = opts.map(([v, t]) =>
-    `<button data-t="${v}" class="${v === target ? 'on' : ''}">${t}</button>`).join('');
-  el.querySelectorAll('button').forEach(b => b.onclick = () => { target = b.dataset.t; drawTargets(); });
+/* จอรายงานโหมดกลับมาเป็นรหัสสั้น ๆ ('0','1','w') แปลให้ตรงกับป้ายบนปุ่ม
+   ไม่งั้นบนมือถือจะขึ้นว่า "โหมด w" ซึ่งอ่านไม่รู้เรื่องตอนยืนอยู่หน้างาน */
+const MODE = { '0':'16:9', '1':'จอ 1', '2':'จอ 2', '3':'จอ 3', 'w':'48:9', 'wall':'48:9 ยาว' };
+const meta = s => !s ? 'ยังไม่ได้ต่อกับรีเลย์'
+  : `${s.slide ? `หน้า ${s.slide} / ${s.total}` : '—'} · ${s.playing ? 'เล่นอยู่' : 'หยุด'}`
+    + ` · ${MODE[s.mode] || s.mode || '?'}${s.sync ? ' · ตามนาฬิกา' : ' · เดินเอง'}`;
+
+/* ไฮไลต์ปุ่มตามสถานะที่จอรายงานกลับมา ไม่ใช่ตามปุ่มที่เพิ่งกด
+   ถ้ามีคนเดินไปกดที่ตัวจอเอง หน้านี้ก็ยังตรงกับความจริง */
+function markState(s){
+  const set = (sel, on) => { const b = $(sel); if(b) b.classList.toggle('on', !!on); };
+  document.querySelectorAll('[data-cmd="mode"]').forEach(b =>
+    b.classList.toggle('on', !!s && b.dataset.arg === s.mode));
+  set('[data-cmd="sync"]:not([data-arg])', s && s.sync);
+  set('[data-cmd="sync"][data-arg="0"]',   s && s.sync === false);
+  set('[data-cmd="seam"]',   s && s.seam);
+  set('[data-cmd="motion"]', s && s.motion);
+  set('[data-cmd="full"]',   s && s.full);
+}
+function drawNow(){
+  const s = screens.find(x => x.id === target);
+  $('#nowId').textContent = target;
+  $('#nowDot').className = 'dot' + (s && s.online ? ' on' : '');
+  $('#nowMeta').textContent = meta(s);
+  markState(s);
 }
 function drawList(){
   $('#list').innerHTML = screens.length ? screens.map(s => `
-    <div class="scr">
+    <button type="button" class="scr${s.id === target ? ' cur' : ''}" data-pick="${s.id}">
       <span class="dot ${s.online ? 'on' : ''}"></span>
       <span class="id">${s.id}</span>
-      <span class="meta">${s.slide ? `หน้า ${s.slide} / ${s.total}` : '—'}
-        · ${s.playing ? 'เล่นอยู่' : 'หยุด'}<br>
-        โหมด ${s.mode || '?'}${s.sync ? ' · ตามนาฬิกา' : ''}</span>
-    </div>`).join('') : '<div class="hint">ยังไม่มีจอรายงานตัวเข้ามา</div>';
+      <span class="meta">${meta(s)}</span>
+    </button>`).join('') : '<div class="hint">ยังไม่มีจอรายงานตัวเข้ามา</div>';
+  $('#list').querySelectorAll('button[data-pick]')
+    .forEach(b => b.onclick = () => enter(b.dataset.pick));
 }
 
 let es;
@@ -167,7 +283,8 @@ function connect(){
     try{ screens = JSON.parse(ev.data); }catch(e){ screens = []; }
     const on = screens.filter(s => s.online).length;
     $('#conn').textContent = `ต่อรีเลย์แล้ว · จอออนไลน์ ${on} จาก ${screens.length}`;
-    drawTargets(); drawList();
+    if(target) drawNow();
+    drawList();
   });
   es.onerror = () => {
     $('#conn').textContent = 'สายหลุด กำลังต่อใหม่…';
@@ -175,17 +292,21 @@ function connect(){
     setTimeout(connect, 4000);
   };
 }
-/* ถ้ารีเลย์ไม่ได้ตั้งโทเคน ก็ไม่ต้องโชว์ช่องให้กรอก
-   ด่านจริงคือ nginx ที่จำกัด /exhibition/api/cmd ไว้เฉพาะวงภายใน */
+/* ถ้ารีเลย์ไม่ได้ตั้งโทเคน ก็ไม่ต้องโชว์ช่องให้กรอก */
 fetch(API + '/healthz').then(r => r.json()).then(h => {
   $('#tokBox').hidden = !h.auth;
-  $('#guard').innerHTML = h.auth
+  $('#guard').textContent = h.auth
     ? 'รีเลย์ตั้งโทเคนไว้ — ต้องกรอกก่อนสั่งงาน'
-    : 'รีเลย์ไม่ได้ตั้งโทเคน — หน้านี้ถูกจำกัดด้วยวงเครือข่ายที่ nginx แทน '
-      + 'ถ้าเปิดหน้านี้ได้ ก็สั่งจอได้เลย';
+    : 'รีเลย์ไม่ได้ตั้งโทเคน — เปิดหน้านี้ได้ก็สั่งจอได้เลย';
 }).catch(() => { $('#guard').textContent = 'ต่อรีเลย์ไม่ได้'; });
 
-drawTargets(); drawList(); connect();
+/* เข้าจอเดิมให้เลย: ?screen= ในลิงก์ก่อน แล้วค่อยชื่อที่เคยคุมล่าสุด
+   (ทำ QR ต่อ ?screen= ติดข้างเครื่องได้ สแกนแล้วเข้าคุมจอนั้นทันที) */
+let last = ''; try{ last = localStorage.getItem('nora-screen') || ''; }catch(e){}
+const boot = QS.get('screen') || last;
+drawList();
+if(boot) enter(boot); else $('#sid').value = '';
+connect();
 </script>
 </body>
 </html>

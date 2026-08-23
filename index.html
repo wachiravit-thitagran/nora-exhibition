@@ -1730,31 +1730,66 @@ push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
 /* อนิเมชัน: เติมคลาส motion ที่ <html> (ปิดด้วย ?nomotion=1 หรือ CONFIG.ANIMATE=false) */
 const QS = new URLSearchParams(location.search);
 
-/* โหมดจอยาว 48:9 — panel=1|2|3 คือแสดงเฉพาะจอซ้าย/กลาง/ขวา (กรณีแยกเครื่องต่อจอ) */
-const PANEL = Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0));
-let WALL_ON  = QS.get('wall') === '1';                       // จอเดียวยาวเท่า 3 จอ
-let ULTRA_ON = CONFIG.ULTRA || QS.get('ultra') === '1' || PANEL > 0 || WALL_ON;
-let PANEL_ON = PANEL;      // จอที่กำลังแสดง (0 = ไม่ครอป) เปลี่ยนได้ด้วยปุ่มโหมด
+/* ================================================================
+   ค่าตั้งของ "เครื่องนี้" — จำไว้ในเครื่อง ไม่ผูกกับ query string
+   ================================================================
+   เป้าหมายคือเปิด /exhibition/ เปล่า ๆ บนทุกเครื่อง แล้วตั้งทุกอย่าง
+   จากมือถือ พอไฟดับหรือรีเฟรช เครื่องกลับมาเป็นเหมือนเดิมเอง
+
+   ลำดับความสำคัญ: query string > ค่าที่จำไว้ > ค่าตั้งต้นใน CONFIG
+   query string ยังใช้ได้และชนะเสมอ เอาไว้บังคับตอนตั้งเครื่องหรือทำ QR
+   (localStorage ผูกกับ origin ของเบราว์เซอร์ ไม่ข้ามเครื่อง จึงเป็น
+    "ค่าของเครื่องนี้" จริง ๆ · เปิดโหมดส่วนตัวแล้วเขียนไม่ได้ก็ไม่พัง) */
+const PREF = {
+  get(k, d){ try{ const v = localStorage.getItem('nora:' + k); return v === null ? d : v; }
+             catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('nora:' + k, String(v)); }catch(e){} },
+};
+
+/* โหมดจอ: '0' 16:9 เดี่ยว · '1'|'2'|'3' เฉพาะจอซ้าย/กลาง/ขวา ·
+   'w' 48:9 แบ่ง 3 · 'wall' 48:9 ผืนเดียวยาว */
+const MODE_IN_URL = QS.has('panel') || QS.get('ultra') === '1' || QS.get('wall') === '1';
+const BOOT_MODE = MODE_IN_URL
+  ? (Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0))
+      ? String(Math.min(3, parseInt(QS.get('panel'), 10)))
+      : QS.get('wall') === '1' ? 'wall' : 'w')
+  : PREF.get('mode', CONFIG.ULTRA ? 'w' : '0');
+
+let PANEL_ON = /^[123]$/.test(BOOT_MODE) ? +BOOT_MODE : 0;  // จอที่กำลังครอปแสดง (0 = ไม่ครอป)
+let WALL_ON  = BOOT_MODE === 'wall';                        // จอเดียวยาวเท่า 3 จอ
+let ULTRA_ON = BOOT_MODE !== '0';
 if(WALL_ON) document.documentElement.classList.add('wall');
 if(ULTRA_ON) document.documentElement.classList.add('ultra');
-if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
+
+/* เส้นแบ่งจอ (ไว้เล็งตอนจัดวางจอจริง) */
+let SEAM_ON = QS.has('seam') ? QS.get('seam') === '1' : PREF.get('seam') === '1';
+if(SEAM_ON) document.documentElement.classList.add('seam');
 
 /* โหมดซิงก์ตามนาฬิกา — จอแยกเครื่องกันแต่คำนวณเวลาเดียวกัน จึงแสดงหน้าเดียวกันพร้อมกัน */
+const PREF_SYNC = PREF.get('sync', '');
 let SYNC = QS.get('sync') === '1' ? true
            : QS.get('sync') === '0' ? false
-           : (CONFIG.SYNC === 'auto' ? PANEL > 0 : !!CONFIG.SYNC);
+           : PREF_SYNC === '1' ? true
+           : PREF_SYNC === '0' ? false
+           : (CONFIG.SYNC === 'auto' ? PANEL_ON > 0 : !!CONFIG.SYNC);
 
-if(CONFIG.ANIMATE && QS.get('nomotion') !== '1' &&
-   !matchMedia('(prefers-reduced-motion: reduce)').matches){
-  document.documentElement.classList.add('motion');
-}
+let MOTION_ON = CONFIG.ANIMATE
+  && (QS.has('nomotion') ? QS.get('nomotion') !== '1' : PREF.get('motion', '1') === '1')
+  && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(MOTION_ON) document.documentElement.classList.add('motion');
 /* ภาพพื้นหลังลายไทยจากหน้าเว็บ ainora.psu.ac.th (ถ้าโหลดไม่ได้ก็เหลือแค่ gradient) */
 if(CONFIG.HERO_BG){
   document.head.insertAdjacentHTML('beforeend',
     '<style>.bgimg{background-image:url("' + enc(CONFIG.HERO_BG) + '")}</style>');
 }
 
-const want2 = (a,b) => !PANEL || PANEL === a || PANEL === b;
+/* เดิมกรอง pane ตาม ?panel= เพื่อไม่สร้างของที่จอนั้นมองไม่เห็น
+   แต่พอโหมดสลับได้สดจากมือถือ การกรองตอนโหลดกลายเป็นกับดัก — เครื่องที่เปิดมา
+   ด้วย ?panel=1 พอสั่งให้ไปจอ 2 จะได้จอว่าง เพราะ pane นั้นไม่เคยถูกสร้าง
+   ตอนนี้สร้างทุก pane เสมอ (โหมดปกติที่ไม่ใส่ ?panel= ก็ทำแบบนี้อยู่แล้ว
+   จึงไม่มีอะไรเปลี่ยนสำหรับเครื่องส่วนใหญ่) วิดีโอใน pane ที่ซ่อนถูก show() หยุดไว้ */
+const want  = () => true;
+const want2 = () => true;
 
 const stage = document.getElementById('stage');
 SLIDES.forEach((s,i)=>{
@@ -1764,8 +1799,6 @@ SLIDES.forEach((s,i)=>{
   const hasBg = s.html.includes('<div class="bgimg"></div>');
   let mid = hasBg ? s.html.replace('<div class="bgimg"></div>','') : s.html;
   mid = mid.replace(PROG, '');                     // ย้ายไปไว้ระดับสไลด์
-  // แยกเครื่องต่อจอ: สร้างแค่ pane ของจอนั้น ไม่ต้องถอดรหัสวิดีโอที่มองไม่เห็น
-  const want = n => !PANEL || PANEL === n;
   // สร้าง pane ของทุกโหมดไว้เสมอ ปุ่มสลับโหมดจึงทำงานสดได้
   // (ไฟล์เดียวกันที่ถูกอ้างซ้ำ เบราว์เซอร์โหลดครั้งเดียวจากแคช และวิดีโอใน pane ที่ซ่อนถูกหยุดไว้)
   const U = true;
@@ -1924,8 +1957,15 @@ function show(i, seekMs){
     if(v.preload!=='auto'){ v.preload='auto'; try{v.load();}catch(e){} }
   });
   NORA && NORA.report();
+  paintInfo();
+}
+
+/* ข้อความท้ายแถบควบคุมของสไลด์ — แยกออกมาเพราะต้องวาดใหม่ทันทีเมื่อ
+   เปลี่ยนชื่อจอหรือสลับโหมดจากมือถือ ไม่ใช่รอให้ถึงหน้าถัดไป */
+function paintInfo(){
   const info = document.getElementById('uiInfo');
-  if(info) info.textContent = (cur+1) + ' / ' + SLIDES.length
+  if(!info) return;
+  info.textContent = (cur+1) + ' / ' + SLIDES.length
     + (PANEL_ON ? ' · จอ ' + PANEL_ON
        : WALL_ON ? ' · 48:9 ยาว'
        : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
@@ -1984,8 +2024,8 @@ function markMode(m){
 
 /* โหมดที่ให้เลือกมีสองกลุ่ม
      16:9        m = '0' (เดี่ยว) หรือ '1' '2' '3' (เลือกดูทีละจอของผัง 3 จอ)
-     48:9 แบ่ง 3 m = 'w'
-   ('wall' คือจอยาวไม่มีขอบคั่น ไม่มีปุ่มแล้ว แต่ยังเปิดด้วย ?wall=1 ได้) */
+     48:9        m = 'w' (แบ่ง 3 จอ) หรือ 'wall' (ผืนเดียวยาว ไม่มีขอบคั่น)
+   บนแถบของสไลด์มีปุ่มถึงแค่ 'w' ส่วน 'wall' สั่งจากมือถือหรือ ?wall=1 */
 function setMode(m){
   const root = document.documentElement;
   PANEL_ON = (m === '1' || m === '2' || m === '3') ? +m : 0;
@@ -1993,6 +2033,7 @@ function setMode(m){
   ULTRA_ON = (m !== '0');
   root.classList.toggle('ultra', ULTRA_ON);
   root.classList.toggle('wall', WALL_ON);
+  PREF.set('mode', m);                    // จำไว้ให้เครื่องนี้ รีเฟรชแล้วยังเป็นโหมดเดิม
   markMode(m);
   fit();
   const c = cur; cur = -1; show(c);       // สร้าง/หยุดวิดีโอตาม pane ที่เห็น
@@ -2023,31 +2064,24 @@ addEventListener('keydown', e=>{
 /* ================================================================
    CONTROLLER — สั่งงานจอจากอีกอุปกรณ์
    ================================================================
-   ?screen=<id>  ตั้งชื่อจอนี้ เพื่อให้ controller เรียกถึงได้ทีละจอ
-                 ไม่ใส่ = ตั้งให้เองจากโหมดจอที่เลือก (screen-1/2/3 หรือ single)
+   ?screen=<id>  ตั้งชื่อจอนี้ เพื่อให้ controller เรียกถึงได้ ไม่ใส่ = main
    ?api=<base>   ที่อยู่รีเลย์ ค่าเริ่มต้น <AINORA_BASE>/api
 
    ถ้าไม่มีรีเลย์ให้ต่อ ทุกอย่างทำงานเหมือนเดิมทุกประการ
    สไลด์ไม่ได้พึ่งรีเลย์ในการเดินหน้า — จอยังตรงกันเองด้วยนาฬิกาโลก
    รีเลย์เป็นแค่ทางให้ "แทรกคำสั่ง" เข้ามาเท่านั้น                        */
-/* ชื่อจอ = ชื่อของ "เครื่อง" ไม่ใช่ของโหมดที่กำลังแสดง
-   ตั้งครั้งเดียวตอนโหลด สลับโหมดทีหลังชื่อไม่เปลี่ยน
-   (controller เห็นโหมดปัจจุบันแยกอยู่แล้วในรายการสถานะ)
+/* ชื่อจอ = ชื่อของ "เครื่อง" ไม่ผูกกับโหมดที่กำลังแสดง
+   หนึ่งเครื่อง = หนึ่งชื่อ · 48:9 คือเครื่องเดียวขับทั้งผนัง (จอเดียวในสายตารีเลย์)
+   ส่วน 16:9 ก็กดเลือกเลขจอจาก controller ได้ จึงไม่ต้องมีชื่อแยกซ้าย/กลาง/ขวา
 
-   ค่าเริ่มต้นเมื่อไม่ใส่ ?screen=
-     ?panel=1|2|3  -> screen-1 / screen-2 / screen-3   หนึ่งเครื่องต่อหนึ่งจอ
-     ?ultra=1      -> wall        เครื่องเดียวขับทั้งผนัง 3 จอ (48:9 แบ่ง 3)
-     ?wall=1       -> wall-long   จอ LED ผืนเดียวยาว
-     ไม่ใส่อะไร     -> single      จอเดียว 16:9
-
-   ถ้ามีหลายเครื่องที่ค่าเริ่มต้นชนกัน (เช่นสองเครื่องเปิด 48:9 ทั้งคู่ = wall
-   ทั้งคู่) เครื่องหลังจะเตะเครื่องแรกออกจากรีเลย์ — หน้างานจริงควรตั้ง
-   ?screen= ให้ชัดทุกเครื่องเสมอ                                        */
-const SCREEN_ID = (QS.get('screen') || '').slice(0, 40)
-  || (PANEL ? 'screen-' + PANEL
-      : WALL_ON ? 'wall-long'
-      : (CONFIG.ULTRA || QS.get('ultra') === '1') ? 'wall'
-      : 'single');
+   ที่มาของชื่อ ตามลำดับ: ?screen= > ชื่อที่ตั้งไว้ครั้งก่อน > 'main'
+   ตั้งจากมือถือได้ด้วยคำสั่ง name แล้วเครื่องจำไว้เอง ไม่ต้องแก้ URL
+   ชื่อซ้ำ = จอเดียวกันในสายตารีเลย์ เครื่องหลังจะเตะเครื่องแรกออก
+   ชื่อจอแสดงท้ายแถบควบคุมของสไลด์ ตอนตั้งหน้างานจะได้รู้ว่าเครื่องไหนชื่ออะไร */
+let SCREEN_ID = (QS.get('screen') || '').trim().slice(0, 40)
+  || PREF.get('screen', '').trim().slice(0, 40)
+  || 'main';
+if(QS.get('screen')) PREF.set('screen', SCREEN_ID);
 const API_BASE = (QS.get('api') || (CONFIG.AINORA_BASE + '/api')).replace(/\/$/, '');
 const CTRL_ON  = QS.get('ctrl') !== '0';
 
@@ -2057,6 +2091,7 @@ const NORA = {
     const s = SLIDES[cur];
     return { screen:SCREEN_ID, slide:cur + 1, total:SLIDES.length, playing,
       sync:SYNC, mode:(PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'))),
+      seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
       title:(s && s.wall && s.wall.title) || '' };
   },
   /* คำสั่งเดินหน้า/ถอยหลังต้องหลุดจากโหมดนาฬิกาโลกก่อน
@@ -2072,16 +2107,43 @@ const NORA = {
       case 'prev':    NORA.manual(); show(cur - 1); break;
       case 'goto':    NORA.manual(); show((parseInt(m.arg, 10) || 1) - 1); break;
       case 'restart': NORA.manual(); show(0); break;
-      case 'sync':    SYNC = true; break;
-      case 'mode':    if(['0','1','2','3','w','wall'].includes(String(m.arg)))
-                        setMode(String(m.arg) === 'wall' ? 'wall' : String(m.arg));
+      /* sync ไม่มี arg = กลับเข้าจังหวะนาฬิกา · arg '0' = ปล่อยให้เดินเวลาของตัวเอง */
+      case 'sync':    if(String(m.arg) === '0'){ NORA.manual(); }
+                      else { SYNC = true; }
+                      PREF.set('sync', SYNC ? '1' : '0');
+                      paintInfo();
                       break;
+      case 'mode':    if(['0','1','2','3','w','wall'].includes(String(m.arg)))
+                        setMode(String(m.arg));
+                      break;
+      case 'name':    NORA.rename(m.arg); break;
+      case 'seam':    NORA.flag('seam', m.arg); break;
+      case 'motion':  NORA.flag('motion', m.arg); break;
       case 'full':    document.fullscreenElement ? document.exitFullscreen()
                         : document.documentElement.requestFullscreen().catch(()=>{});
                       break;
       case 'reload':  location.reload(); break;
     }
     NORA.report();
+  },
+  /* สวิตช์เปิด/ปิดที่จำค่าไว้ — ไม่ส่ง arg มา = สลับค่า, ส่ง '1'/'0' = บังคับ */
+  flag(name, arg){
+    const on = arg === undefined || arg === null || arg === ''
+      ? !(name === 'seam' ? SEAM_ON : MOTION_ON)
+      : String(arg) === '1';
+    if(name === 'seam') SEAM_ON = on; else MOTION_ON = on;
+    document.documentElement.classList.toggle(name, on);
+    PREF.set(name, on ? '1' : '0');
+  },
+  /* เปลี่ยนชื่อจอสด ๆ จากมือถือ — ต้องต่อสาย SSE ใหม่ด้วยชื่อใหม่
+     เพราะรีเลย์ผูกสายกับชื่อที่ส่งไปตอนเปิด ชื่อเดิมจะค้างอยู่ในรายการจน stale */
+  rename(v){
+    const id = String(v || '').trim().slice(0, 40);
+    if(!id || id === SCREEN_ID) return;
+    SCREEN_ID = NORA.id = id;
+    PREF.set('screen', id);
+    paintInfo();
+    if(NORA._open) NORA._open();
   },
   report(){
     if(!CTRL_ON) return;
@@ -2093,17 +2155,26 @@ const NORA = {
   },
   connect(){
     if(!CTRL_ON || typeof EventSource === 'undefined') return;
-    let es;
     const open = () => {
+      // ปิดสายเดิมก่อนเสมอ — rename เรียก open() ซ้ำระหว่างที่สายเก่ายังเปิดอยู่
+      if(NORA._es){ try{ NORA._es.close(); }catch(e){} }
+      let es;
       try{ es = new EventSource(API_BASE + '/events?role=screen&screen='
         + encodeURIComponent(SCREEN_ID)); }catch(e){ return; }
+      NORA._es = es;
       es.addEventListener('cmd', ev => {
         try{ NORA.apply(JSON.parse(ev.data)); }catch(e){}
       });
       es.addEventListener('open', () => NORA.report());
       // รีเลย์ล่มหรือยังไม่ได้ deploy ก็ไม่เป็นไร ลองใหม่เรื่อย ๆ แบบเงียบ ๆ
-      es.onerror = () => { try{ es.close(); }catch(e){} setTimeout(open, 5000); };
+      // (สายที่ถูก rename ปิดไปแล้วต้องไม่มาตั้งเวลาต่อใหม่แข่งกับสายปัจจุบัน)
+      es.onerror = () => {
+        if(NORA._es !== es) return;
+        try{ es.close(); }catch(e){}
+        setTimeout(open, 5000);
+      };
     };
+    NORA._open = open;
     open();
     setInterval(() => NORA.report(), 10000);
   },

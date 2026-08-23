@@ -128,8 +128,12 @@ const srv = http.createServer(async (req, res) => {
     if(!id) return json(res, 400, { error: 'ต้องระบุ screen' });
     const cur = screens.get(id) || { id, res: null };
     cur.seen = now();
+    // คัดเฉพาะฟิลด์ที่รู้จัก ไม่รับก้อนที่จอส่งมาทั้งดุ้น
+    // เพิ่มสถานะใหม่ที่จอรายงาน ต้องมาเพิ่มบรรทัดนี้ด้วยเสมอ
+    // ไม่งั้นหน้า controller จะไม่เห็นค่านั้นเลย (ปุ่มไฮไลต์ไม่ติด)
     cur.state = { slide: body.slide, total: body.total, playing: !!body.playing,
-                  mode: body.mode, title: body.title, sync: !!body.sync };
+                  mode: body.mode, title: body.title, sync: !!body.sync,
+                  seam: !!body.seam, motion: !!body.motion, full: !!body.full };
     screens.set(id, cur);
     pushScreens();
     return json(res, 200, { ok: true });

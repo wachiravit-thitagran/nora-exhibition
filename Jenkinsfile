@@ -169,6 +169,23 @@ pipeline {
                     docker logs --tail 100 "$NAME" >&2 || true
                     exit 1
                 '''
+
+                // ตรวจรีเลย์คำสั่งด้วย — ยิงผ่าน nginx ของสไลด์ เท่ากับตรวจทั้งเส้นทาง
+                // ที่หน้า controller ใช้จริง (nginx -> resolver -> คอนเทนเนอร์รีเลย์)
+                //
+                // ไม่ทำให้บิลด์ล้มถ้าไม่ผ่าน เพราะรีเลย์เป็นของเสริม สไลด์เล่นได้อยู่แล้ว
+                // แต่ต้องเห็นใน log ไม่งั้นจะไปรู้เอาตอนหยิบมือถือขึ้นมาสั่งหน้างาน
+                sh '''
+                    if docker exec nora-exhibition-web \
+                        wget -qO- http://127.0.0.1/exhibition/api/healthz 2>/dev/null; then
+                        echo ""
+                        echo "รีเลย์คำสั่งพร้อม — หน้า controller ใช้ได้"
+                    else
+                        echo "เตือน: รีเลย์คำสั่งไม่ตอบ /exhibition/api/healthz" >&2
+                        echo "       สไลด์ยังเล่นปกติ แต่สั่งจากมือถือไม่ได้" >&2
+                        docker logs --tail 50 nora-exhibition-control >&2 || true
+                    fi
+                '''
             }
             post {
                 success {
