@@ -51,6 +51,14 @@ button.scr .id{font-weight:700;font-size:15px;flex:0 0 auto}
 button.scr .meta{color:var(--muted);margin-left:auto;text-align:right;line-height:1.35}
 button.scr.cur .id{color:var(--gold)}
 
+/* .row เป็น flex ซึ่งชนะ [hidden] จึงต้องมีคลาสซ่อนของตัวเอง */
+.hide{display:none !important}
+
+/* ภาพตัวอย่าง — สัดส่วนกล่องเปลี่ยนตามโหมดของจอปลายทาง (16:9 หรือ 48:9) */
+#pvbox{margin-top:10px;position:relative;width:100%;aspect-ratio:16/9;
+  background:#0A0C10;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#pv{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+
 .hint{font-size:12px;color:var(--muted);line-height:1.5}
 .hint code{background:#26221A;border-radius:6px;padding:1px 6px}
 
@@ -91,6 +99,18 @@ body.picked #pick{display:none}
 </div>
 
 <div id="ctl">
+  <div class="card">
+    <div class="row" style="align-items:center;gap:10px">
+      <label style="margin:0;flex:1 1 auto">ภาพตัวอย่างของจอนี้</label>
+      <button class="sm" id="pvtoggle">แสดง</button>
+    </div>
+    <div id="pvbox" class="hide"><iframe id="pv" title="ภาพตัวอย่างของจอที่กำลังคุม"></iframe></div>
+    <div class="hint" style="margin-top:10px">
+      มือถือวาดสไลด์เองตามหน้าและโหมดที่จอรายงานกลับมา ไม่ได้ถ่ายภาพจากจอจริง
+      ปิดไว้เพื่อประหยัดเน็ตหน้างาน
+    </div>
+  </div>
+
   <div class="card" id="deckCard">
     <label>ชุดสไลด์</label>
     <div class="row">
@@ -126,20 +146,29 @@ body.picked #pick{display:none}
   </div>
 
   <div class="card">
+    <!-- เรียงให้ตรงกับแถบควบคุมบนตัวสไลด์: สองกลุ่มใหญ่ก่อน
+         แล้วกลุ่มเลือกจอโผล่เฉพาะตอนอยู่ในตระกูล 16:9 -->
     <label>โหมดจอ</label>
     <div class="row">
-      <button class="sm" data-cmd="mode" data-arg="0">16:9</button>
+      <button class="sm" data-cmd="mode" data-arg="0" data-fam="s">16:9</button>
+      <button class="sm" data-cmd="mode" data-arg="w" data-fam="w">48:9 แบ่ง 3</button>
+    </div>
+    <div class="row hide" id="panels" style="margin-top:8px">
+      <button class="sm" data-cmd="mode" data-arg="0">เดี่ยว</button>
       <button class="sm" data-cmd="mode" data-arg="1">จอ 1</button>
       <button class="sm" data-cmd="mode" data-arg="2">จอ 2</button>
       <button class="sm" data-cmd="mode" data-arg="3">จอ 3</button>
-      <button class="sm" data-cmd="mode" data-arg="w">48:9 แบ่ง 3</button>
-      <button class="sm" data-cmd="mode" data-arg="wall">48:9 ยาว</button>
     </div>
 
-    <label style="margin-top:14px">จังหวะเดินหน้า</label>
+    <label style="margin-top:14px">การเดินเวลา</label>
     <div class="row">
-      <button class="sm" data-cmd="sync">ตามนาฬิกา</button>
-      <button class="sm" data-cmd="sync" data-arg="0">เดินเอง</button>
+      <button class="sm" data-cmd="sync">ตรงกับเครื่องอื่น</button>
+      <button class="sm" data-cmd="sync" data-arg="0">เดินอิสระ</button>
+    </div>
+    <div class="hint" style="margin-top:8px">
+      ทุกจอคิดเวลาจากนาฬิกาชุดเดียวกัน จึงเล่นตรงกันเองโดยไม่ต้องต่อสายถึงกัน
+      พอสั่งเลื่อนหน้า จอนั้นจะหลุดออกมาเดินเวลาของตัวเอง —
+      กด <b>ตรงกับเครื่องอื่น</b> เพื่อดึงกลับเข้าแถว
     </div>
 
     <label style="margin-top:14px">อื่น ๆ</label>
@@ -279,8 +308,16 @@ const meta = s => !s ? 'ไม่มีจอชื่อนี้ในรี�
    ถ้ามีคนเดินไปกดที่ตัวจอเอง หน้านี้ก็ยังตรงกับความจริง */
 function markState(s){
   const set = (sel, on) => { const b = $(sel); if(b) b.classList.toggle('on', !!on); };
-  document.querySelectorAll('[data-cmd="mode"]').forEach(b =>
-    b.classList.toggle('on', !!s && b.dataset.arg === s.mode));
+  // ตระกูลโหมดไฮไลต์ด้วย data-fam ส่วนเลขจอไฮไลต์ด้วย data-arg
+  // (ปุ่ม 16:9 กับ เดี่ยว ใช้ arg เดียวกันคือ '0' ถ้าดู arg อย่างเดียวจะติดพร้อมกันสองปุ่ม)
+  const m = s ? s.mode : null;
+  const single = m === '0' || m === '1' || m === '2' || m === '3';
+  document.querySelectorAll('[data-fam]').forEach(b =>
+    b.classList.toggle('on', !!m && b.dataset.fam === (single ? 's' : 'w')));
+  const pn = $('#panels');
+  if(pn) pn.classList.toggle('hide', !single);
+  document.querySelectorAll('#panels [data-cmd="mode"]').forEach(b =>
+    b.classList.toggle('on', !!m && b.dataset.arg === m));
   document.querySelectorAll('[data-cmd="deck"]').forEach(b =>
     b.classList.toggle('on', !!s && b.dataset.arg === (s.deck || 'main')));
   // ปุ่มเปิดม่านมีความหมายเฉพาะตอนม่านขึ้นอยู่ — เวลาอื่นกดไปก็ไม่เกิดอะไร
@@ -292,12 +329,55 @@ function markState(s){
   set('[data-cmd="motion"]', s && s.motion);
   set('[data-cmd="full"]',   s && s.full);
 }
+/* ---------- ภาพตัวอย่าง ----------------------------------------------
+   ไม่ได้ถ่ายภาพจากจอจริง (ทำไม่ได้ถ้าไม่ยัด canvas capture ลงไปทั้งระบบ)
+   แต่เปิดสไลด์ชุดเดียวกันใน iframe แล้วสั่งให้ไปหน้าและโหมดตามที่จอรายงานมา
+   สไลด์เป็น deterministic — หน้าเดียวกันโหมดเดียวกันจึงได้ภาพเดียวกันเสมอ
+
+   iframe อยู่ origin เดียวกัน จึงเรียก NORA ข้างในได้ตรง ๆ ไม่ต้องทำ postMessage
+   เปิดด้วย ?preview=1 เพื่อไม่ให้มันไปเขียนทับค่าที่จำไว้ และ ?ctrl=0
+   เพื่อไม่ให้มันไปรายงานตัวกับรีเลย์จนโผล่เป็นจออีกตัวในรายการ            */
+const PV_URL = location.pathname.replace(/\/[^/]*$/, '')
+  + '/?preview=1&ctrl=0&kiosk=1&sync=0&nomotion=1';
+let pvOn = false;
+try{ pvOn = localStorage.getItem('nora-preview') === '1'; }catch(e){}
+
+function setPreview(on){
+  pvOn = on;
+  try{ localStorage.setItem('nora-preview', on ? '1' : '0'); }catch(e){}
+  $('#pvbox').classList.toggle('hide', !on);
+  $('#pvtoggle').textContent = on ? 'ซ่อน' : 'แสดง';
+  const f = $('#pv');
+  if(on){ if(!f.getAttribute('src')) f.src = PV_URL; }
+  else { f.removeAttribute('src'); }        // ปิดแล้วต้องหยุดโหลดสื่อจริง ๆ
+}
+function pvSync(s){
+  if(!pvOn || !s) return;
+  $('#pvbox').style.aspectRatio = (s.mode === 'w' || s.mode === 'wall') ? '48 / 9' : '16 / 9';
+  try{
+    const w = $('#pv').contentWindow;
+    if(!w || !w.NORA || !w.NORA.state) return;    // ยังโหลดไม่เสร็จ เดี๋ยวรอบหน้าค่อยตาม
+    const st = w.NORA.state;
+    const deck = s.deck || 'main';
+    if(st.deck !== deck)              w.NORA.apply({ cmd:'deck', arg:deck });
+    if(s.mode && st.mode !== s.mode)  w.NORA.apply({ cmd:'mode', arg:s.mode });
+    if(s.slide && st.slide !== s.slide) w.NORA.apply({ cmd:'goto', arg:s.slide });
+  }catch(e){}
+}
+$('#pvtoggle').addEventListener('click', () => {
+  setPreview(!pvOn);
+  if(pvOn) pvSync(screens.find(x => x.id === target));
+});
+$('#pv').addEventListener('load', () =>
+  setTimeout(() => pvSync(screens.find(x => x.id === target)), 400));
+
 function drawNow(){
   const s = screens.find(x => x.id === target);
   $('#nowId').textContent = target;
   $('#nowDot').className = 'dot' + (s && s.online ? ' on' : '');
   $('#nowMeta').textContent = meta(s);
   markState(s);
+  pvSync(s);
 }
 function drawList(){
   $('#list').innerHTML = screens.length ? screens.map(s => `
@@ -340,6 +420,7 @@ fetch(API + '/healthz').then(r => r.json()).then(h => {
    (ทำ QR ต่อ ?screen= ติดข้างเครื่องได้ สแกนแล้วเข้าคุมจอนั้นทันที) */
 let last = ''; try{ last = localStorage.getItem('nora-screen') || ''; }catch(e){}
 const boot = QS.get('screen') || last;
+setPreview(pvOn);
 drawList();
 if(boot) enter(boot); else $('#sid').value = '';
 connect();

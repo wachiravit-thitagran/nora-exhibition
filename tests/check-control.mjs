@@ -114,11 +114,18 @@ await ctl2.waitForTimeout(1200);
 ok((await ctl2.textContent('#nowId')).trim() === 'hall-b'
    && await ctl2.isVisible('#ctl'), 'เปิดด้วย ?screen=hall-b เข้าคุมให้เลย');
 
-// ---- สั่งได้ทุกอย่าง: โหมด wall · เส้นแบ่งจอ · ปุ่มไฮไลต์ตามสถานะจริง ----
+// ---- โหมดจอเรียงเหมือนแถบบนตัวสไลด์ · เส้นแบ่งจอ · ปุ่มไฮไลต์ตามสถานะจริง ----
 await ctl2.fill('#tok', 't0ken');
-await ctl2.click('[data-cmd="mode"][data-arg="wall"]'); await ctl2.waitForTimeout(800);
-ok(await s2.evaluate(() => document.documentElement.classList.contains('wall')),
-   'สั่งโหมด 48:9 ยาว (wall) จากมือถือได้ — เดิมมีแต่ ?wall=1');
+await ctl2.click('[data-cmd="mode"][data-arg="w"]'); await ctl2.waitForTimeout(900);
+ok(await s2.evaluate(() => document.documentElement.classList.contains('ultra')),
+   'สั่งโหมด 48:9 แบ่ง 3 จากมือถือได้');
+await ctl2.waitForTimeout(1400);
+ok(await ctl2.evaluate(() => document.getElementById('panels').classList.contains('hide')),
+   'อยู่โหมด 48:9 — แถวเลือกเลขจอถูกซ่อน เหมือนแถบบนตัวสไลด์');
+await ctl2.click('[data-cmd="mode"][data-fam="s"]'); await ctl2.waitForTimeout(1800);
+ok(!(await ctl2.evaluate(() => document.getElementById('panels').classList.contains('hide'))),
+   'กลับมา 16:9 — แถวเลือกเลขจอโผล่ให้กดได้');
+
 await ctl2.click('[data-cmd="seam"]'); await ctl2.waitForTimeout(800);
 ok(await s2.evaluate(() => document.documentElement.classList.contains('seam')),
    'สั่งเปิดเส้นแบ่งจอได้ — เดิมมีแต่ ?seam=1');
@@ -146,6 +153,23 @@ ok(await s2.evaluate(() => getComputedStyle(document.getElementById('curtain')).
 await ctl2.waitForTimeout(1300);
 ok(await ctl2.evaluate(() => document.querySelector('[data-cmd="curtain"]').disabled),
    'กลับเข้าชุดหลักแล้ว ปุ่มเปิดม่านถูกปิดไว้');
+
+// ---- ภาพตัวอย่างของจอที่กำลังคุม ----
+await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(4500);
+const pv = await ctl2.evaluate(() => {
+  try{ return document.getElementById('pv').contentWindow.NORA.state; }catch(e){ return null; }
+});
+ok(!!pv, 'ภาพตัวอย่างโหลดสไลด์ขึ้นมาจริง');
+ok(pv && pv.slide === (await slideOf(s2)), 'ภาพตัวอย่างอยู่หน้าเดียวกับจอจริง');
+ok(pv && pv.deck === 'main', 'ภาพตัวอย่างตามชุดสไลด์ของจอจริง');
+ok(await ctl2.evaluate(() => {
+  try{ return document.getElementById('pv').contentWindow.NORA.state.screen; }catch(e){ return '?'; }
+}) !== 'hall-b', 'ภาพตัวอย่างไม่ได้แอบใช้ชื่อจอจริง');
+ok(!(await ctl2.textContent('#conn')).includes('จาก 3'),
+   'ภาพตัวอย่างไม่ไปรายงานตัวกับรีเลย์จนกลายเป็นจออีกตัว');
+await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(400);
+ok(await ctl2.evaluate(() => !document.getElementById('pv').getAttribute('src')),
+   'ปิดภาพตัวอย่างแล้วหยุดโหลดจริง');
 
 // ---- เปลี่ยนชื่อจอจากมือถือ ----
 await ctl2.fill('#rn', 'hall-z'); await ctl2.click('#ren');
