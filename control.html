@@ -107,7 +107,8 @@ body.picked #pick{display:none}
       <button class="sm" id="pvtoggle">แสดง</button>
     </div>
     <div id="pvbox" class="hide"><iframe id="pv" title="ภาพตัวอย่างของจอที่กำลังคุม"></iframe></div>
-    <div class="hint" style="margin-top:10px">
+    <div class="hint" id="pvmsg" style="margin-top:10px"></div>
+    <div class="hint" style="margin-top:6px">
       มือถือวาดสไลด์เองตามหน้าและโหมดที่จอรายงานกลับมา ไม่ได้ถ่ายภาพจากจอจริง
       ปิดไว้เพื่อประหยัดเน็ตหน้างาน
     </div>
@@ -352,19 +353,41 @@ function markState(s){
    iframe อยู่ origin เดียวกัน จึงเรียก NORA ข้างในได้ตรง ๆ ไม่ต้องทำ postMessage
    เปิดด้วย ?preview=1 เพื่อไม่ให้มันไปเขียนทับค่าที่จำไว้ และ ?ctrl=0
    เพื่อไม่ให้มันไปรายงานตัวกับรีเลย์จนโผล่เป็นจออีกตัวในรายการ            */
-const PV_URL = location.pathname.replace(/\/[^/]*$/, '')
-  + '/?preview=1&ctrl=0&kiosk=1&sync=0&nomotion=1';
-let pvOn = false;
+const PV_URL = location.pathname.replace(/\/[^/]*$/, '') + '/';
+let pvOn = false, pvLoaded = false;
 try{ pvOn = localStorage.getItem('nora-preview') === '1'; }catch(e){}
 
-function setPreview(on){
+/* โหลดสไลด์ด้วย fetch แล้วยัดเข้า srcdoc ไม่ใช่ตั้ง src ตรง ๆ
+   เพราะ ainora.psu.ac.th ส่ง CSP "frame-ancestors 'none'" มา
+   การ frame ด้วย src จึงถูกเบราว์เซอร์บล็อกทั้งที่เป็น origin เดียวกัน
+   srcdoc ไม่มี HTTP response เป็นของตัวเอง กฎนั้นจึงไม่มีผล
+   และยังเป็น origin เดียวกับหน้านี้ เรียก NORA ข้างในได้เหมือนเดิม
+
+   ไม่มี query string ให้ใช้ใน srcdoc จึงยัด window.__PREVIEW เข้าไปแทน
+   พาธในสไลด์เป็นแบบ relative ทั้งหมด (brand/ · assets/) ซึ่ง srcdoc
+   จะอ้างอิงจาก URL ของหน้านี้ คือ /exhibition/... พอดี ไม่ต้องแก้อะไร */
+async function setPreview(on){
   pvOn = on;
   try{ localStorage.setItem('nora-preview', on ? '1' : '0'); }catch(e){}
   $('#pvbox').classList.toggle('hide', !on);
   $('#pvtoggle').textContent = on ? 'ซ่อน' : 'แสดง';
   const f = $('#pv');
-  if(on){ if(!f.getAttribute('src')) f.src = PV_URL; }
-  else { f.removeAttribute('src'); }        // ปิดแล้วต้องหยุดโหลดสื่อจริง ๆ
+  if(!on){                                  // ปิดแล้วต้องหยุดโหลดสื่อจริง ๆ
+    f.removeAttribute('srcdoc'); pvLoaded = false; $('#pvmsg').textContent = '';
+    return;
+  }
+  if(pvLoaded) return;
+  $('#pvmsg').textContent = 'กำลังโหลดสไลด์…';
+  try{
+    const r = await fetch(PV_URL, { cache:'no-store' });
+    if(!r.ok) throw new Error('เซิร์ฟเวอร์ตอบ ' + r.status);
+    const html = await r.text();
+    f.srcdoc = html.replace('<head>', '<head><script>window.__PREVIEW=true;<\/script>');
+    pvLoaded = true;
+    $('#pvmsg').textContent = '';
+  }catch(e){
+    $('#pvmsg').textContent = 'โหลดภาพตัวอย่างไม่ได้ — ' + e.message;
+  }
 }
 function pvSync(s){
   if(!pvOn || !s) return;
@@ -379,8 +402,8 @@ function pvSync(s){
     if(s.slide && st.slide !== s.slide) w.NORA.apply({ cmd:'goto', arg:s.slide });
   }catch(e){}
 }
-$('#pvtoggle').addEventListener('click', () => {
-  setPreview(!pvOn);
+$('#pvtoggle').addEventListener('click', async () => {
+  await setPreview(!pvOn);
   if(pvOn) pvSync(screens.find(x => x.id === target));
 });
 $('#pv').addEventListener('load', () =>

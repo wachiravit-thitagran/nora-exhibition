@@ -33,7 +33,10 @@ const srv = http.createServer((req, res) => {
   if(p === '/' || p === '') p = '/index.html';
   const f = path.join(ROOT, p);
   if(!fs.existsSync(f) || fs.statSync(f).isDirectory()){ res.writeHead(404); return res.end('nf'); }
-  res.writeHead(200, {'Content-Type': MIME[path.extname(f)] || 'application/octet-stream'});
+  // ส่ง CSP แบบเดียวกับ ainora.psu.ac.th ของจริง — ห้าม frame เด็ดขาด
+  // ข้อทดสอบภาพตัวอย่างด้านล่างจึงพิสูจน์ว่าทางที่ใช้ (srcdoc) ไม่โดนกฎนี้
+  res.writeHead(200, {'Content-Type': MIME[path.extname(f)] || 'application/octet-stream',
+                      'Content-Security-Policy': "frame-ancestors 'none'"});
   fs.createReadStream(f).pipe(res);
 });
 await new Promise(r => srv.listen(0, r));
@@ -177,7 +180,7 @@ await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(4500);
 const pv = await ctl2.evaluate(() => {
   try{ return document.getElementById('pv').contentWindow.NORA.state; }catch(e){ return null; }
 });
-ok(!!pv, 'ภาพตัวอย่างโหลดสไลด์ขึ้นมาจริง');
+ok(!!pv, 'ภาพตัวอย่างโหลดสไลด์ขึ้นมาจริง แม้เซิร์ฟเวอร์ส่ง CSP frame-ancestors none');
 ok(pv && pv.slide === (await slideOf(s2)), 'ภาพตัวอย่างอยู่หน้าเดียวกับจอจริง');
 ok(pv && pv.deck === 'main', 'ภาพตัวอย่างตามชุดสไลด์ของจอจริง');
 ok(await ctl2.evaluate(() => {
@@ -186,8 +189,10 @@ ok(await ctl2.evaluate(() => {
 ok(!(await ctl2.textContent('#conn')).includes('จาก 3'),
    'ภาพตัวอย่างไม่ไปรายงานตัวกับรีเลย์จนกลายเป็นจออีกตัว');
 await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(400);
-ok(await ctl2.evaluate(() => !document.getElementById('pv').getAttribute('src')),
+ok(await ctl2.evaluate(() => !document.getElementById('pv').getAttribute('srcdoc')),
    'ปิดภาพตัวอย่างแล้วหยุดโหลดจริง');
+ok(await ctl2.evaluate(() => (document.getElementById('pvmsg').textContent || '').trim() === ''),
+   'ไม่มีข้อความแจ้งพลาดค้างอยู่ที่กล่องภาพตัวอย่าง');
 
 // ---- เปลี่ยนชื่อจอจากมือถือ ----
 await ctl2.fill('#rn', 'hall-z'); await ctl2.click('#ren');

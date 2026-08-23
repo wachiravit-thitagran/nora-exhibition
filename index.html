@@ -1906,10 +1906,17 @@ const QS = new URLSearchParams(location.search);
    query string ยังใช้ได้และชนะเสมอ เอาไว้บังคับตอนตั้งเครื่องหรือทำ QR
    (localStorage ผูกกับ origin ของเบราว์เซอร์ ไม่ข้ามเครื่อง จึงเป็น
     "ค่าของเครื่องนี้" จริง ๆ · เปิดโหมดส่วนตัวแล้วเขียนไม่ได้ก็ไม่พัง) */
-/* ?preview=1 = เปิดเป็นภาพตัวอย่างในหน้า controller ไม่ใช่จอจริง
-   ห้ามเขียนค่าลง localStorage เด็ดขาด ไม่งั้นการเลื่อนดูตัวอย่างบนมือถือ
-   จะไปทับค่าที่จำไว้ของ origin นั้น (อ่านได้ตามปกติ) */
-const PREVIEW = QS.get('preview') === '1';
+/* โหมดภาพตัวอย่างในหน้า controller — ไม่ใช่จอจริง
+   เข้าได้สองทาง
+     ?preview=1        เปิดตรง ๆ ไว้ทดสอบ
+     window.__PREVIEW  หน้า controller ยัดตัวแปรนี้เข้ามาก่อนสคริปต์หลัก
+                       เพราะมันโหลดสไลด์ผ่าน srcdoc ซึ่งไม่มี query string ให้ใช้
+                       (เว็บตัวจริงส่ง CSP frame-ancestors 'none' มา
+                        การ frame ด้วย src ปกติจึงถูกบล็อก ดู control.html)
+
+   โหมดนี้ต้องไม่แตะอะไรที่เป็นของ "เครื่องจริง" เลย
+   ห้ามเขียน localStorage · ห้ามรายงานตัวกับรีเลย์ · ไม่ต้องมีแถบปุ่ม */
+const PREVIEW = QS.get('preview') === '1' || window.__PREVIEW === true;
 const PREF = {
   get(k, d){ if(PREVIEW) return d;      // ภาพตัวอย่างต้องเริ่มสะอาด แล้วให้ controller สั่งทับ
              try{ const v = localStorage.getItem('nora:' + k); return v === null ? d : v; }
@@ -1939,7 +1946,8 @@ if(SEAM_ON) document.documentElement.classList.add('seam');
 
 /* โหมดซิงก์ตามนาฬิกา — จอแยกเครื่องกันแต่คำนวณเวลาเดียวกัน จึงแสดงหน้าเดียวกันพร้อมกัน */
 const PREF_SYNC = PREF.get('sync', '');
-let SYNC = QS.get('sync') === '1' ? true
+let SYNC = PREVIEW ? false           // ภาพตัวอย่างเดินตามที่ controller สั่ง ไม่ใช่ตามนาฬิกา
+         : QS.get('sync') === '1' ? true
            : QS.get('sync') === '0' ? false
            : PREF_SYNC === '1' ? true
            : PREF_SYNC === '0' ? false
@@ -2263,7 +2271,7 @@ function openCurtain(){
 
 /* controls */
 const ui = document.getElementById('ui');
-const KIOSK = new URLSearchParams(location.search).get('kiosk') === '1';
+const KIOSK = PREVIEW || new URLSearchParams(location.search).get('kiosk') === '1';
 let uiTimer;
 addEventListener('mousemove', ()=>{
   if(KIOSK) return;
@@ -2349,7 +2357,9 @@ let SCREEN_ID = (QS.get('screen') || '').trim().slice(0, 40)
   || 'main';
 if(QS.get('screen')) PREF.set('screen', SCREEN_ID);
 const API_BASE = (QS.get('api') || (CONFIG.AINORA_BASE + '/api')).replace(/\/$/, '');
-const CTRL_ON  = QS.get('ctrl') !== '0';
+// ภาพตัวอย่างต้องไม่ไปรายงานตัวกับรีเลย์จนโผล่เป็นจออีกตัวในรายการ
+// และใน srcdoc ไม่มี origin ให้ยิง API อยู่แล้ว
+const CTRL_ON  = !PREVIEW && QS.get('ctrl') !== '0';
 
 const NORA = {
   id: SCREEN_ID,
