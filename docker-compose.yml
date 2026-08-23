@@ -13,3 +13,24 @@ services:
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }
+
+  # รีเลย์คำสั่งจาก controller — เล็กมาก ไม่มี dependency ใช้ Node ล้วน
+  # ไม่ publish พอร์ตออกนอก เข้าถึงผ่าน nginx ของสไลด์ที่ /exhibition/api/ เท่านั้น
+  # CONTROL_TOKEN เป็นทางเลือก — ด่านหลักคือ nginx ที่จำกัด /exhibition/api/cmd
+  # และ /exhibition/control ไว้เฉพาะวงภายใน เว้นว่างได้ถ้ากั้นวงเรียบร้อยแล้ว
+  nora-exhibition-control:
+    image: node:22-alpine
+    container_name: nora-exhibition-control
+    restart: unless-stopped
+    working_dir: /app
+    command: ["node", "server.mjs"]
+    volumes:
+      - ./control/server.mjs:/app/server.mjs:ro
+    environment:
+      - PORT=10097
+      - CONTROL_TOKEN=${CONTROL_TOKEN:-}
+    expose:
+      - "10097"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

@@ -12,6 +12,7 @@ COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 WORKDIR /usr/share/nginx/html/exhibition
 
 COPY index.html         ./
+COPY control.html       ./
 COPY frame-picker.html  ./tools/
 COPY brand/             ./brand/
 # ภาพเปรียบเทียบ · วิดีโอ · เฟรมท่า · ภาพพื้นหลัง — เท่าที่มีในโฟลเดอร์ตอน build

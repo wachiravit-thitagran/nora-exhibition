@@ -1734,7 +1734,7 @@ if(ULTRA_ON) document.documentElement.classList.add('ultra');
 if(QS.get('seam') === '1') document.documentElement.classList.add('seam');
 
 /* โหมดซิงก์ตามนาฬิกา — จอแยกเครื่องกันแต่คำนวณเวลาเดียวกัน จึงแสดงหน้าเดียวกันพร้อมกัน */
-const SYNC = QS.get('sync') === '1' ? true
+let SYNC = QS.get('sync') === '1' ? true
            : QS.get('sync') === '0' ? false
            : (CONFIG.SYNC === 'auto' ? PANEL > 0 : !!CONFIG.SYNC);
 
@@ -1917,6 +1917,7 @@ function show(i, seekMs){
     if(pn && pn.offsetWidth === 0 && !nx.el.classList.contains('on')) { /* ยังบอกไม่ได้ ปล่อยผ่าน */ }
     if(v.preload!=='auto'){ v.preload='auto'; try{v.load();}catch(e){} }
   });
+  NORA && NORA.report();
   const info = document.getElementById('uiInfo');
   if(info) info.textContent = (cur+1) + ' / ' + SLIDES.length
     + (PANEL_ON ? ' · จอ ' + PANEL_ON
@@ -2012,6 +2013,80 @@ addEventListener('keydown', e=>{
   }
 });
 
+/* ================================================================
+   CONTROLLER — สั่งงานจอจากอีกอุปกรณ์
+   ================================================================
+   ?screen=<id>  ตั้งชื่อจอนี้ เพื่อให้ controller เรียกถึงได้ทีละจอ
+                 ไม่ใส่ = ตั้งให้เองจากโหมดจอที่เลือก (screen-1/2/3 หรือ single)
+   ?api=<base>   ที่อยู่รีเลย์ ค่าเริ่มต้น <AINORA_BASE>/api
+
+   ถ้าไม่มีรีเลย์ให้ต่อ ทุกอย่างทำงานเหมือนเดิมทุกประการ
+   สไลด์ไม่ได้พึ่งรีเลย์ในการเดินหน้า — จอยังตรงกันเองด้วยนาฬิกาโลก
+   รีเลย์เป็นแค่ทางให้ "แทรกคำสั่ง" เข้ามาเท่านั้น                        */
+const SCREEN_ID = (QS.get('screen') || '').slice(0, 40)
+  || (PANEL ? 'screen-' + PANEL : (WALL_ON ? 'wall' : 'single'));
+const API_BASE = (QS.get('api') || (CONFIG.AINORA_BASE + '/api')).replace(/\/$/, '');
+const CTRL_ON  = QS.get('ctrl') !== '0';
+
+const NORA = {
+  id: SCREEN_ID,
+  get state(){
+    const s = SLIDES[cur];
+    return { screen:SCREEN_ID, slide:cur + 1, total:SLIDES.length, playing,
+      sync:SYNC, mode:(PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'))),
+      title:(s && s.wall && s.wall.title) || '' };
+  },
+  /* คำสั่งเดินหน้า/ถอยหลังต้องหลุดจากโหมดนาฬิกาโลกก่อน
+     ไม่งั้น tick รอบถัดไปจะดึงกลับไปหน้าตามเวลาทันที */
+  manual(){ if(SYNC){ SYNC = false; t0 = performance.now(); durMs = slideDuration(SLIDES[cur]); } },
+  apply(m){
+    if(!m || !m.cmd) return;
+    switch(m.cmd){
+      case 'play':    setPlaying(true); break;
+      case 'pause':   setPlaying(false); break;
+      case 'toggle':  setPlaying(!playing); break;
+      case 'next':    NORA.manual(); show(cur + 1); break;
+      case 'prev':    NORA.manual(); show(cur - 1); break;
+      case 'goto':    NORA.manual(); show((parseInt(m.arg, 10) || 1) - 1); break;
+      case 'restart': NORA.manual(); show(0); break;
+      case 'sync':    SYNC = true; break;
+      case 'mode':    if(['0','1','2','3','w','wall'].includes(String(m.arg)))
+                        setMode(String(m.arg) === 'wall' ? 'wall' : String(m.arg));
+                      break;
+      case 'full':    document.fullscreenElement ? document.exitFullscreen()
+                        : document.documentElement.requestFullscreen().catch(()=>{});
+                      break;
+      case 'reload':  location.reload(); break;
+    }
+    NORA.report();
+  },
+  report(){
+    if(!CTRL_ON) return;
+    try{
+      fetch(API_BASE + '/state', { method:'POST', keepalive:true,
+        headers:{ 'content-type':'application/json' },
+        body:JSON.stringify(NORA.state) }).catch(()=>{});
+    }catch(e){}
+  },
+  connect(){
+    if(!CTRL_ON || typeof EventSource === 'undefined') return;
+    let es;
+    const open = () => {
+      try{ es = new EventSource(API_BASE + '/events?role=screen&screen='
+        + encodeURIComponent(SCREEN_ID)); }catch(e){ return; }
+      es.addEventListener('cmd', ev => {
+        try{ NORA.apply(JSON.parse(ev.data)); }catch(e){}
+      });
+      es.addEventListener('open', () => NORA.report());
+      // รีเลย์ล่มหรือยังไม่ได้ deploy ก็ไม่เป็นไร ลองใหม่เรื่อย ๆ แบบเงียบ ๆ
+      es.onerror = () => { try{ es.close(); }catch(e){} setTimeout(open, 5000); };
+    };
+    open();
+    setInterval(() => NORA.report(), 10000);
+  },
+};
+window.NORA = NORA;
+
 /* ---------- เริ่มทำงาน ---------- */
 function boot(){
   // ทุกหน้าใช้เวลาคงที่ตามตาราง DWELL — ไม่ต้องรออ่านความยาววิดีโอ
@@ -2028,6 +2103,7 @@ function boot(){
   markMode(PANEL_ON ? String(PANEL_ON)
                     : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')));
   raf = requestAnimationFrame(tick);
+  NORA.connect();
 }
 boot();
 </script>
