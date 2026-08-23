@@ -819,12 +819,14 @@ html.deck-intro.curtain-up #curtain{display:none}
   0%   { background-position: 0 0, 0 0, 0 0, 0 0, 0 0 }
   100% { background-position: 0 0, 0 0, -52px 0, -138px 0, -26px 0 }
 }
+/* ไม่มีหน่วงแล้ว — เดิมหน่วง .25s ไว้ให้ชื่องานกลางม่านจางก่อน
+   ตอนนี้ม่านเปล่า ๆ กดแล้วต้องขยับทันที ไม่ให้รู้สึกว่าปุ่มไม่ติด */
 html.motion #curtain.open .cpanel.l{
-  animation:curtainL 4.2s cubic-bezier(.42,0,.14,1) .25s forwards}
+  animation:curtainL 4.2s cubic-bezier(.42,0,.14,1) forwards}
 html.motion #curtain.open .cpanel.r{
-  animation:curtainR 4.2s cubic-bezier(.42,0,.14,1) .25s forwards}
+  animation:curtainR 4.2s cubic-bezier(.42,0,.14,1) forwards}
 html.motion #curtain.open .cfabric{
-  animation:cripple 4.2s cubic-bezier(.42,0,.14,1) .25s forwards}
+  animation:cripple 4.2s cubic-bezier(.42,0,.14,1) forwards}
 /* ปิดอนิเมชันไว้ = ไม่ต้องรูด ม่านหายไปพร้อมกับที่ชุดสลับเป็นชุดหลัก */
 
 /* รางม่านสีเข้มด้านบน อยู่กับที่ ไม่เลื่อนตามผ้า */
@@ -833,32 +835,6 @@ html.motion #curtain.open .cfabric{
   background:linear-gradient(180deg,#453B3D,#1A1516 58%,#0C0A0A);
   box-shadow:0 14px 32px rgba(0,0,0,.5);
 }
-
-/* ชื่องานกลางม่าน — กว้างเท่าจอกลางหนึ่งบาน (3840) เสมอ
-   โหมด 16:9 จึงเต็มจอ ส่วนโหมด 48:9 อยู่กลางผนังพอดี ขนาดตัวอักษรเท่ากันทั้งสองโหมด
-   จางหายก่อนม่านแยก จะได้ไม่โดนผ่าครึ่ง */
-.cmid{
-  position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:3840px;
-  z-index:7;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:56px;text-align:center;
-  /* จางก่อนผ้าจะเริ่มขยับ (ผ้าหน่วง .25s) ชื่องานจึงไม่โดนลากไปกับม่าน */
-  transition:opacity .75s ease;
-}
-#curtain.open .cmid{opacity:0}
-/* ผ้าแดงสดทำให้ตัวอักษรอ่านยากกว่าตอนผ้าเข้ม จึงหรี่ผ้าเป็นวงนุ่ม ๆ หลังข้อความ
-   ใช้ position:absolute มันจึงไม่กลายเป็น flex item ของ .cmid */
-.cmid::before{
-  content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:2200px;height:920px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side, rgba(48,0,8,.44), rgba(48,0,8,0));
-}
-.cmid img{width:620px;height:auto;filter:drop-shadow(0 10px 40px rgba(0,0,0,.6))}
-.cmid .ct{
-  font-size:104px;font-weight:600;letter-spacing:.01em;color:#F7E7BE;line-height:1.2;
-  text-shadow:0 6px 40px rgba(0,0,0,.6);
-}
-.cmid .cs{font-size:40px;font-weight:400;color:#E0BE79;letter-spacing:.22em}
-.cmid .crule{width:260px;height:3px;background:linear-gradient(90deg,transparent,#D8B45E,transparent)}
 
 /* ---------- controls ---------- */
 #ui{
@@ -889,12 +865,6 @@ html.motion #curtain.open .cfabric{
       <div class="cpanel l"><div class="cfabric"></div><div class="chooks"></div><div class="cedge"></div></div>
       <div class="cpanel r"><div class="cfabric"></div><div class="chooks"></div><div class="cedge"></div></div>
       <div class="crod"></div>
-      <div class="cmid">
-        <img src="brand/logo-light.png" alt="AI NORA">
-        <div class="crule"></div>
-        <div class="ct">ลมหายใจของโนรา</div>
-        <div class="cs">BREATH OF NORA</div>
-      </div>
     </div>
   </div>
 </div>
@@ -2289,7 +2259,7 @@ function openCurtain(){
     c.classList.remove('open');
     paintInfo();
     NORA.report();
-  }, MOTION_ON ? 4600 : 0);          // .25s หน่วง + 4.2s รูด + เผื่ออีกนิด
+  }, MOTION_ON ? 4400 : 0);          // 4.2s รูด + เผื่ออีกนิด
 }
 
 /* controls */
