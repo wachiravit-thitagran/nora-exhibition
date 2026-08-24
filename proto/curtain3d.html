@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ต้นแบบม่านทอง Three.js · AI NORA</title>
+<style>
+:root{ --bg:#0B0906; --panel:#171310; --line:#2E2619; --ink:#F2E9D7; --muted:#9C8F76; --gold:#E3C468 }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans Thai","Segoe UI",sans-serif}
+header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+h1{font-size:16px;margin:0;font-weight:700}
+.note{font-size:12px;color:var(--muted)}
+#stagewrap{display:grid;grid-template-columns:1fr;gap:2px;background:#000}
+#stagewrap.ab{grid-template-columns:1fr 1fr}
+.cell{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden}
+.cell>canvas,.cell>video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+.tag{position:absolute;left:8px;top:8px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.04em;
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:3px 10px}
+#vcell{display:none}
+#stagewrap.ab #vcell{display:block}
+#vmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:24px;font-size:13px;color:var(--muted);line-height:1.7}
+
+#bar{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+button{font:inherit;font-size:13px;font-weight:600;color:var(--ink);background:#241E16;
+  border:1px solid var(--line);border-radius:10px;padding:9px 15px;cursor:pointer}
+button.pri{background:linear-gradient(180deg,#E3C468,#C29B31);color:#2A2208;border-color:#8E7124}
+button.on{background:var(--gold);color:#2A2208;border-color:#8E7124}
+#scrub{flex:1 1 260px;min-width:200px;accent-color:var(--gold)}
+#tnum{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);min-width:104px}
+
+#tune{padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px 22px}
+.f{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.f label{font-size:12px;color:var(--muted)}
+.f output{font-size:12px;font-variant-numeric:tabular-nums;color:var(--gold)}
+.f input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--gold)}
+.f input[type=color]{grid-column:1/-1;width:100%;height:30px;background:none;border:1px solid var(--line);border-radius:8px}
+footer{padding:14px 18px 40px;font-size:12px;color:var(--muted);line-height:1.8;border-top:1px solid var(--line)}
+code{background:#241E16;border-radius:5px;padding:1px 6px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ต้นแบบม่านทอง Three.js</h1>
+  <span class="note">ลากแถบเวลาเทียบทีละเฟรมได้ · ปรับค่าด้านล่างแล้วเห็นผลทันที</span>
+</header>
+
+<div id="bar">
+  <button class="pri" id="play">▶ เล่น</button>
+  <button id="reset">↻ ตั้งม่านใหม่</button>
+  <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="tnum">0.00 / 4.20 วิ</span>
+  <button id="abtoggle">เทียบกับคลิปต้นฉบับ</button>
+</div>
+
+<div id="stagewrap">
+  <div class="cell"><span class="tag">Three.js</span><canvas id="cv"></canvas></div>
+  <div class="cell" id="vcell">
+    <span class="tag">คลิปต้นฉบับ</span>
+    <video id="vid" muted playsinline preload="auto"></video>
+    <div id="vmsg">วาง <code>INTRO_AINORA_.mp4</code> ไว้โฟลเดอร์เดียวกับไฟล์นี้<br>แล้วรีเฟรช จะเทียบทีละเฟรมได้</div>
+  </div>
+</div>
+
+<div id="tune"></div>
+
+<footer>
+  <b>ช่วงที่เทียบกันได้คือม่านอย่างเดียว</b> — คลิปต้นฉบับหลังม่านเปิด (สเก็ตช์ดินสอ → โลโก้นีออน →
+  โลโก้ทอง → ฉากวัด) เป็นงาน compositing ไม่ใช่ 3 มิติเรียลไทม์ Three.js ทำให้เหมือนไม่ได้<br>
+  เวลาในคลิปต้นฉบับ: ม่านนิ่งถึง ~6.5 วิ · แหวก ~6.9–8.2 วิ · จบที่ 23.68 วิ
+  แถบเวลาที่นี่จับคู่ไว้กับช่วงแหวกแล้ว
+</footer>
+
+<script type="module">
+import * as THREE from './three.module.min.js';
+
+/* ---------------------------------------------------------------
+   ม่านทองแบบ 3 มิติ
+
+   ผ้าม่านคือระนาบสองผืน (ซ้าย/ขวา) ที่ดัดด้วย vertex shader ให้เป็นลอนตั้ง
+   เปิดม่าน = ผ้าถูกรวบไปกองที่ขอบนอก ไม่ใช่เลื่อนทั้งผืนออกไปเฉย ๆ
+   ผ้าจริงเวลารวบ ลอนจะ "ถี่ขึ้นและลึกขึ้น" ตามผ้าที่ทบกัน
+   (วัดจากคลิปต้นฉบับ: ระยะห่างลอนลดจาก ~9px เหลือ ~6.7px ตอนม่านเริ่มแหวก)
+
+   สีทองซาติน = ไฮไลต์แคบ ๆ วิ่งตามสันลอน ไม่ใช่แสงกระจายทั้งผืน
+   จึงคำนวณ normal ของลอนตรง ๆ ในเชดเดอร์ แล้วยิงแสงสองดวง (หลัก + เติมเงา)
+   --------------------------------------------------------------- */
+
+const P = {                       // ค่าที่ปรับได้จากหน้าเว็บ
+  folds:      12,                 // จำนวนลอนต่อผืน (คลิปต้นฉบับราว 11-13)
+  depth:      0.24,               // ลึกกี่ส่วนของความกว้างลอน (ผ้าจริงราว 0.20-0.25)
+  gather:     0.30,               // รวบแล้วเหลือความกว้างกี่ส่วน
+  bunch:      2.10,               // ลอนลึกขึ้นกี่เท่าตอนรวบ
+  sway:       0.05,               // ชายล่างแกว่งตามหลัง
+  dur:        4.20,               // เวลาเปิดม่าน (วินาที)
+  dolly:      0.35,               // กล้องเคลื่อนเข้าหาม่าน
+  sheen:      20,                 // ความแคบของไฮไลต์ซาติน
+  wrap:       0.34,               // แสงอ้อมไปหลังลอน — ตัวที่ทำให้ผ้าดู "นุ่ม"
+  gain:       1.16,               // ความสว่างรวม
+  vignette:   0.42,               // ขอบมืด
+  warm:       '#F0D081',          // สีทองสว่าง
+  dark:       '#4E3711',          // สีทองเงา
+};
+
+const cv = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas:cv, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(54, 16/9, 0.1, 100);
+camera.position.set(0, 0, 5.0);
+
+/* ฉากหลัง = สิ่งที่อยู่หลังม่าน ในเด็คจริงคือสไลด์หน้าแรก
+   ที่นี่ใช้แผ่นสว่างไล่เฉดพอให้เห็นว่าม่านแหวกออกแล้ว */
+const back = new THREE.Mesh(
+  new THREE.PlaneGeometry(30, 14),
+  new THREE.ShaderMaterial({
+    uniforms:{},
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`varying vec2 vUv;
+      void main(){
+        float d = distance(vUv, vec2(0.5,0.52));
+        vec3 c = mix(vec3(0.99,0.975,0.945), vec3(0.90,0.86,0.79), smoothstep(0.25,1.05,d));
+        gl_FragColor = vec4(c,1.0);
+      }`,
+  })
+);
+back.position.z = -3.2;
+scene.add(back);
+
+const VERT = `
+uniform float uOpen;      // 0 ปิดสนิท .. 1 เปิดสุด
+uniform float uFolds;
+uniform float uDepth;
+uniform float uGather;
+uniform float uBunch;
+uniform float uSway;
+uniform float uSide;      // -1 ผืนซ้าย · +1 ผืนขวา
+uniform float uHalf;      // ครึ่งความกว้างเวที
+
+varying vec2  vUv;
+varying vec3  vNrm;
+varying vec3  vPos;
+varying float vEdge;      // 0 ที่ขอบใน .. 1 ที่ขอบนอก
+
+const float TAU = 6.28318530718;
+
+void main(){
+  vUv = uv;
+  // u = 0 ที่ขอบใน (กลางเวที) .. 1 ที่ขอบนอก — กลับด้านให้ผืนขวาด้วย
+  float u = uSide < 0.0 ? 1.0 - uv.x : uv.x;
+  vEdge = u;
+
+  // รวบผ้า: ขอบนอกอยู่กับที่ ขอบในถูกดึงออกไป ความกว้างเหลือ uGather
+  float w = mix(1.0, uGather, uOpen);
+  float x = (1.0 - (1.0 - u) * w) * uHalf * uSide;
+
+  /* ลอน — uDepth เป็น "สัดส่วนต่อความกว้างลอน" ไม่ใช่ระยะจริง
+     ถ้าตั้งเป็นระยะจริง พอเปลี่ยนจำนวนลอน ความชันจะเปลี่ยนตามไปด้วย
+     ลอนน้อย ๆ จะกลายเป็นคลื่นสี่เหลี่ยมทันที (รอบก่อนพลาดตรงนี้ ผ้าออกมา
+     เหมือนแผ่นโลหะพับ ไม่ใช่ผ้า) คิดเป็นสัดส่วนแล้วความชันคงที่เสมอ
+     ผ้าม่านจริงลึกราว 20-25% ของความกว้างลอน */
+  float foldW = (uHalf * w) / uFolds;
+  float amp   = uDepth * foldW * mix(1.0, uBunch, uOpen);
+  float ph    = u * uFolds * TAU;
+  // บิดเล็กน้อยตามความสูง ลอนจะได้ไม่ตรงเป๊ะเหมือนลูกฟูก
+  ph += sin(uv.y * 2.30 + u * 7.0) * 0.32;
+  float z = amp * cos(ph);
+
+  // ชายล่างแกว่งตามหลังตอนม่านถูกดึง — ยิ่งลงล่างยิ่งช้ากว่า
+  float lag = (1.0 - uv.y) * (1.0 - uv.y);
+  x -= uSide * uSway * uHalf * uOpen * lag;
+
+  // ผ้าสูงเกินกรอบทั้งบนและล่าง จะได้ไม่เห็นขอบผืนโผล่มาในภาพ
+  // (ม่านจริงบนเวทีก็ยาวเลยขอบจอ ไม่มีใครเห็นหัวหรือชายม่าน)
+  float y = (uv.y - 0.5) * 9.0;
+
+  // ชายล่างบานกว้างกว่าหัวม่าน ผ้าถ่วงน้ำหนักแล้วสะบัดออกด้านข้าง
+  // ตัวนี้เองที่ทำให้ลอนในคลิปต้นฉบับ "แผ่ออก" เวลามองจากกล้องที่อยู่ใกล้
+  x *= mix(1.14, 0.94, uv.y);
+
+  /* normal ของผิว z = amp*cos(ph)
+     เส้นสัมผัสตาม u คือ (dx/du, 0, dz/du) · ตาม y คือ (0,1,0)
+     normal = y × u = (dz/du, 0, -dx/du)
+
+     ผืนซ้ายวิ่ง x ไปทางลบ dx/du จึงติดลบมาด้วย ต้องคูณ -uSide กลับ
+     ไม่งั้น normal ของผืนซ้ายชี้ออกหลังจอ แสงไม่โดน ผ้าเลยดำไปทั้งผืน
+     (พลาดตรงนี้รอบแรก เห็นชัดเลยว่าซ้ายมืดขวาสว่างทั้งที่เป็นผ้าผืนเดียวกัน) */
+  float dzdu = -amp * sin(ph) * uFolds * TAU;
+  float dxdu = w * uHalf * uSide;
+  vNrm = normalize(vec3(dzdu, 0.0, -dxdu) * (-uSide));
+
+  vec3 p = vec3(x, y, z);
+  vPos = p;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+}`;
+
+const FRAG = `
+uniform vec3  uWarm;
+uniform vec3  uDark;
+uniform float uSheen;
+uniform float uWrap;
+uniform float uGain;
+
+varying vec2  vUv;
+varying vec3  vNrm;
+varying vec3  vPos;
+varying float vEdge;
+
+/* wrap lighting — แทนที่จะตัดแสงที่ dot=0 ให้แสงอ้อมไปหลังลอนได้นิดหน่อย
+   ผ้าซาตินจริงมีเส้นใยกระเจิงแสง เงาจึงไม่เคยดำสนิทและไล่โทนนุ่ม
+   ถ้าใช้ diffuse ตรง ๆ ลอนจะออกมาเป็นแถบคมเหมือนลูกฟูกพลาสติก */
+float wrapDiffuse(vec3 n, vec3 l, float w){
+  return clamp((dot(n, l) + w) / (1.0 + w), 0.0, 1.0);
+}
+
+void main(){
+  vec3 n = normalize(vNrm);
+  vec3 v = normalize(cameraPosition - vPos);
+
+  // แสงหลักเยื้องจากหน้าซ้ายบน + แสงเติมจากขวา ให้ลอนมีทั้งสันสว่างและเงา
+  vec3 l1 = normalize(vec3(-0.92, 0.30, 0.46));
+  vec3 l2 = normalize(vec3( 0.88, 0.12, 0.38));
+
+  float d1 = wrapDiffuse(n, l1, uWrap);
+  float d2 = wrapDiffuse(n, l2, uWrap);
+
+  // ซาติน: ไฮไลต์วิ่งตามสันลอน กว้างกว่าโลหะ เพราะผิวผ้าไม่เรียบ
+  vec3  h1 = normalize(l1 + v);
+  float s1 = pow(max(dot(n, h1), 0.0), uSheen);
+  vec3  h2 = normalize(l2 + v);
+  float s2 = pow(max(dot(n, h2), 0.0), uSheen * 0.55);
+
+  vec3 col = mix(uDark, uWarm, clamp(d1 * 0.86 + d2 * 0.42, 0.0, 1.0));
+  col += uWarm * (s1 * 0.62 + s2 * 0.26);
+
+  // ไล่เฉดตามความสูง — หัวม่านอยู่ใต้รางจึงมืดกว่า ชายล่างอมเงา
+  col *= mix(0.46, 1.0, smoothstep(0.06, 0.46, vUv.y));
+  col *= mix(1.0, 0.68, smoothstep(0.70, 1.0, vUv.y));
+
+  // ขอบนอกของผืนมืดลง ให้รู้สึกว่าผ้าม้วนหนาขึ้นตรงที่รวบ
+  col *= mix(1.0, 0.74, smoothstep(0.58, 1.0, vEdge));
+
+  // ขอบมืดรอบเฟรมทำเป็นแผ่นบังหน้ากล้องด้านล่าง ไม่ใช่ที่นี่
+  gl_FragColor = vec4(col * uGain, 1.0);
+}`;
+
+const uni = {
+  uOpen:{value:0}, uFolds:{value:P.folds}, uDepth:{value:P.depth},
+  uGather:{value:P.gather}, uBunch:{value:P.bunch}, uSway:{value:P.sway},
+  uHalf:{value:4.2}, uSide:{value:1},
+  uWarm:{value:new THREE.Color(P.warm)}, uDark:{value:new THREE.Color(P.dark)},
+  uSheen:{value:P.sheen}, uWrap:{value:P.wrap}, uGain:{value:P.gain},
+  uVig:{value:P.vignette},
+};
+
+function panel(side){
+  const u = {};
+  for(const k in uni) u[k] = (k === 'uSide') ? { value:side } : uni[k];
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1, 420, 40),
+    new THREE.ShaderMaterial({ uniforms:u, vertexShader:VERT, fragmentShader:FRAG,
+      side:THREE.DoubleSide })
+  );
+  scene.add(m);
+  return m;
+}
+panel(-1); panel(1);
+
+/* vignette เป็นแผ่นบังหน้ากล้อง ทำทีเดียวจบ ไม่ต้องมี post-processing pass */
+const vig = new THREE.Mesh(
+  new THREE.PlaneGeometry(2, 2),
+  new THREE.ShaderMaterial({
+    transparent:true, depthTest:false, depthWrite:false,
+    uniforms:{ uVig:uni.uVig },
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }`,
+    fragmentShader:`uniform float uVig; varying vec2 vUv;
+      void main(){
+        vec2 d = (vUv - 0.5) * vec2(1.9, 1.25);
+        float f = smoothstep(0.32, 1.05, length(d));
+        gl_FragColor = vec4(0.0, 0.0, 0.0, f * uVig);
+      }`,
+  })
+);
+vig.frustumCulled = false;
+vig.renderOrder = 999;
+scene.add(vig);
+
+/* ---------- จังหวะเวลา ----------
+   ผ้าจริงไม่ได้เริ่มออกตัวทันทีและไม่ได้หยุดกึก — เข้าช้า ออกช้า
+   ใช้เส้นโค้งเดียวกับม่าน CSS ของเด็ค (cubic-bezier .42 0 .14 1) */
+function bez(t){
+  // ประมาณ cubic-bezier(.42,0,.14,1) ด้วยการหา x แล้วคืน y
+  let lo = 0, hi = 1, u = t;
+  for(let i = 0; i < 18; i++){
+    u = (lo + hi) / 2;
+    const x = 3*u*(1-u)*(1-u)*0.42 + 3*u*u*(1-u)*0.14 + u*u*u;
+    if(x < t) lo = u; else hi = u;
+  }
+  return 3*u*(1-u)*(1-u)*0 + 3*u*u*(1-u)*1 + u*u*u;
+}
+
+let t = 0, playing = false, last = 0;
+function setT(v){
+  t = Math.max(0, Math.min(P.dur, v));
+  const k = bez(t / P.dur);
+  uni.uOpen.value = k;
+  camera.position.z = 5.0 - P.dolly * k;
+  scrub.value = (t / P.dur).toFixed(3);
+  tnum.textContent = t.toFixed(2) + ' / ' + P.dur.toFixed(2) + ' วิ';
+  if(vidOK){                              // จับคู่กับช่วงแหวกของคลิปต้นฉบับ
+    const vt = 6.60 + (t / P.dur) * 1.90;
+    if(Math.abs(vid.currentTime - vt) > 0.03) vid.currentTime = vt;
+  }
+}
+
+function resize(){
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if(!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+function loop(now){
+  requestAnimationFrame(loop);
+  resize();
+  if(playing){
+    const dt = last ? (now - last) / 1000 : 0;
+    last = now;
+    setT(t + dt);
+    if(t >= P.dur) setPlay(false);
+  } else last = 0;
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(loop);
+
+/* ---------- แผงควบคุม ---------- */
+const scrub = document.getElementById('scrub');
+const tnum  = document.getElementById('tnum');
+const playBtn = document.getElementById('play');
+function setPlay(v){
+  playing = v; last = 0;
+  playBtn.textContent = v ? '⏸ หยุด' : '▶ เล่น';
+  if(v && t >= P.dur) setT(0);
+}
+playBtn.onclick = () => setPlay(!playing);
+document.getElementById('reset').onclick = () => { setPlay(false); setT(0); };
+scrub.oninput = () => { setPlay(false); setT(+scrub.value * P.dur); };
+
+const FIELDS = [
+  ['folds',  'จำนวนลอนต่อผืน',        8, 60, 1,    v => uni.uFolds.value = v],
+  ['depth',  'ลึกกี่ส่วนของความกว้างลอน', 0.05, 0.6, 0.01, v => uni.uDepth.value = v],
+  ['gather', 'รวบแล้วเหลือกว้าง',      0.08, 0.6, 0.01, v => uni.uGather.value = v],
+  ['bunch',  'ลอนลึกขึ้นตอนรวบ',       1, 4, 0.05,  v => uni.uBunch.value = v],
+  ['sway',   'ชายล่างแกว่งตามหลัง',    0, 0.4, 0.01, v => uni.uSway.value = v],
+  ['sheen',  'ความแคบของไฮไลต์',       4, 60, 1,    v => uni.uSheen.value = v],
+  ['wrap',   'แสงอ้อมหลังลอน (ความนุ่ม)', 0, 1.4, 0.02, v => uni.uWrap.value = v],
+  ['gain',   'ความสว่างรวม',           0.5, 2.2, 0.02, v => uni.uGain.value = v],
+  ['vignette','ขอบมืด',               0, 1, 0.01,  v => uni.uVig.value = v],
+  ['dolly',  'กล้องเคลื่อนเข้า',        0, 1.5, 0.01, () => setT(t)],
+  ['dur',    'เวลาเปิดม่าน (วิ)',      1.5, 9, 0.1,  () => setT(Math.min(t, P.dur))],
+];
+const tune = document.getElementById('tune');
+for(const [key, label, min, max, step, apply] of FIELDS){
+  const f = document.createElement('div'); f.className = 'f';
+  f.innerHTML = `<label>${label}</label><output>${P[key]}</output>
+    <input type="range" min="${min}" max="${max}" step="${step}" value="${P[key]}">`;
+  const inp = f.querySelector('input'), out = f.querySelector('output');
+  inp.oninput = () => { P[key] = +inp.value; out.textContent = inp.value; apply(+inp.value); };
+  tune.appendChild(f);
+}
+for(const [key, label] of [['warm','สีทองสว่าง'], ['dark','สีทองเงา']]){
+  const f = document.createElement('div'); f.className = 'f';
+  f.innerHTML = `<label>${label}</label><output>${P[key]}</output>
+    <input type="color" value="${P[key]}">`;
+  const inp = f.querySelector('input'), out = f.querySelector('output');
+  inp.oninput = () => { P[key] = inp.value; out.textContent = inp.value;
+    (key === 'warm' ? uni.uWarm : uni.uDark).value.set(inp.value); };
+  tune.appendChild(f);
+}
+
+/* ---------- เทียบกับคลิปต้นฉบับ ---------- */
+const vid = document.getElementById('vid');
+let vidOK = false;
+vid.addEventListener('loadeddata', () => {
+  vidOK = true;
+  document.getElementById('vmsg').style.display = 'none';
+});
+vid.addEventListener('error', () => { vidOK = false; });
+vid.src = 'INTRO_AINORA_.mp4';
+
+document.getElementById('abtoggle').onclick = e => {
+  const on = document.getElementById('stagewrap').classList.toggle('ab');
+  e.target.classList.toggle('on', on);
+  resize();
+  if(on) setT(t);
+};
+
+setT(0);
+window.__PROTO = { P, uni, setT, setPlay, get t(){ return t; } };
+</script>
+</body>
+</html>
