@@ -80,7 +80,9 @@ pipeline {
                                && echo "" \
                                && node tests/check-control.mjs /w \
                                && echo "" \
-                               && node tests/check-sync.mjs /w' | tee deck_report.txt
+                               && node tests/check-sync.mjs /w \
+                               && echo "" \
+                               && node tests/check-anim.mjs /w' | tee deck_report.txt
                 '''
             }
             post {
