@@ -609,7 +609,6 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
    แล้วเหลือช่องว่างบน-ล่างกรอบละเกือบ 400px จึงตัดความสูงกรอบไว้ให้พอดีภาพ */
 .trio3 .t3 .pair{flex:1 1 auto;min-height:0;max-height:930px;
   display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.trio3 .t3 .nb{flex:0 0 auto;font-size:28px;line-height:1.35;color:var(--muted);text-align:center;min-height:78px}
 .trio3 .panel{border-radius:26px;border-width:2px}
 .trio3 .panel .cap{padding:14px 18px;gap:12px}
 .trio3 .panel .cap .lbl{font-size:26px}
@@ -617,12 +616,9 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .trio3 .panel .body{padding:14px}
 .trio3 .panel.tight .body > img:only-child{inset:8px;width:calc(100% - 16px);height:calc(100% - 16px)}
 .slide.dark .trio3 .t3 .hd{color:#fff}
-.slide.dark .trio3 .t3 .nb{color:rgba(255,255,255,.7)}
 
 .cmpcol{flex:1;min-height:0;display:flex;flex-direction:column;gap:30px}
 .cmpcol .duowide{flex:1;min-height:0;height:auto}
-.cmpnote{flex:0 0 auto;font-size:36px;line-height:1.4;color:var(--muted);text-align:center;
-  max-width:1900px;margin:0 auto}
 /* การ์ดเทียบก่อน-หลังจากรายงาน เป็นภาพสำเร็จรูปใบเดียว ให้พอดีพื้นที่ที่เหลือ */
 /* แถวการ์ดเทียบก่อน-หลัง — บนผนังจอละ 4 ใบ ในโหมดจอเดียวห่อเป็น 6x2
    การ์ดจากรายงานมีพื้นขาวและป้ายชื่อท่าในตัวอยู่แล้ว จึงไม่ใส่กรอบซ้อนอีก */
@@ -642,7 +638,6 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .figbox{flex:1;min-height:0;position:relative}
 .figbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
   filter:drop-shadow(0 26px 46px rgba(17,24,39,.32))}
-.slide.dark .cmpnote{color:rgba(255,255,255,.7)}
 /* สองแผงข้าง ๆ ต้องสูงเต็มผืน (stretch) แต่ลูกศรตรงกลางไม่ต้อง
    ถ้าปล่อยให้ stretch ตามไปด้วย ตัวลูกศรจะไปเกาะขอบบนของช่อง ไม่ตรงกลางแกน Y */
 .duowide > .arrow{align-self:center}
@@ -1028,7 +1023,7 @@ const CONFIG = {
        'compare' = ภาพท่าที่ฟื้นฟูจากตำรา (มีอยู่แล้วครบ ใช้ได้ทันที)
        'frames'  = เฟรมที่ตัดจากวิดีโอ (ต้องตัด 66 ภาพด้วย frame-picker.html ก่อน) */
   POSE_SRC      : 'compare',
-  DIR_RESTORE   : 'assets/restore/',   // การ์ดเทียบก่อน-หลัง จากรายงานฟื้นฟูภาพ ๖๔ ภาพ
+  DIR_RESTORE   : 'assets/restore/',   // การ์ดเทียบก่อน-หลัง จากรายงานฟื้นฟูภาพ ๖๓ ภาพ
   DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
   DIR_COLOR     : 'assets/color/',     // วิดีโอที่ใส่สีแล้ว
   DIR_STUDENT   : 'assets/students/',  // วิดีโอ/ภาพ นักศึกษา-นักเรียนรำ
@@ -1059,6 +1054,11 @@ function logoStrip(){
 /* --- 2.1 คู่ภาพ ต้นฉบับ (จากหนังสือ) / ซ่อมแซม  — 12 ท่า -------------
    ชื่อไฟล์ตรงตามโฟลเดอร์ Nora/เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/
    ใช้ 12 ท่า ตามชุดภาพที่ฟื้นฟูเสร็จแล้ว                            */
+/* note ของแต่ละท่าเก็บไว้เป็น "บันทึกภายใน" เท่านั้น ไม่ได้แสดงบนสไลด์แล้ว
+   (เคยขึ้นเป็นบรรทัดเล็ก ๆ ใต้ภาพ — ถอดออกตามที่ขอ เพราะรกและอ่านไม่ทัน
+   ในจังหวะที่สไลด์วิ่งผ่าน) แต่ไม่ลบทิ้ง เพราะบางบรรทัดเป็นบันทึกการแก้ไข
+   ที่เกิดขึ้นจริง เช่น ไฟล์ท่าจีบหน้ากับท่าเขาควายที่เคยสลับกันแล้วแก้แล้ว
+   ถ้าลบ ก็ไม่เหลือร่องรอยว่าเคยพลาดตรงไหนและแก้อย่างไร */
 const PAIRS = [
   { n:'01', book:'ท่าขี้หนูร่อนรำ', fixName:'ท่าขี้หนอน',        note:'เปลี่ยนมาใช้ไฟล์ "ท่าขี้หนอน คล้ายขี้หนอน" — ไฟล์เดิมเป็นชายหนุ่มไม่มีหนวด คนละคนกับต้นฉบับ' },
   { n:'02', book:'ท่าขุนศรัทธา',    fixName:'ท่าขุนศรัทธา',       note:'ใบหน้าตรงกับต้นฉบับ (ชายมีหนวด)' },
@@ -1522,7 +1522,6 @@ function poseCompare(p){
         ${panel(p.pending ? 'ภาพที่ฟื้นฟูแล้ว (อยู่ระหว่างจัดเตรียม)' : 'ภาพที่ฟื้นฟูแล้ว',
           p.n, fixed, true, p.two, 'tight')}
       </div>
-      <div class="cmpnote">${esc(p.note)}</div>
     </div>` });
 }
 for(let i = 0; i < PAIRS.length; i += 3){
@@ -1551,12 +1550,11 @@ for(let i = 0; i < PAIRS.length; i += 3){
               q.pending ? phBox('image','') : imgFix(q).map(mediaImg).join(''),
               true, q.two, 'tight')}
           </div>
-          <div class="nb">${esc(q.note)}</div>
         </div>`).join('')}</div>` })});
 }
 
 /* ---- ขั้นที่ 02 (ต่อ): ฟื้นฟูภาพครูโนราท่านอื่น ----
-   นอกจากตำราฟ้อนรำ ๒๔๖๖ โครงการยังฟื้นฟูภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร
+   นอกจากตำราฟ้อนรำ ๒๔๖๖ โครงการยังฟื้นฟูภาพถ่ายจดหมายเหตุอีก ๖๓ ภาพ จาก ๖ ชุดเอกสาร
    ตัวเลขและภาพเปรียบเทียบมาจากรายงาน nora_restoration_report_0164_FINAL
    ภาพในโฟลเดอร์ assets/restore/ คือการ์ดเทียบก่อน-หลังสำเร็จรูปจากรายงานฉบับนั้น */
 /* สามชุดเอกสารที่ถ่ายครบ "ท่าครู ๑๒ ท่า" ของครูโนราคนละท่าน
@@ -1583,11 +1581,11 @@ const figCard = ([num, nm]) => `<figure class="fcard">
      <figcaption>${esc(nm)}</figcaption></figure>`;
 
 /* หน้าเปิดหมวด — เล่าว่าฟื้นฟูอะไรบ้าง ก่อนโชว์ภาพจริง */
-const RESTORE_KPI = [['64','ภาพที่ฟื้นฟูทั้งชุด'],['6','ชุดเอกสารต้นทาง'],
+const RESTORE_KPI = [['63','ภาพที่ฟื้นฟูทั้งชุด'],['6','ชุดเอกสารต้นทาง'],
                      ['3','ครูโนราที่มีครบ ๑๒ ท่า'],['×2','ความละเอียดที่ส่งมอบ']]
   .map(([a,b],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
 push({ dur:D.compare, step:1, dark:true, spanCU:true,
-  wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ฟื้นฟูภาพจดหมายเหตุอีก ๖๔ ภาพ',
+  wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ฟื้นฟูภาพจดหมายเหตุอีก ๖๓ ภาพ',
     rows:[['ชุดเอกสาร','๖ ชุด — ภาพสตูดิโอ ภาพพิมพ์สกรีน ภาพสี และฟิล์มขาวดำ'],
           ['ครบ ๑๒ ท่า','๓ ชุด (ชุดที่ ๒ ๓ และ ๔) จากครูโนราคนละท่าน'],
           ['ผ่านเกณฑ์อัตโนมัติ','๕๙ ภาพ'],
@@ -1597,7 +1595,7 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
   left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
   midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
     h2:86, title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
-    sub:'ภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
+    sub:'ภาพถ่ายจดหมายเหตุอีก ๖๓ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
     body:`<div class="sumgrid grid2">${RESTORE_KPI}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'ระเบียบวิธี', h2:88,
     title:'ฟื้นฟูด้วยกติกาเดียวกันทุกภาพ', nologo:true,
@@ -1611,7 +1609,7 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
     </div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
     title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
-    sub:'ภาพถ่ายจดหมายเหตุอีก ๖๔ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
+    sub:'ภาพถ่ายจดหมายเหตุอีก ๖๓ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
     body:`<div class="sumgrid">${RESTORE_KPI}</div>` })});
 
 /* ครูละหน้า — ๑๒ ท่าครบในหน้าเดียว จอละ ๔ ท่า
@@ -1640,7 +1638,6 @@ const otherPane = f => band({ eyebrow:f.set, h2:82, title:esc(f.name), nologo:tr
   sub:esc(f.kind),
   body:`<div class="cmpcol">
     <div class="figbox">${mediaImg(res(f.id + '.jpg'))}</div>
-    <div class="cmpnote">ก่อนฟื้นฟู · หลังฟื้นฟู · ขยายดูใบหน้าและเครื่องแต่งกาย — SSIM ${esc(f.ssim)}</div>
   </div>` });
 push({ dur:D.compare, step:1, spanCU:true,
   wall:{ head:stepEB(1) + ' — ชุดที่ ๕ และ ๖', title:'ภาพชุดที่ยังรอยืนยันชื่อท่า',
