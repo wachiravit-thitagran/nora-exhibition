@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>InfraDash · จอวนแดชบอร์ดโครงสร้างพื้นฐาน PSU</title>
+<style>
+:root{
+  --bg:#080B12; --ink:#E8EEF7; --muted:#7C8AA0; --line:#1C2536;
+  --ok:#4ADE80; --warn:#FBBF24; --err:#F87171; --accent:#5B9DF9;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans Thai","Segoe UI",sans-serif}
+
+/* ---- ชั้นแสดงผล ----
+   ใช้ iframe สองอัน สลับกันเป็นหน้าปัจจุบัน/หน้าถัดไป
+   หน้าถัดไปถูกโหลดไว้ล่วงหน้าตั้งแต่ยังไม่ถึงคิว พอถึงเวลาก็แค่สลับความทึบ
+   ถ้าใช้ iframe เดียวแล้วเปลี่ยน src ตอนถึงคิว จะเห็นจอขาวค้าง 2-3 วินาที
+   ทุกครั้งที่เปลี่ยนหน้า เพราะแดชบอร์ดต้องโหลดสคริปต์กับข้อมูลใหม่หมด */
+#screens{position:fixed;inset:0}
+.scr{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;
+  transition:opacity .45s ease;background:#0B1220;pointer-events:none}
+.scr.on{opacity:1}
+html.nomotion .scr{transition:none}
+
+/* ---- แถบสถานะล่าง ---- */
+#bar{position:fixed;left:0;right:0;bottom:0;height:54px;z-index:20;
+  display:flex;align-items:center;gap:16px;padding:0 20px;
+  background:linear-gradient(180deg,rgba(8,11,18,0),rgba(8,11,18,.94) 42%);
+  font-size:15px;transition:opacity .3s}
+html.kiosk #bar{opacity:0;pointer-events:none}
+html.kiosk.poke #bar{opacity:1;pointer-events:auto}
+#name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pos{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+#dots{display:flex;gap:6px;margin-left:auto}
+.dot{width:7px;height:7px;border-radius:50%;background:#26334A;
+  transition:background .25s,transform .25s}
+.dot.cur{background:var(--accent);transform:scale(1.5)}
+.dot.bad{background:var(--err)}
+#clock{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* แถบเวลานับถอยหลังของหน้าปัจจุบัน — เส้นบางที่ขอบบน ไม่กินพื้นที่จอ */
+#prog{position:fixed;left:0;top:0;height:3px;width:0;z-index:21;
+  background:var(--accent);box-shadow:0 0 12px rgba(91,157,249,.5)}
+
+/* ---- การ์ดแจ้งเมื่อ iframe โดนบล็อก ----
+   สำคัญกว่าที่คิด: ถ้าไม่มีอันนี้ หน้าที่ถูก CSP บล็อกจะขึ้นเป็นจอเปล่า ๆ
+   คนหน้างานจะนึกว่าแดชบอร์ดล่ม ทั้งที่จริงคือ header ฝั่ง ifdash ไม่ยอมให้ฝัง */
+.err{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+  gap:14px;padding:6vh 8vw;background:#0B1220;z-index:5}
+.scrbox.blocked .err{display:flex}
+.err h2{margin:0;font-size:clamp(20px,2.4vw,34px);color:var(--err)}
+.err p{margin:0;font-size:clamp(13px,1.2vw,18px);line-height:1.75;color:var(--ink);max-width:70ch}
+.err code{background:#16203180;border:1px solid var(--line);border-radius:6px;padding:2px 8px;
+  font-size:.92em;word-break:break-all}
+.err .fix{color:var(--muted);font-size:clamp(12px,1.05vw,16px);line-height:1.8}
+.scrbox{position:absolute;inset:0;opacity:0;transition:opacity .45s ease;pointer-events:none}
+.scrbox.on{opacity:1}
+html.nomotion .scrbox{transition:none}
+
+#help{position:fixed;right:20px;bottom:66px;z-index:20;font-size:12px;color:var(--muted);
+  line-height:1.9;text-align:right;opacity:0;transition:opacity .3s}
+html.poke #help{opacity:1}
+kbd{background:#162031;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:11px}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="screens"></div>
+
+<div id="help">
+  <kbd>space</kbd> หยุด/เล่น · <kbd>←</kbd> <kbd>→</kbd> เปลี่ยนหน้า · <kbd>R</kbd> โหลดหน้านี้ใหม่<br>
+  <kbd>F</kbd> เต็มจอ · <kbd>S</kbd> ตามนาฬิกากลาง · <kbd>K</kbd> ซ่อนแถบ
+</div>
+
+<div id="bar">
+  <span id="name">กำลังเริ่ม…</span>
+  <span id="pos"></span>
+  <span id="dots"></span>
+  <span id="clock"></span>
+</div>
+
+<script>
+/* ============================================================
+   InfraDash — จอวนแดชบอร์ดโครงสร้างพื้นฐาน
+   หน้าเดียวจบ ไม่มี dependency เหมือน /exhibition
+
+   ทำไมไม่ใช้ meta refresh หรือให้เบราว์เซอร์วิ่งเปลี่ยน URL เอง
+     พอ navigate ออกไปที่ ifdash แล้ว หน้านี้ก็หายไปด้วย ไม่มีใครพากลับมา
+     ต้องคุมจากหน้าที่อยู่กับที่ แล้วให้แดชบอร์ดอยู่ใน iframe เท่านั้น
+   ============================================================ */
+
+const QS = new URLSearchParams(location.search);
+
+const CONFIG = {
+  /* วินาทีต่อหน้า — ใส่ dwell รายหน้าทับได้ถ้าหน้าไหนต้องการนานกว่า */
+  DWELL: 20,
+
+  /* ให้ทุกจอแสดงหน้าเดียวกันพร้อมกันโดยไม่ต้องต่อสายถึงกัน
+     คิดตำแหน่งจากนาฬิกาโลกเหมือน /exhibition — เปิดคนละเวลาก็ยังตรงกัน
+     ปิดด้วย ?sync=0 ถ้าอยากให้จอนี้เดินอิสระ */
+  SYNC: true,
+  SYNC_EPOCH: Date.UTC(2026, 0, 1),
+
+  /* รอ iframe โหลดนานสุดกี่วินาทีก่อนถือว่าไม่ไหว แล้วข้ามไปหน้าถัดไป
+     แดชบอร์ดค้างหนึ่งหน้าไม่ควรทำให้จอค้างทั้งจอ */
+  LOAD_TIMEOUT: 25,
+};
+
+const PAGES = [
+  { url:'https://ifdash.psu.ac.th/dashboard',                         name:'ภาพรวมโครงสร้างพื้นฐาน' },
+  { url:'https://ifdash.psu.ac.th/dashboard/campuses',                name:'รายวิทยาเขต' },
+  { url:'https://ifdash.psu.ac.th/dashboard/slas/months/campuses',    name:'SLA รายเดือน · ทุกวิทยาเขต' },
+  { url:'https://ifdash.psu.ac.th/dashboard/slas/months/hatyai',      name:'SLA รายเดือน · หาดใหญ่' },
+  { url:'https://ifdash.psu.ac.th/dashboard/campuses/hatyai/line',    name:'หาดใหญ่ · สายสัญญาณ' },
+  { url:'https://ifdash.psu.ac.th/dashboard/campuses/hatyai/wifi',    name:'หาดใหญ่ · ไวไฟ' },
+  { url:'https://ifdash.psu.ac.th/dashboard/slas/months/psu-web',     name:'SLA · PSU Web' },
+  { url:'https://ifdash.psu.ac.th/dashboard/slas/months/psu-service', name:'SLA · PSU Service' },
+  { url:'https://ifdash.psu.ac.th/dashboard/down-overview',           name:'สรุปเหตุขัดข้อง' },
+];
+
+/* ให้ทดสอบ/สาธิตด้วยชุด URL อื่นได้โดยไม่ต้องแก้ไฟล์ — ?urls=a,b,c */
+const OVERRIDE = (QS.get('urls') || '').trim();
+if(OVERRIDE){
+  PAGES.length = 0;
+  OVERRIDE.split(',').filter(Boolean).forEach((u, i) =>
+    PAGES.push({ url:u.trim(), name:'หน้า ' + (i + 1) }));
+}
+
+const DWELL_MS = Math.max(3, +(QS.get('dwell') || CONFIG.DWELL)) * 1000;
+const dwellOf = p => (p.dwell ? p.dwell * 1000 : DWELL_MS);
+
+let SYNC = QS.get('sync') === '0' ? false : CONFIG.SYNC;
+const KIOSK = QS.get('kiosk') === '1';
+if(KIOSK) document.documentElement.classList.add('kiosk');
+if(QS.get('nomotion') === '1') document.documentElement.classList.add('nomotion');
+
+/* ---------- สร้างช่องแสดงผลสองช่อง ---------- */
+const screensEl = document.getElementById('screens');
+/* แต่ละช่องคือ กล่อง > (iframe + การ์ดแจ้งเตือน)
+   การ์ดต้องอยู่ในกล่องเดียวกับ iframe จะได้จางเข้าจางออกไปพร้อมกัน */
+function makeSlot(){
+  const box = document.createElement('div');
+  box.className = 'scrbox';
+  const fr = document.createElement('iframe');
+  fr.className = 'scr on';
+  /* ไม่ใส่ sandbox — ปลายทางเป็นเซอร์วิสของหน่วยงานเอง ไม่ใช่เว็บนอก
+     และ sandbox มักทำให้แดชบอร์ดที่ใช้ storage/worker พังโดยไม่ได้อะไรกลับมา */
+  fr.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+  fr.setAttribute('loading', 'eager');
+  const err = document.createElement('div');
+  err.className = 'err';
+  box.append(fr, err);
+  screensEl.appendChild(box);
+  return { box, fr, err };
+}
+const slots = [makeSlot(), makeSlot()];
+let front = 0;                    // ช่องที่กำลังโชว์อยู่
+
+const el = {
+  name: document.getElementById('name'),
+  pos:  document.getElementById('pos'),
+  dots: document.getElementById('dots'),
+  clock:document.getElementById('clock'),
+  prog: document.getElementById('prog'),
+};
+PAGES.forEach(() => {
+  const d = document.createElement('span');
+  d.className = 'dot';
+  el.dots.appendChild(d);
+});
+
+/* ---------- ตรวจว่าปลายทางยอมให้ฝังหรือไม่ ----------
+   ต้องถามฝั่งเซิร์ฟเวอร์เท่านั้น ถามจากเบราว์เซอร์ไม่ได้เลย
+
+   ทดลองมาแล้ว: เฟรมที่โดนบล็อกกับเฟรมที่โหลดสำเร็จ แยกกันไม่ออกจากฝั่ง JS
+   ทั้งคู่ยิง event load เหมือนกัน · contentDocument เป็น null เหมือนกัน ·
+   location กับ origin โยน SecurityError เหมือนกันหมด เพราะข้าม origin
+   ถ้าเดาจากอาการ จะได้จอดำเปล่าโดยไม่มีคำอธิบาย ซึ่งแย่ที่สุดสำหรับหน้างาน
+
+   รีเลย์ (ตัวเดียวกับที่ /exhibition ใช้) จึงมี /probe ให้ยิงไปอ่าน header
+   ของปลายทางแล้วตอบกลับมาว่าฝังได้ไหม พร้อมค่า header จริงไว้วินิจฉัย
+
+   ยิงตั้งแต่ตอนเปิดหน้า ไม่ใช่รอจนหมุนไปถึง — คนติดตั้งจะได้เห็นปัญหาทันที
+   ไม่ใช่รอ 3 นาทีกว่าจะวนไปเจอหน้าที่พัง                                  */
+const API = (QS.get('api') || location.pathname.replace(/\/[^/]*$/, '') + '/api').replace(/\/$/, '');
+const framable = new Map();          // url -> true | false | null (ตอบไม่ได้)
+const probeInfo = new Map();         // url -> ข้อมูลดิบไว้แสดงตอนแจ้งเตือน
+
+async function probeAll(){
+  await Promise.all(PAGES.map(async p => {
+    try{
+      const r = await fetch(`${API}/probe?url=${encodeURIComponent(p.url)}`
+        + `&as=${encodeURIComponent(location.origin)}`, { cache:'no-store' });
+      if(!r.ok) throw new Error('probe ' + r.status);
+      const j = await r.json();
+      framable.set(p.url, j.framable);
+      probeInfo.set(p.url, j);
+    }catch(e){
+      // รีเลย์ไม่ตอบก็ไม่เป็นไร — ปล่อยให้ลองฝังไปตามปกติ ดีกว่าขึ้นเตือนผิด ๆ
+      framable.set(p.url, null);
+    }
+    const i = PAGES.indexOf(p);
+    if(framable.get(p.url) === false){
+      mark(i, false);
+      // ถ้าหน้าที่กำลังโชว์อยู่คือหน้าที่ฝังไม่ได้ ให้ขึ้นการ์ดเดี๋ยวนั้นเลย
+      for(const sl of slots) if(sl.loading === i) showError(sl, p, 'csp');
+    }
+  }));
+}
+
+const esc = t => String(t).replace(/[&<>"]/g, c =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+function showError(slot, page, why){
+  const host = (() => { try{ return new URL(page.url).host; }catch(e){ return page.url; } })();
+  slot.box.classList.add('blocked');
+  slot.err.innerHTML = why === 'timeout'
+    ? `<h2>โหลดไม่ทันใน ${CONFIG.LOAD_TIMEOUT} วินาที</h2>
+       <p><code>${esc(page.url)}</code></p>
+       <p class="fix">แดชบอร์ดหน้านี้ช้าหรือไม่ตอบ · จอจะข้ามไปหน้าถัดไปให้เอง
+       แล้ววนกลับมาลองใหม่รอบหน้า</p>`
+    : (() => {
+        const info = probeInfo.get(page.url) || {};
+        const hdr = [info.xfo && `X-Frame-Options: ${info.xfo}`,
+                     info.csp && `Content-Security-Policy: ${info.csp}`]
+                    .filter(Boolean).join('<br>');
+        return `<h2>ฝังหน้านี้ไม่ได้ — ปลายทางไม่อนุญาต</h2>
+       <p><code>${esc(page.url)}</code></p>
+       ${hdr ? `<p class="fix">header ที่ปลายทางส่งมาจริง:<br><code>${esc(hdr).replace(/&lt;br&gt;/g,'<br>')}</code></p>` : ''}
+       <p class="fix">
+         <b>${esc(host)}</b> สั่งห้ามเอาหน้าไปแสดงในกรอบของเว็บอื่น
+         แก้ที่ nginx ของ ${esc(host)} —
+         <code>add_header Content-Security-Policy "frame-ancestors 'self' ${esc(location.origin)}" always;</code>
+         และเอา <code>X-Frame-Options</code> ออก
+       </p>`;
+      })();
+}
+function clearError(slot){
+  slot.box.classList.remove('blocked');
+  slot.err.innerHTML = '';
+}
+
+/* ---------- โหลดหน้าเข้าไปในช่องที่ว่างอยู่ ---------- */
+function load(slot, i){
+  const page = PAGES[i];
+  clearError(slot);
+  slot.loading = i;
+  slot.ok = null;
+
+  clearTimeout(slot.timer);
+  slot.timer = setTimeout(() => {
+    if(slot.ok === null){ slot.ok = false; showError(slot, page, 'timeout'); mark(i, false); }
+  }, CONFIG.LOAD_TIMEOUT * 1000);
+
+  slot.fr.onload = () => {
+    clearTimeout(slot.timer);
+    const bad = framable.get(page.url) === false;
+    slot.ok = !bad;
+    if(bad) showError(slot, page, 'csp');
+    mark(i, !bad);
+  };
+  // เติม cache buster ทุกครั้ง — แดชบอร์ดต้องเป็นข้อมูลสด ไม่ใช่ของที่ค้างในแคช
+  const sep = page.url.includes('?') ? '&' : '?';
+  slot.fr.src = page.url + sep + '_t=' + Date.now();
+}
+
+function mark(i, ok){
+  const d = el.dots.children[i];
+  if(d) d.classList.toggle('bad', !ok);
+}
+
+/* ---------- ตัวหมุน ---------- */
+let cur = -1, t0 = 0, playing = true;
+
+/* ตำแหน่งตามนาฬิกาโลก — ทุกจอคำนวณเหมือนกันจึงอยู่หน้าเดียวกันเสมอ
+   (ยืมแนวคิดเดียวกับ /exhibition มาใช้ ไม่ต้องมีเซิร์ฟเวอร์คอยสั่ง) */
+function clockPos(){
+  const total = PAGES.reduce((a, p) => a + dwellOf(p), 0);
+  let t = ((Date.now() - CONFIG.SYNC_EPOCH) % total + total) % total;
+  for(let i = 0; i < PAGES.length; i++){
+    const d = dwellOf(PAGES[i]);
+    if(t < d) return { i, off:t };
+    t -= d;
+  }
+  return { i:0, off:0 };
+}
+
+function show(i, off){
+  i = ((i % PAGES.length) + PAGES.length) % PAGES.length;
+  const back = slots[1 - front];
+
+  // ถ้าช่องหลังโหลดหน้านี้รออยู่แล้ว ก็แค่สลับ ไม่ต้องโหลดซ้ำ
+  if(back.loading !== i) load(back, i);
+
+  slots[front].box.classList.remove('on');
+  back.box.classList.add('on');
+  front = 1 - front;
+
+  cur = i;
+  t0 = performance.now() - (off || 0);
+  paint();
+
+  // โหลดหน้าถัดไปใส่ช่องที่เพิ่งว่าง เตรียมไว้ล่วงหน้าเลย
+  load(slots[1 - front], (i + 1) % PAGES.length);
+}
+
+function paint(){
+  const p = PAGES[cur];
+  el.name.textContent = p ? p.name : '—';
+  el.pos.textContent = `${cur + 1} / ${PAGES.length}` + (SYNC ? ' · ตามนาฬิกากลาง' : ' · เดินเอง')
+    + (playing ? '' : ' · หยุดอยู่');
+  [...el.dots.children].forEach((d, k) => d.classList.toggle('cur', k === cur));
+}
+
+function tick(now){
+  requestAnimationFrame(tick);
+  const t = new Date();
+  el.clock.textContent = String(t.getHours()).padStart(2,'0') + ':' +
+                         String(t.getMinutes()).padStart(2,'0');
+  if(!playing) return;
+
+  if(SYNC){
+    const q = clockPos();
+    if(q.i !== cur) show(q.i, q.off);
+    el.prog.style.width = (q.off / dwellOf(PAGES[cur]) * 100).toFixed(2) + '%';
+    return;
+  }
+  const d = dwellOf(PAGES[cur]);
+  const k = Math.min(1, (now - t0) / d);
+  el.prog.style.width = (k * 100).toFixed(2) + '%';
+  if(k >= 1) show(cur + 1);
+}
+
+/* หลุดจากนาฬิกากลางเมื่อมีคนสั่งเปลี่ยนหน้าเอง ไม่งั้นรอบถัดไปจะถูกดึงกลับทันที */
+function manual(){ if(SYNC){ SYNC = false; t0 = performance.now(); } }
+
+/* ---------- แป้นพิมพ์ ---------- */
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if(k === ' '){ e.preventDefault(); playing = !playing; if(playing) t0 = performance.now(); paint(); }
+  else if(k === 'arrowright'){ manual(); show(cur + 1); }
+  else if(k === 'arrowleft'){ manual(); show(cur - 1); }
+  else if(k === 'r'){ load(slots[front], cur); }
+  else if(k === 's'){ SYNC = true; const q = clockPos(); show(q.i, q.off); }
+  else if(k === 'f'){ document.fullscreenElement ? document.exitFullscreen()
+                        : document.documentElement.requestFullscreen().catch(()=>{}); }
+  else if(k === 'k'){ document.documentElement.classList.toggle('kiosk'); }
+});
+
+/* แถบล่างโผล่ตอนขยับเมาส์แล้วหายเอง — จอนิทรรศการไม่ควรมีอะไรค้างบนจอ */
+let pokeTimer;
+addEventListener('mousemove', () => {
+  document.documentElement.classList.add('poke');
+  clearTimeout(pokeTimer);
+  pokeTimer = setTimeout(() => document.documentElement.classList.remove('poke'), 2600);
+});
+
+/* ---------- เริ่ม ---------- */
+const start = SYNC ? clockPos() : { i:0, off:0 };
+load(slots[0], start.i);
+slots[0].box.classList.add('on');
+front = 0;
+cur = start.i;
+t0 = performance.now() - start.off;
+paint();
+load(slots[1], (start.i + 1) % PAGES.length);
+requestAnimationFrame(tick);
+probeAll();
+
+// เปิดให้ทดสอบและสั่งงานจากภายนอกได้ (หน้า controller จะมาต่อทีหลัง)
+window.INFRA = {
+  get state(){ return { page:cur + 1, total:PAGES.length, name:PAGES[cur] && PAGES[cur].name,
+    url:PAGES[cur] && PAGES[cur].url, playing, sync:SYNC,
+    ok:slots[front].ok, blocked:slots[front].box.classList.contains('blocked'),
+    framable:PAGES[cur] ? framable.get(PAGES[cur].url) : undefined }; },
+  next(){ manual(); show(cur + 1); },
+  prev(){ manual(); show(cur - 1); },
+  goto(n){ manual(); show(n - 1); },
+  reload(){ load(slots[front], cur); },
+  pages: PAGES,
+  probe: () => probeAll(),
+  framable,
+};
+</script>
+</body>
+</html>

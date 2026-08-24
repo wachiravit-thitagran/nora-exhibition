@@ -10,6 +10,41 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>AI NORA — นิทรรศการ Breath of Nora</title>
+
+<!-- Google tag (gtag.js) — G-PD410XC6GH
+
+     โหลดเฉพาะตอนเป็น "จอจริงบนเซิร์ฟเวอร์จริง" เท่านั้น ไม่งั้นตัวเลขจะเพี้ยน
+     สามกรณีที่ต้องกันไว้ ไม่ใช่ความระแวงเกินเหตุ ทั้งสามเกิดขึ้นจริงในระบบนี้
+
+       ภาพตัวอย่างบนหน้า controller  เปิดสไลด์ทั้งชุดใน iframe ทุกครั้งที่กดดู
+                                     สแตฟฟ์คนเดียวกดสิบครั้ง = สิบ pageview
+       standalone.html / preview     เปิดจากไฟล์ตรง ๆ (file://) ตอนรีวิวงาน
+       ทดสอบอัตโนมัติ                Playwright เปิดหน้านี้หลายสิบรอบทุกบิลด์
+
+     window.__PREVIEW ถูกยัดเข้ามาก่อนสคริปต์นี้เสมอ (controller แทรกไว้หลัง <head>)
+     จึงเช็กตรงนี้ได้ ไม่ต้องรอสคริปต์หลักด้านล่าง -->
+<script>
+(function(){
+  /* บันทึกเหตุผลไว้ที่ window.__GA เสมอ ทั้งตอนโหลดและตอนข้าม
+     เอาไว้ตอบคำถาม "ทำไมจอนี้ไม่ขึ้นใน Analytics" ได้จาก console ทันที
+     โดยไม่ต้องไล่อ่านโค้ด และให้ชุดทดสอบยืนยันได้ว่ากันถูกกรณี */
+  var q = location.search;
+  var why = window.__PREVIEW === true || q.indexOf('preview=1') >= 0 ? 'skip:preview'
+          : location.protocol === 'file:'                            ? 'skip:file'
+          : /^(localhost|127\.|0\.0\.0\.0$)/.test(location.hostname) ? 'skip:local'
+          : 'on';
+  window.__GA = why;
+  if(why !== 'on') return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=G-PD410XC6GH';
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', 'G-PD410XC6GH');
+})();
+</script>
 <style>
 /* ฟอนต์ Anuphan (Cadson Demak, SIL OFL 1.1) — ดูสัญญาอนุญาตที่ brand/Anuphan-OFL.txt */
 @font-face{

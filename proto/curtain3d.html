@@ -74,8 +74,14 @@ code{background:#241E16;border-radius:5px;padding:1px 6px}
   แถบเวลาที่นี่จับคู่ไว้กับช่วงแหวกแล้ว
 </footer>
 
-<script type="module">
-import * as THREE from './three.module.min.js';
+<!-- three.js โหลดเป็นสคริปต์ธรรมดา ไม่ใช่ ES module
+     เพราะ module import ถูกเบราว์เซอร์บล็อกเวลาเปิดไฟล์จากเครื่องตรง ๆ (file://)
+     แบบนี้ดับเบิลคลิกเปิดได้เลย ไม่ต้องตั้งเว็บเซิร์ฟเวอร์
+     ตัวไฟล์เป็น CommonJS จึงต้องมี exports ให้มันเขียนลงก่อน -->
+<script>window.exports = {};</script>
+<script src="three.js"></script>
+<script>
+const THREE = window.exports;
 
 /* ---------------------------------------------------------------
    ม่านทองแบบ 3 มิติ

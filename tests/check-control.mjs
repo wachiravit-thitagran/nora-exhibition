@@ -188,6 +188,17 @@ ok(await ctl2.evaluate(() => {
 }) !== 'hall-b', 'ภาพตัวอย่างไม่ได้แอบใช้ชื่อจอจริง');
 ok(!(await ctl2.textContent('#conn')).includes('จาก 3'),
    'ภาพตัวอย่างไม่ไปรายงานตัวกับรีเลย์จนกลายเป็นจออีกตัว');
+/* ---- Google Analytics ต้องไม่นับภาพตัวอย่างเป็นผู้ชม ----
+   ภาพตัวอย่างเปิดสไลด์ทั้งชุดใน iframe ทุกครั้งที่สแตฟฟ์กดดู
+   ถ้าปล่อยให้ gtag ทำงานในนั้นด้วย กดสิบครั้งก็ได้สิบ pageview
+   ตัวเลขผู้ชมจริงหน้างานจะจมไปกับการกดดูของทีมงานเอง */
+ok(await ctl2.evaluate(() => {
+  try{ return document.getElementById('pv').contentWindow.__GA; }catch(e){ return '?'; }
+}) === 'skip:preview', 'ภาพตัวอย่างไม่ยิง Analytics (__GA = skip:preview)');
+ok(await ctl2.evaluate(() => {
+  try{ return !document.getElementById('pv').contentWindow.dataLayer; }catch(e){ return false; }
+}), 'ภาพตัวอย่างไม่มี dataLayer เลย — ไม่ได้แค่ไม่ส่ง แต่ไม่โหลดสคริปต์ด้วย');
+
 await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(400);
 ok(await ctl2.evaluate(() => !document.getElementById('pv').getAttribute('srcdoc')),
    'ปิดภาพตัวอย่างแล้วหยุดโหลดจริง');
@@ -376,6 +387,33 @@ const bad = await ctl.evaluate(async api => {
   return r.status;
 }, base + '/api/cmd');
 ok(bad === 401, 'โทเคนผิดถูกปฏิเสธ (ได้ ' + bad + ')');
+
+/* ---- บนโฮสต์จริง gtag ต้องทำงาน ----
+   ตัวกัน localhost ทำให้ทดสอบตรง ๆ ไม่ได้ จึงหลอก DNS ให้ชื่อปลอมชี้มาที่ 127.0.0.1
+   ถ้าไม่ทดสอบข้อนี้ อาจเขียนตัวกันแน่นเกินจนไม่มีใครถูกนับเลยแล้วไม่มีใครรู้ */
+const b2 = await chromium.launch({
+  args: ['--host-resolver-rules=MAP ainora.test 127.0.0.1'],
+});
+const real = await b2.newPage({ viewport:{width:900,height:520} });
+await real.goto(`http://ainora.test:${port}/exhibition/index.html?ctrl=0&sync=0`);
+await real.waitForTimeout(1200);
+ok(await real.evaluate(() => window.__GA) === 'on', 'เปิดจากโฮสต์จริง — gtag ทำงาน (__GA = on)');
+ok(await real.evaluate(() => Array.isArray(window.dataLayer) && window.dataLayer.length >= 2),
+   'ส่ง js กับ config เข้า dataLayer แล้ว');
+ok(await real.evaluate(() =>
+     !![...document.scripts].find(s2 => (s2.src || '').includes('googletagmanager.com/gtag/js'))),
+   'แทรกแท็ก gtag.js เข้าหน้าแล้ว');
+ok(await real.evaluate(() =>
+     !![...document.scripts].find(s2 => (s2.src || '').includes('G-PD410XC6GH'))),
+   'ใช้รหัสวัดผล G-PD410XC6GH');
+const ctlReal = await b2.newPage({ viewport:{width:420,height:900} });
+await ctlReal.goto(`http://ainora.test:${port}/exhibition/control.html`);
+await ctlReal.waitForTimeout(900);
+ok(await ctlReal.evaluate(() => window.__GA) === 'on', 'หน้า controller บนโฮสต์จริงก็ยิงเหมือนกัน');
+await b2.close();
+
+ok(await s2.evaluate(() => window.__GA) === 'skip:local',
+   'เปิดจาก 127.0.0.1 (ทดสอบ/เครื่องตัวเอง) — ไม่ยิง Analytics');
 
 // ---- ปิดรีเลย์แล้วสไลด์ต้องเล่นต่อได้ ----
 relay.kill();

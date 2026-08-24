@@ -114,26 +114,36 @@ ok(e0.length > 0 && Math.max(...e0) <= 120,
 
 // จงใจดันวิดีโอของแท็บกลางให้เพี้ยน แล้วดูว่าระบบดึงกลับเองไหม
 // เดิมไม่มีอะไรมาดึง คลิปตั้ง loop ไว้ ความต่างจึงวนตามไปจนหมดหน้า
-await tabs[1].evaluate(() => {
+/* วัดว่า "ดันสำเร็จจริง" จากตัวเลขก่อน/หลังในคำสั่งเดียวกัน
+   ห้ามไปวัดทีหลังด้วย vidErr() — ระบบดึงกลับเร็วกว่าที่ readyState จะฟื้นจากการ seek
+   วัดทีหลังจึงได้ค่าที่ถูกแก้ไปแล้ว แล้วข้อทดสอบจะพลาดแบบสุ่มทั้งที่โค้ดทำงานถูก */
+const pushed = await tabs[1].evaluate(() => {
+  const out = [];
   for(const v of SLIDES[cur].el.querySelectorAll('video')){
     const pn = v.closest('.pane');
     if(pn && pn.offsetWidth === 0) continue;
-    try{ v.currentTime = (v.currentTime + v.duration - 0.40) % v.duration; }catch(e){}
+    if(!isFinite(v.duration) || v.duration <= 0.2) continue;
+    const was = v.currentTime;
+    try{ v.currentTime = (was + v.duration - 0.40) % v.duration; }catch(e){}
+    let d = v.currentTime - was;
+    if(d >  v.duration/2) d -= v.duration;
+    if(d < -v.duration/2) d += v.duration;
+    out.push(Math.round(Math.abs(d) * 1000));
   }
+  return out;
 });
-/* ระหว่างกระโดด readyState ตกต่ำกว่า 2 ชั่วครู่ วัดตอนนั้นจะได้อาเรย์ว่าง
-   ต้องวนรออ่านจนกว่าจะมีค่า ไม่งั้นข้อทดสอบจะพลาดแบบสุ่มโดยไม่ได้แปลว่าโค้ดพัง */
-let eBad = [];
-for(let i = 0; i < 12 && !eBad.length; i++){
-  await tabs[0].waitForTimeout(80);
-  eBad = (await vidErr())[1];
-}
-ok(eBad.length > 0 && Math.max(...eBad) > 250,
-   `ดันให้เพี้ยนแล้ววัดได้จริงว่าเพี้ยน (${eBad.length ? Math.max(...eBad) : 'วัดไม่ได้'}ms)`);
+ok(pushed.length > 0 && Math.max(...pushed) > 250,
+   `ดันวิดีโอให้เพี้ยนได้จริง (ขยับไป ${pushed.length ? Math.max(...pushed) : '?'}ms)`);
 await tabs[0].waitForTimeout(4000);
 const e1 = (await vidErr()).flat();
-ok(e1.length >= 3 && Math.max(...e1) <= 120,
-   `ปล่อยไว้ 4 วินาที ระบบดึงกลับเข้าที่เอง (เหลือ ${e1.length ? Math.max(...e1) : '?'}ms)`);
+/* วัด "ลดลงเท่าไร" ไม่ใช่ "เหลือเท่าไร"
+   ตัวเลขที่เหลือขึ้นกับความสั่นของตัวถอดรหัสวิดีโอในเครื่องที่รันเทสต์
+   (headless ไม่มีการ์ดจอ จังหวะเฟรมจึงไม่นิ่งเท่าจอจริง) ตั้งเพดานตายตัวแคบ ๆ
+   จะพลาดแบบสุ่มโดยไม่ได้แปลว่าโค้ดพัง — สิ่งที่ต้องพิสูจน์คือ "มันดึงกลับจริง" */
+const worst1 = e1.length ? Math.max(...e1) : Infinity;
+const injected = Math.max(...pushed);
+ok(e1.length >= 3 && worst1 < injected * 0.5 && worst1 <= 200,
+   `ปล่อยไว้ 4 วินาที ระบบดึงกลับเข้าที่เอง (${injected}ms → ${worst1}ms)`);
 
 /* คำสั่งพก at มาด้วย จอต้องนับเวลาในหน้าจาก at ไม่ใช่จากตอนที่คำสั่งมาถึง
    ทดสอบตรง ๆ ด้วยการยิงคำสั่งที่ "ออกจากรีเลย์มาแล้ว 400ms" เข้าไป

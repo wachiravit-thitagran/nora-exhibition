@@ -9,3 +9,4 @@ docker-compose*.yml
 Jenkinsfile
 make-standalone.py
 deploy/fetch-media.sh
+proto/

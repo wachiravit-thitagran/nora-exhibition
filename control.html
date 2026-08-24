@@ -7,6 +7,31 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>ควบคุมจอนิทรรศการ · AI NORA</title>
+
+<!-- Google tag (gtag.js) — G-PD410XC6GH
+     ใช้ตัวเดียวกับสไลด์ กันเปิดจากไฟล์ตรง ๆ และตอนรันทดสอบไว้เหมือนกัน -->
+<script>
+(function(){
+  /* บันทึกเหตุผลไว้ที่ window.__GA เสมอ ทั้งตอนโหลดและตอนข้าม
+     เอาไว้ตอบคำถาม "ทำไมจอนี้ไม่ขึ้นใน Analytics" ได้จาก console ทันที
+     โดยไม่ต้องไล่อ่านโค้ด และให้ชุดทดสอบยืนยันได้ว่ากันถูกกรณี */
+  var q = location.search;
+  var why = window.__PREVIEW === true || q.indexOf('preview=1') >= 0 ? 'skip:preview'
+          : location.protocol === 'file:'                            ? 'skip:file'
+          : /^(localhost|127\.|0\.0\.0\.0$)/.test(location.hostname) ? 'skip:local'
+          : 'on';
+  window.__GA = why;
+  if(why !== 'on') return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=G-PD410XC6GH';
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', 'G-PD410XC6GH');
+})();
+</script>
 <style>
 :root{
   --bg:#12100C; --card:#1D1A14; --line:#332D22; --ink:#F4EEE1; --muted:#A79B85;
