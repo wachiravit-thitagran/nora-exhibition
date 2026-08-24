@@ -60,7 +60,7 @@ code{background:#241E16;border-radius:5px;padding:1px 6px}
   <div class="cell"><span class="tag">Three.js</span><canvas id="cv"></canvas></div>
   <div class="cell" id="vcell">
     <span class="tag">คลิปต้นฉบับ</span>
-    <video id="vid" muted playsinline preload="auto"></video>
+    <video id="vid" muted playsinline preload="metadata"></video>
     <div id="vmsg">วาง <code>INTRO_AINORA_.mp4</code> ไว้โฟลเดอร์เดียวกับไฟล์นี้<br>แล้วรีเฟรช จะเทียบทีละเฟรมได้</div>
   </div>
 </div>
@@ -99,8 +99,9 @@ const P = {                       // ค่าที่ปรับได้จ�
   dolly:      0.35,               // กล้องเคลื่อนเข้าหาม่าน
   sheen:      20,                 // ความแคบของไฮไลต์ซาติน
   wrap:       0.34,               // แสงอ้อมไปหลังลอน — ตัวที่ทำให้ผ้าดู "นุ่ม"
-  gain:       1.16,               // ความสว่างรวม
-  vignette:   0.42,               // ขอบมืด
+  gain:       1.00,               // ความสว่างรวม (โหมดลอกสี ต้องเป็น 1 ถึงจะตรงต้นฉบับ)
+  plate:      1.00,               // 1 = ใช้สีจากคลิป · 0 = วาดสีเอง
+  vignette:   0.00,               // ขอบมืด (เฟรมต้นฉบับมีของมันมาแล้ว)
   warm:       '#F0D081',          // สีทองสว่าง
   dark:       '#4E3711',          // สีทองเงา
 };
@@ -108,9 +109,13 @@ const P = {                       // ค่าที่ปรับได้จ�
 const cv = document.getElementById('cv');
 const renderer = new THREE.WebGLRenderer({ canvas:cv, antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// ต้องประกาศให้ชัด ไม่งั้นภาพจากเฟรมจริงจะออกมาคนละโทนกับต้นฉบับ
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
+const CAM_Z = 5.0;                 // ระยะกล้องตอนม่านปิด — ใช้คิดความกว้างม่านด้วย
+const CLOTH_H = 9.0;               // ความสูงผ้า สูงเกินกรอบไว้ไม่ให้เห็นหัว/ชายม่าน
 const camera = new THREE.PerspectiveCamera(54, 16/9, 0.1, 100);
-camera.position.set(0, 0, 5.0);
+camera.position.set(0, 0, CAM_Z);
 
 /* ฉากหลัง = สิ่งที่อยู่หลังม่าน ในเด็คจริงคือสไลด์หน้าแรก
    ที่นี่ใช้แผ่นสว่างไล่เฉดพอให้เห็นว่าม่านแหวกออกแล้ว */
@@ -130,6 +135,17 @@ const back = new THREE.Mesh(
 back.position.z = -3.2;
 scene.add(back);
 
+/* พื้นผิวจากเฟรมจริงของคลิป (ม่านปิด ณ วินาทีที่ 5.5)
+   ทำให้สีทอง ระยะลอน ความเงา และขอบมืด ตรงกับต้นฉบับโดยไม่ต้องไล่ปรับเอง */
+const plate = new THREE.TextureLoader().load('curtain-plate.jpg', t => {
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  t.needsUpdate = true;
+});
+// ตั้งตั้งแต่ตอนนี้ ไม่ใช่ใน callback — ถ้าไปตั้งทีหลังเฟรมแรกจะอัปโหลดผิดโทนไปแล้ว
+plate.colorSpace = THREE.SRGBColorSpace;
+plate.wrapS = plate.wrapT = THREE.ClampToEdgeWrapping;
+plate.minFilter = THREE.LinearMipmapLinearFilter;
+
 const VERT = `
 uniform float uOpen;      // 0 ปิดสนิท .. 1 เปิดสุด
 uniform float uFolds;
@@ -139,6 +155,9 @@ uniform float uBunch;
 uniform float uSway;
 uniform float uSide;      // -1 ผืนซ้าย · +1 ผืนขวา
 uniform float uHalf;      // ครึ่งความกว้างเวที
+uniform float uClothH;    // ความสูงผ้า (สูงเกินกรอบไว้)
+uniform float uFlareB;    // ความกว้างที่ชายล่าง
+uniform float uFlareT;    // ความกว้างที่หัวม่าน
 
 varying vec2  vUv;
 varying vec3  vNrm;
@@ -175,11 +194,11 @@ void main(){
 
   // ผ้าสูงเกินกรอบทั้งบนและล่าง จะได้ไม่เห็นขอบผืนโผล่มาในภาพ
   // (ม่านจริงบนเวทีก็ยาวเลยขอบจอ ไม่มีใครเห็นหัวหรือชายม่าน)
-  float y = (uv.y - 0.5) * 9.0;
+  float y = (uv.y - 0.5) * uClothH;
 
-  // ชายล่างบานกว้างกว่าหัวม่าน ผ้าถ่วงน้ำหนักแล้วสะบัดออกด้านข้าง
-  // ตัวนี้เองที่ทำให้ลอนในคลิปต้นฉบับ "แผ่ออก" เวลามองจากกล้องที่อยู่ใกล้
-  x *= mix(1.14, 0.94, uv.y);
+  // ชายล่างบานกว้างกว่าหัวม่าน — ปิดไว้ (=1.0) ตอนลอกสีจากคลิป
+  // เพราะเฟรมต้นฉบับมีการแผ่ของลอนติดมาในภาพอยู่แล้ว แผ่ซ้ำจะเพี้ยนสองเท่า
+  x *= mix(uFlareB, uFlareT, uv.y);
 
   /* normal ของผิว z = amp*cos(ph)
      เส้นสัมผัสตาม u คือ (dx/du, 0, dz/du) · ตาม y คือ (0,1,0)
@@ -198,11 +217,16 @@ void main(){
 }`;
 
 const FRAG = `
-uniform vec3  uWarm;
-uniform vec3  uDark;
-uniform float uSheen;
-uniform float uWrap;
-uniform float uGain;
+uniform vec3      uWarm;
+uniform vec3      uDark;
+uniform float     uSheen;
+uniform float     uWrap;
+uniform float     uGain;
+uniform sampler2D uPlate;   // เฟรมม่านปิดจากคลิปต้นฉบับ
+uniform float     uPlateMix;// 0 = วาดสีเอง · 1 = ใช้สีจากคลิป
+uniform float     uSide;
+uniform float     uOpen;
+uniform float     uTexY;
 
 varying vec2  vUv;
 varying vec3  vNrm;
@@ -233,15 +257,36 @@ void main(){
   vec3  h2 = normalize(l2 + v);
   float s2 = pow(max(dot(n, h2), 0.0), uSheen * 0.55);
 
-  vec3 col = mix(uDark, uWarm, clamp(d1 * 0.86 + d2 * 0.42, 0.0, 1.0));
-  col += uWarm * (s1 * 0.62 + s2 * 0.26);
+  vec3 lit = mix(uDark, uWarm, clamp(d1 * 0.86 + d2 * 0.42, 0.0, 1.0));
+  lit += uWarm * (s1 * 0.62 + s2 * 0.26);
 
-  // ไล่เฉดตามความสูง — หัวม่านอยู่ใต้รางจึงมืดกว่า ชายล่างอมเงา
-  col *= mix(0.46, 1.0, smoothstep(0.06, 0.46, vUv.y));
-  col *= mix(1.0, 0.68, smoothstep(0.70, 1.0, vUv.y));
+  /* ---- โหมดลอกสีจากคลิปต้นฉบับ ----
+     ผ้าที่พิมพ์ลายไว้ ลายจะติดไปกับเนื้อผ้า ไม่ได้อยู่กับที่บนจอ
+     จึงอ่านพื้นผิวด้วยพิกัดของ "เนื้อผ้า" (vEdge) ไม่ใช่พิกัดบนจอ
+     เวลาม่านถูกรวบ ลายก็หดตามผ้าเองโดยอัตโนมัติ เหมือนผ้าจริง
 
-  // ขอบนอกของผืนมืดลง ให้รู้สึกว่าผ้าม้วนหนาขึ้นตรงที่รวบ
-  col *= mix(1.0, 0.74, smoothstep(0.58, 1.0, vEdge));
+     ตอนม่านปิดสนิท ภาพที่ได้คือเฟรมของคลิปเป๊ะ ๆ เพราะเป็นพิกเซลเดียวกัน
+     พอเริ่มรวบถึงค่อยเพี้ยนออกไปตามการบิดที่คำนวณเอง                    */
+  float tx = 0.5 + uSide * vEdge * 0.5;
+  /* ผ้าสูงเกินกรอบภาพ (ตั้งใจ จะได้ไม่เห็นหัวกับชายม่าน) แต่พื้นผิวที่ตัดมา
+     คือ "เต็มกรอบ" พอดี ถ้าทาบตรง ๆ จะเห็นแค่ท่อนกลางของภาพแล้วยืดออก
+     uTexY จึงขยายพิกัดกลับให้ส่วนที่มองเห็นตรงกับเฟรมต้นฉบับพอดี */
+  float ty = 0.5 + (vUv.y - 0.5) * uTexY;
+  vec3 plate = texture2D(uPlate, vec2(tx, ty)).rgb;
+
+  /* แสงเงาที่คำนวณเองยังต้องใช้ต่อ แต่ใช้เป็น "ตัวคูณ" ไม่ใช่ตัวสี
+     เพราะเฟรมต้นฉบับมีแสงเงาของมันติดมาแล้ว ถ้าทาสีทับจะกลายเป็นสองชั้น
+     ตอนม่านปิดจึงคูณด้วย 1 เฉย ๆ พอเริ่มรวบค่อยให้เงาใหม่ทำงาน */
+  float shade = mix(1.0, clamp(d1 * 0.9 + d2 * 0.5 + s1 * 0.5, 0.35, 1.45), uOpen);
+  vec3 col = mix(lit, plate * shade, uPlateMix);
+
+  // ไล่เฉดตามความสูง — เฉพาะโหมดวาดเอง เฟรมต้นฉบับมีของมันอยู่แล้ว
+  float vshade = mix(0.46, 1.0, smoothstep(0.06, 0.46, vUv.y))
+               * mix(1.0, 0.68, smoothstep(0.70, 1.0, vUv.y));
+  col *= mix(vshade, 1.0, uPlateMix);
+
+  // ขอบนอกของผืนมืดลง ให้รู้สึกว่าผ้าม้วนหนาขึ้นตรงที่รวบ (เฉพาะตอนรวบแล้ว)
+  col *= mix(1.0, 0.74, smoothstep(0.58, 1.0, vEdge) * mix(1.0, 1.0, uPlateMix) * max(uOpen, 1.0 - uPlateMix));
 
   // ขอบมืดรอบเฟรมทำเป็นแผ่นบังหน้ากล้องด้านล่าง ไม่ใช่ที่นี่
   gl_FragColor = vec4(col * uGain, 1.0);
@@ -253,6 +298,8 @@ const uni = {
   uHalf:{value:4.2}, uSide:{value:1},
   uWarm:{value:new THREE.Color(P.warm)}, uDark:{value:new THREE.Color(P.dark)},
   uSheen:{value:P.sheen}, uWrap:{value:P.wrap}, uGain:{value:P.gain},
+  uPlate:{value:plate}, uPlateMix:{value:1},
+  uFlareB:{value:1}, uFlareT:{value:1}, uTexY:{value:1.77}, uClothH:{value:9},
   uVig:{value:P.vignette},
 };
 
@@ -307,7 +354,7 @@ function setT(v){
   t = Math.max(0, Math.min(P.dur, v));
   const k = bez(t / P.dur);
   uni.uOpen.value = k;
-  camera.position.z = 5.0 - P.dolly * k;
+  camera.position.z = CAM_Z - P.dolly * k;
   scrub.value = (t / P.dur).toFixed(3);
   tnum.textContent = t.toFixed(2) + ' / ' + P.dur.toFixed(2) + ' วิ';
   if(vidOK){                              // จับคู่กับช่วงแหวกของคลิปต้นฉบับ
@@ -322,6 +369,12 @@ function resize(){
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  /* ม่านตอนปิดต้องกว้างพอดีกรอบภาพเป๊ะ ๆ ไม่ขาดไม่เกิน
+     ไม่งั้นพื้นผิวที่ตัดมาจากเฟรมจริงจะทาบไม่ตรง เห็นเป็นภาพยืดหรือมีขอบโหว่
+     คิดจากระยะกล้องตอนเริ่ม (ไม่ใช่ระยะปัจจุบัน) ม่านจะได้อยู่กับที่ตอนกล้องเคลื่อน */
+  const halfH = Math.tan(camera.fov * Math.PI / 360) * CAM_Z;
+  uni.uHalf.value = halfH * camera.aspect;
+  uni.uTexY.value = CLOTH_H / (2 * halfH);   // ผ้าสูง CLOTH_H แต่เห็นแค่ 2*halfH
 }
 addEventListener('resize', resize);
 
@@ -360,6 +413,7 @@ const FIELDS = [
   ['sheen',  'ความแคบของไฮไลต์',       4, 60, 1,    v => uni.uSheen.value = v],
   ['wrap',   'แสงอ้อมหลังลอน (ความนุ่ม)', 0, 1.4, 0.02, v => uni.uWrap.value = v],
   ['gain',   'ความสว่างรวม',           0.5, 2.2, 0.02, v => uni.uGain.value = v],
+  ['plate',  'ลอกสีจากคลิป (0=วาดเอง)',  0, 1, 0.01,  v => uni.uPlateMix.value = v],
   ['vignette','ขอบมืด',               0, 1, 0.01,  v => uni.uVig.value = v],
   ['dolly',  'กล้องเคลื่อนเข้า',        0, 1.5, 0.01, () => setT(t)],
   ['dur',    'เวลาเปิดม่าน (วิ)',      1.5, 9, 0.1,  () => setT(Math.min(t, P.dur))],
@@ -391,11 +445,19 @@ vid.addEventListener('loadeddata', () => {
   document.getElementById('vmsg').style.display = 'none';
 });
 vid.addEventListener('error', () => { vidOK = false; });
-vid.src = 'INTRO_AINORA_.mp4';
+/* ยังไม่โหลดคลิปจนกว่าจะกดเทียบ — ไฟล์ 29MB ถ้าโหลดทุกครั้งที่เปิดหน้า
+   จะรอนานโดยไม่จำเป็น ทั้งที่ส่วนใหญ่เข้ามาดูแค่ตัวม่าน */
+let vidAsked = false;
+function askVideo(){
+  if(vidAsked) return;
+  vidAsked = true;
+  vid.src = 'INTRO_AINORA_.mp4';
+}
 
 document.getElementById('abtoggle').onclick = e => {
   const on = document.getElementById('stagewrap').classList.toggle('ab');
   e.target.classList.toggle('on', on);
+  if(on) askVideo();
   resize();
   if(on) setT(t);
 };

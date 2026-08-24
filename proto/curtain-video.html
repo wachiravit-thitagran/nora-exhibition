@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ม่านจากคลิปจริง · AI NORA</title>
+<style>
+:root{ --bg:#0B0906; --line:#2E2619; --ink:#F2E9D7; --muted:#9C8F76; --gold:#E3C468 }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans Thai","Segoe UI",sans-serif}
+header{padding:14px 18px;border-bottom:1px solid var(--line)}
+h1{font-size:16px;margin:0 0 3px;font-weight:700}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+
+#stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
+#stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+/* สไลด์หน้าแรกจำลอง — ในเด็คจริงคือ .slide ตัวแรกของชุดหลัก */
+#slide1{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 45%,#1B2233,#090C14 70%);opacity:0;transition:opacity .5s}
+#slide1 b{font-size:clamp(20px,4vw,54px);letter-spacing:.14em;color:#E3C468;font-weight:800}
+body.done #slide1{opacity:1}
+
+#bar{display:flex;gap:8px;padding:12px 18px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+button{font:inherit;font-size:13px;font-weight:600;color:var(--ink);background:#241E16;
+  border:1px solid var(--line);border-radius:10px;padding:10px 16px;cursor:pointer}
+button.pri{background:linear-gradient(180deg,#E3C468,#C29B31);color:#2A2208;border-color:#8E7124}
+button.on{background:var(--gold);color:#2A2208;border-color:#8E7124}
+button[disabled]{opacity:.4;cursor:default}
+#state{padding:10px 18px;font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums}
+footer{padding:16px 18px 40px;font-size:12px;color:var(--muted);line-height:1.8}
+code{background:#241E16;border-radius:5px;padding:1px 6px}
+b.hi{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ม่านจากคลิปจริง — ตรงต้นฉบับ 100%</h1>
+  <div class="note">
+    ไม่ได้วาดใหม่ ไม่ได้จำลอง เป็นพิกเซลเดียวกับไฟล์ที่ส่งมาทุกเฟรม
+    สิ่งที่เพิ่มเข้าไปคือ<b class="hi">การหยุดค้าง</b>ตรงช่วงที่ภาพนิ่งอยู่แล้ว เพื่อรอคิวพิธี
+  </div>
+</header>
+
+<div id="bar">
+  <button id="b1">๑ ตั้งม่าน</button>
+  <button class="pri" id="b2">๒ เปิดม่าน</button>
+  <button id="b3">๓ ชุดหลัก</button>
+</div>
+<div id="state">—</div>
+
+<div id="stage">
+  <video id="v" muted playsinline preload="auto" src="INTRO_AINORA_.mp4"></video>
+  <div id="slide1"><b>สไลด์หน้าแรก</b></div>
+</div>
+
+<footer>
+  <b class="hi">จังหวะที่ใช้</b> — วัดมาจากไฟล์จริง<br>
+  ๑ <b class="hi">ตั้งม่าน</b> ค้างเฟรมที่ <code>5.50</code> วิ — ช่วง 1.5–5.9 วิ ภาพนิ่งสนิทอยู่แล้ว
+  ค้างไว้กี่ชั่วโมงก็ได้ ไม่มีใครดูออกว่าหยุด<br>
+  ๒ <b class="hi">เปิดม่าน</b> เล่นจาก <code>5.50</code> ต่อไปเอง ม่านแหวกที่ ~6.9 วิ
+  (ได้จังหวะหายใจ 1.4 วิ ก่อนม่านขยับ) แล้วเล่นยาวถึงจบที่ <code>23.68</code> วิ<br>
+  ๓ <b class="hi">ชุดหลัก</b> ค้างเฟรมสุดท้ายรอ แล้วค่อยตัดเข้าสไลด์<br><br>
+
+  <b class="hi">เพราะค้างตรงเฟรมที่นิ่งอยู่แล้ว รอยต่อจึงมองไม่เห็นเลย</b> —
+  ถ้าไปค้างตรงเฟรมที่กำลังเคลื่อนไหว จะเห็นภาพกระตุกตอนกดเล่นต่อ
+</footer>
+
+<script>
+/* ค่าที่วัดจากไฟล์จริงด้วยการเทียบ md5 ของแต่ละเฟรม
+   ช่วงที่เฟรมซ้ำกันสนิท = ช่วงที่ค้างได้โดยไม่มีใครสังเกตเห็น */
+const HOLD  = 5.50;    // เฟรมม่านปิดที่ใช้ค้างรอคิว
+const PART  = 6.90;    // ม่านเริ่มแหวก
+const END   = 23.60;   // เฟรมสุดท้าย
+
+const v = document.getElementById('v');
+const st = document.getElementById('state');
+let mode = '';
+
+function paint(){
+  document.getElementById('b1').classList.toggle('on', mode === 'hold');
+  document.getElementById('b2').classList.toggle('on', mode === 'open');
+  document.getElementById('b3').classList.toggle('on', mode === 'done');
+  document.getElementById('b2').disabled = mode !== 'hold';
+  document.body.classList.toggle('done', mode === 'done');
+  const t = v.currentTime || 0;
+  st.textContent = mode === 'hold' ? `ตั้งม่าน · ค้างที่ ${t.toFixed(2)} วิ · รอกดเปิดม่าน`
+    : mode === 'open' ? (t < PART ? `กำลังเปิด · ${t.toFixed(2)} วิ · อีก ${(PART-t).toFixed(1)} วิม่านจะแหวก`
+        : t >= END - 0.15 ? `ม่านเปิดสุดแล้ว · ค้างเฟรมสุดท้าย รอกดชุดหลัก`
+        : `กำลังเปิด · ${t.toFixed(2)} วิ`)
+    : mode === 'done' ? 'เข้าชุดหลักแล้ว'
+    : 'กดตั้งม่านเพื่อเริ่ม';
+}
+
+function setHold(){
+  mode = 'hold';
+  v.pause();
+  v.currentTime = HOLD;
+  paint();
+}
+function openCurtain(){
+  if(mode !== 'hold') return;
+  mode = 'open';
+  v.play().catch(()=>{});
+  paint();
+}
+function toMain(){
+  mode = 'done';
+  v.pause();
+  paint();
+}
+
+/* ค้างเฟรมสุดท้ายไว้ ไม่ให้วนกลับไปต้นคลิปเอง
+   คลิปจบแล้วต้องรอสแตฟฟ์กดเข้าชุดหลัก ช่วงกล่าวเปิดงานยาวไม่เท่ากันทุกครั้ง */
+v.addEventListener('timeupdate', () => {
+  if(mode === 'open' && v.currentTime >= END){ v.pause(); v.currentTime = END; }
+  paint();
+});
+v.addEventListener('loadedmetadata', setHold);   // metadata พอแล้ว ไม่ต้องรอเฟรมแรก
+
+document.getElementById('b1').onclick = setHold;
+document.getElementById('b2').onclick = openCurtain;
+document.getElementById('b3').onclick = toMain;
+paint();
+</script>
+</body>
+</html>
