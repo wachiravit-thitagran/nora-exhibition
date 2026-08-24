@@ -560,6 +560,9 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .endstack .team .nm:has(.shrt) .full{display:none}
 .endstack .team .nm .shrt{display:inline}
 .team .row{display:flex;gap:56px;align-items:flex-start;justify-content:center}
+/* หัวหน้าสองคนอยู่แถวเดียวกัน วงเท่ากัน — คนละทีมแต่ระดับเดียวกัน
+   flex-start ให้ขอบบนของวงตรงกัน ต่อให้ชื่อใต้ภาพยาวไม่เท่ากัน */
+.team .leads{display:flex;gap:72px;align-items:flex-start;justify-content:center}
 
 /* จอขวาโหมด 48:9 — เครดิตเป็นข้อความคอลัมน์ซ้าย ทีมงานอยู่ครึ่งขวาที่ว่างอยู่ */
 .credpane{display:flex;gap:90px;align-items:center;height:100%}
@@ -578,6 +581,7 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .endstack .team .lead .nm{font-size:28px;max-width:none}
 .endstack .team .rl{font-size:22px}
 .endstack .team .row{gap:38px}
+.endstack .team .leads{gap:34px}
 .credits{flex:1;height:100%;display:flex;gap:100px;align-items:center}
 .credits .col{flex:1;display:flex;flex-direction:column;gap:26px}
 .credits .col h3{font-size:44px;font-weight:700;color:var(--gold);letter-spacing:.06em}
@@ -1254,14 +1258,14 @@ const SECTIONS = [
         + 'เพื่อยืนยันว่าท่ารำเหล่านี้รำได้จริงด้วยร่างกายมนุษย์' },
 ];
 /* ป้ายขั้นตอน — ใช้เป็น eyebrow / หัวจอขวา / บรรทัดล่าง ให้ทุกหน้าบอกได้ว่าอยู่ขั้นไหน */
-const stepEB   = i => 'ขั้นตอนที่ ' + SECTIONS[i].n + ' · ' + SECTIONS[i].t;
-const stepFoot = (i, k, n) => SECTIONS[i].n + ' ' + SECTIONS[i].t + ' · ' + k + '/' + n;
+const stepEB   = i => 'ขั้นตอนที่ ' + thNum(SECTIONS[i].n) + ' · ' + SECTIONS[i].t;
+const stepFoot = (i, k, n) => thNum(SECTIONS[i].n) + ' ' + SECTIONS[i].t + ' · ' + thNum(k) + '/' + thNum(n);
 
 /* ---------- จอซ้าย (เสริม): บอกว่าตอนนี้อยู่ขั้นตอนไหนของกระบวนการ ---------- */
 function paneL(step){
   const items = SECTIONS.map((sc,i)=>
     `<li class="${i===step?'cur':''}" style="--i:${i}">
-       <div class="no">${esc(sc.n)}</div>
+       <div class="no">${esc(thNum(sc.n))}</div>
        <div class="tx"><b>${esc(sc.t)}</b><span>${esc(sc.d)} · ${esc(sc.c)}</span></div>
      </li>`).join('');
   return `<div class="wl">
@@ -1272,7 +1276,7 @@ function paneL(step){
       <div class="grow"></div>
       ${logoStrip()}
     </div>
-    ${step >= 0 ? `<div class="wl-num">${esc(SECTIONS[step].n)}</div>` : ''}`;
+    ${step >= 0 ? `<div class="wl-num">${esc(thNum(SECTIONS[step].n))}</div>` : ''}`;
 }
 
 /* ---------- จอขวา (เสริม): ป้ายกำกับ รายละเอียดที่ไม่พอลงจอหลัก ---------- */
@@ -1296,7 +1300,7 @@ function wideTitle(){
   return `<div class="wide-hero">
       <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
       <div class="eyebrow">Breath of Nora</div>
-      <div class="big">ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
+      <div class="big">ท่าที่นิ่งในหนังสือมากว่า ๑๐๐ ปี กลับมาเคลื่อนไหวอีกครั้ง</div>
       <div class="rule"></div>
       <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
       ${logoStrip()}
@@ -1307,9 +1311,9 @@ function wideTitle(){
 function wideSection(step){
   const sc = SECTIONS[step];
   return `<div class="wide-sec">
-      <div class="num">${esc(sc.n)}</div>
+      <div class="num">${esc(thNum(sc.n))}</div>
       <div class="tx">
-        <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)} จาก 05</div>
+        <div class="eyebrow">ขั้นตอนที่ ${esc(thNum(sc.n))} จาก ๐๕</div>
         <div class="big">${esc(sc.t)}</div>
         <div class="lead">${esc(sc.longd || sc.d)}</div>
       </div>
@@ -1420,12 +1424,12 @@ function divider(step){
     midU:()=> wideSection(step),
     right:()=> paneL(step),          // บันไดขั้นตอนเรียงแนวตั้งที่จอขวา
     wall:{
-    head:'ขั้นตอนที่ ' + sc.n, title:sc.t,
-    rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['ผลงานในขั้นนี้', sc.c], ['ลำดับในกระบวนการ', sc.n + ' จาก 05']],
+    head:'ขั้นตอนที่ ' + thNum(sc.n), title:sc.t,
+    rows:[['สิ่งที่ทำในขั้นนี้', sc.d], ['ผลงานในขั้นนี้', sc.c], ['ลำดับในกระบวนการ', thNum(sc.n) + ' จาก ๐๕']],
     note:sc.longd || sc.d }, html:`
     <div class="bgimg"></div>
     <div class="hero dvd">
-      <div class="eyebrow">ขั้นตอนที่ ${esc(sc.n)}</div>
+      <div class="eyebrow">ขั้นตอนที่ ${esc(thNum(sc.n))}</div>
       <div class="big" style="font-size:${sc.t.length > 20 ? 108 : 150}px">${esc(sc.t)}</div>
       <div class="rule"></div>
       <div class="lead">${esc(sc.longd || sc.d)}</div>
@@ -1436,10 +1440,10 @@ function divider(step){
 
 /* ---- ปกใหญ่ ---- */
 push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
-  head:'เกี่ยวกับนิทรรศการ', title:'ท่าที่นิ่งในหนังสือมากว่า 100 ปี กลับมาเคลื่อนไหวอีกครั้ง',
-  rows:[['ความยาวรอบ','30 นาที แล้ววนซ้ำ'],
-        ['ท่ารำต้นแบบ','12 ท่า จากตำราฟ้อนรำ พ.ศ. ๒๔๖๖'],
-        ['วิดีโอที่สร้างได้','22 คลิป'],
+  head:'เกี่ยวกับนิทรรศการ', title:'ท่าที่นิ่งในหนังสือมากว่า ๑๐๐ ปี กลับมาเคลื่อนไหวอีกครั้ง',
+  rows:[['ความยาวรอบ','๓๐ นาที แล้ววนซ้ำ'],
+        ['ท่ารำต้นแบบ','๑๒ ท่า จากตำราฟ้อนรำ พ.ศ. ๒๔๖๖'],
+        ['วิดีโอที่สร้างได้','๒๒ คลิป'],
         ['เครื่องมือ','ฟื้นฟูภาพ + สร้างวิดีโอด้วยปัญญาประดิษฐ์']],
   note:'ภาพและวิดีโอทั้งหมดสร้างขึ้นใหม่ด้วย AI จากภาพในตำราอายุกว่า ๑๐๐ ปี ไม่ใช่การกู้คืนภาพต้นฉบับ',
   }, html:`
@@ -1447,7 +1451,7 @@ push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
   <div class="hero">
     <img class="herologo" src="brand/logo-light.png" alt="AI NORA">
     <div class="eyebrow">Breath of Nora</div>
-    <div class="big">ท่าที่นิ่งในหนังสือมากว่า 100 ปี<br>กลับมาเคลื่อนไหวอีกครั้ง</div>
+    <div class="big">ท่าที่นิ่งในหนังสือมากว่า ๑๐๐ ปี<br>กลับมาเคลื่อนไหวอีกครั้ง</div>
     <div class="rule"></div>
     <div class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์</div>
     ${logoStrip()}
@@ -1456,13 +1460,13 @@ push({ dur:D.title, dark:true, step:-1, span:true, wide:wideTitle, wall:{
 /* ---- ไทม์ไลน์กระบวนการทั้งโครงการ (รวม 3 จอ) ---- */
 const TLNODES = SECTIONS.map((sc,i)=>
   `<div class="node" style="--i:${i}">
-     <div class="dot">${esc(sc.n)}</div>
+     <div class="dot">${esc(thNum(sc.n))}</div>
      <div class="cap"><b>${esc(sc.t)}</b><span>${esc(sc.d)}<br>${esc(sc.c)}</span></div>
    </div>`).join('');
 push({ dur:D.timeline, dark:true, step:-1, span:true, wall:{
   head:'ภาพรวม', title:'กระบวนการทั้งหมดที่เกิดขึ้น',
-  rows:SECTIONS.map(sc=>[sc.n + ' ' + sc.t, sc.d]),
-  note:'นิทรรศการนี้เดินตามลำดับขั้นตอนนี้ ใช้เวลา 30 นาทีต่อรอบ แล้ววนกลับมาเริ่มใหม่' },
+  rows:SECTIONS.map(sc=>[thNum(sc.n) + ' ' + sc.t, sc.d]),
+  note:'นิทรรศการนี้เดินตามลำดับขั้นตอนนี้ ใช้เวลา ๓๐ นาทีต่อรอบ แล้ววนกลับมาเริ่มใหม่' },
   wide:()=> `<div class="bgimg"></div>` + band({
     eyebrow:'ภาพรวมโครงการ', title:'กระบวนการทั้งหมดที่เกิดขึ้น',
     body:`<div class="tline2">${TLNODES}</div>` }),
@@ -1481,7 +1485,7 @@ const scanCell = (p, i) => {
   return `<div class="cell" style="--i:${i}">
       <div class="im"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพสแกน']))}'
         data-srcs='${esc(JSON.stringify(o))}' data-i="0" src="${enc(o[0])}"></div>
-      <div class="nm">${esc(p.n)} ${esc(p.book)}</div>
+      <div class="nm">${esc(thNum(p.n))} ${esc(p.book)}</div>
     </div>`;
 };
 [0, 1].forEach(half => {
@@ -1495,7 +1499,7 @@ const scanCell = (p, i) => {
           ['ที่มา','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
           ['ผู้รำในภาพ', PERFORMER]],
     note:'ทั้งหมดเป็นภาพฮาล์ฟโทนขาวดำที่สแกนจากตำราโดยตรง ยังไม่ผ่านการฟื้นฟู '
-       + 'ผลการฟื้นฟูจะเห็นทีละท่าในขั้นตอนที่ 02',
+       + 'ผลการฟื้นฟูจะเห็นทีละท่าในขั้นตอนที่ ๐๒',
     },
     wide:()=> band({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า',
       sub:SUB, body:`<div class="strip">${cells}</div>` }),
@@ -1517,10 +1521,10 @@ function poseCompare(p){
     nologo:true,
     body:`<div class="cmpcol">
       <div class="duowide portrait tall">
-        ${panel('ภาพสแกนจากหนังสือ', p.n, mediaImg(imgOrig(p)), false, false, 'tight')}
+        ${panel('ภาพสแกนจากหนังสือ', thNum(p.n), mediaImg(imgOrig(p)), false, false, 'tight')}
         <div class="arrow">»<small>ฟื้นฟู</small></div>
         ${panel(p.pending ? 'ภาพที่ฟื้นฟูแล้ว (อยู่ระหว่างจัดเตรียม)' : 'ภาพที่ฟื้นฟูแล้ว',
-          p.n, fixed, true, p.two, 'tight')}
+          thNum(p.n), fixed, true, p.two, 'tight')}
       </div>
     </div>` });
 }
@@ -1583,7 +1587,7 @@ const figCard = ([num, nm]) => `<figure class="fcard">
 /* หน้าเปิดหมวด — เล่าว่าฟื้นฟูอะไรบ้าง ก่อนโชว์ภาพจริง */
 const RESTORE_KPI = [['63','ภาพที่ฟื้นฟูทั้งชุด'],['6','ชุดเอกสารต้นทาง'],
                      ['3','ครูโนราที่มีครบ ๑๒ ท่า'],['×2','ความละเอียดที่ส่งมอบ']]
-  .map(([a,b],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
+  .map(([a,b],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(thNum(a))}</b><span>${esc(b)}</span></div>`).join('');
 push({ dur:D.compare, step:1, dark:true, spanCU:true,
   wall:{ head:stepEB(1) + ' — ครูโนราท่านอื่น', title:'ฟื้นฟูภาพจดหมายเหตุอีก ๖๓ ภาพ',
     rows:[['ชุดเอกสาร','๖ ชุด — ภาพสตูดิโอ ภาพพิมพ์สกรีน ภาพสี และฟิล์มขาวดำ'],
@@ -1677,8 +1681,8 @@ function clipUnit(entry, i){
     title:esc(title),
     /* ป้ายกำกับจอขวาถูกแทนที่ด้วยคลิปที่สองแล้ว ข้อมูลที่เคยอยู่ตรงนั้น
        จึงย้ายมาไว้บรรทัดใต้หัวข้อ ให้ยังอ่านได้ครบจากจอเดียวกัน */
-    sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ประกอบจาก ' + poses.length + ' ท่า'
-      + (nNew ? ' · ท่าที่ AI สร้างใหม่ ' + nNew + ' ท่า' : ''),
+    sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(VIDEOS.length) + ' · ประกอบจาก ' + thNum(poses.length) + ' ท่า'
+      + (nNew ? ' · ท่าที่ AI สร้างใหม่ ' + thNum(nNew) + ' ท่า' : ''),
     body:`<div class="combine">
       <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
       <div class="arrow">»<small>ได้เป็น</small></div>
@@ -1709,7 +1713,7 @@ if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
     html: frame({ eyebrow:stepEB(2) + ' — ลงสี',
       section:stepFoot(2, i+1, VIDEOS.length) + ' (ลงสี)',
       title:esc(title),
-      sub:'คลิปที่ ' + (i+1) + ' จาก ' + VIDEOS.length + ' · ขาวดำตามต้นฉบับ → ลงสีเครื่องแต่งกายและฉาก',
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(VIDEOS.length) + ' · ขาวดำตามต้นฉบับ → ลงสีเครื่องแต่งกายและฉาก',
       body:`<div class="cmp">
         ${panel('วิดีโอขาวดำ (ต้นทาง)','ก่อน', mediaVid(vurl(id)))}
         <div class="arrow">»<small>ลงสี</small></div>
@@ -1775,12 +1779,12 @@ if(CONFIG.SHOW_STUDENT) STUDENT_VIDEOS.forEach((id,i)=>{
       note:'ขั้นตอนนี้เป็นการตรวจสอบกลับ ถ้าคนรำตามได้จริง แปลว่าท่ารำที่ AI ออกแบบ '
          + 'ยังอยู่ในหลักการเคลื่อนไหวของโนรา ไม่ใช่ท่าที่เป็นไปไม่ได้ทางกายภาพ' },
     lc:()=> band({ eyebrow:stepEB(4) + ' — นักศึกษา', title:esc(title),
-      sub:'คลิปที่ ' + (i+1) + ' จาก 4 · นำวิดีโอที่ AI สร้างไปให้นักศึกษารำตาม เพื่อตรวจว่ารำได้จริง',
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ๔ · นำวิดีโอที่ AI สร้างไปให้นักศึกษารำตาม เพื่อตรวจว่ารำได้จริง',
       body }),
     html: frame({ eyebrow:stepEB(4) + ' — นักศึกษา',
       section:stepFoot(4, i+1, 4) + ' (นักศึกษา)',
       title:esc(title),
-      sub:'คลิปที่ ' + (i+1) + ' จาก 4 · นักศึกษารำตามวิดีโอที่ AI สร้าง', body })});
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ๔ · นักศึกษารำตามวิดีโอที่ AI สร้าง', body })});
 });
 
 /* ---- ขั้นที่ 05 (ต่อ) ถ่ายทอดสู่ผู้รำ — นักเรียนในชั้นเรียน (1｜2) ---- */
@@ -1799,17 +1803,17 @@ if(CONFIG.SHOW_CLASSROOM) STUDENT_STILLS.forEach((st,i)=>{
          + 'นักเรียนดูภาพแล้วฝึกรำตามได้ทันทีโดยไม่ต้องมีครูสาธิต',
       },
     cr:()=> band({ eyebrow:stepEB(4) + ' — ห้องเรียน', title:esc(st.name),
-      sub:'ท่าที่ ' + (i+1) + ' จาก 2 · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body }),
+      sub:'ท่าที่ ' + thNum(i+1) + ' จาก ๒ · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body }),
     html: frame({ eyebrow:stepEB(4) + ' — ห้องเรียน',
       section:stepFoot(4, i+1, 2) + ' (ห้องเรียน)',
       title:esc(st.name),
-      sub:'ท่าที่ ' + (i+1) + ' จาก 2 · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body })});
+      sub:'ท่าที่ ' + thNum(i+1) + ' จาก ๒ · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body })});
 });
 
 /* ---- ปิดท้าย: ผู้สนับสนุน | สรุปโครงการ | เครดิต — สไลด์เดียว จอละส่วน ---- */
 const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟูแล้ว'],['22','วิดีโอที่ AI สร้างได้'],
              ['7','ท่าใหม่ที่เกิดในกระบวนการ'],['5','ขั้นตอนของกระบวนการ']]
-  .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${n}</b><span>${esc(t)}</span></div>`).join('');
+  .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(thNum(n))}</b><span>${esc(t)}</span></div>`).join('');
 
 /* จอซ้าย — โลโก้ผู้สนับสนุนขนาดใหญ่ จัดกลางจอ ไม่มีหัวข้อกำกับ
    แถวบน  ผู้สนับสนุน  = กระทรวงวัฒนธรรม + สำนักงานศิลปวัฒนธรรมร่วมสมัย
@@ -1853,7 +1857,7 @@ const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั�
       <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
 
 /* ---- ทีมทำงาน ----------------------------------------------------
-   หัวหน้าโครงการอยู่บนสุดวงใหญ่ ทีมงานเรียงเป็นสามวงเล็กด้านล่าง
+   หัวหน้าสองคนอยู่แถวบน วงใหญ่เท่ากัน ทีมงานเรียงเป็นสามวงเล็กด้านล่าง
 
    ภาพถูกครอปเป็นสี่เหลี่ยมจัตุรัสโดยจัดตำแหน่งใบหน้าให้ตรงกันทุกคนแล้ว
    (ดู deploy/make-team-photos.py) ที่นี่จึงแค่ตัดเป็นวงกลมด้วย CSS
@@ -1864,6 +1868,8 @@ const TEAM_LEAD = { file:'ajarn.jpg', role:'หัวหน้าโครงก
   name:'ผู้ช่วยศาสตราจารย์ ดร.ชิดชนก โชคสุชาติ',
   // แถวแนวนอนของจอ 16:9 แคบ ชื่อเต็มจะตัดบรรทัดกลางคำ ใช้ชื่อย่อแทนตรงนั้น
   short:'ผศ. ดร.ชิดชนก โชคสุชาติ' };
+// หัวหน้าอีกทีม อยู่ระดับเดียวกัน จึงเป็นวงใหญ่เท่ากันวางเคียงข้าง ไม่ใช่ลดชั้นลงไปแถวล่าง
+const TEAM_LEAD2 = { file:'lead2.jpg', role:'', name:'', short:'' };
 const TEAM = [
   { file:'m1.jpg', name:'', role:'' },
   { file:'m2.jpg', name:'', role:'' },
@@ -1878,7 +1884,7 @@ const who = (p, cls) => `<div class="who ${cls || ''}">
     </div>`;
 const CR_TEAM = `<div class="team">
     <h3>ทีมทำงาน</h3>
-    ${who(TEAM_LEAD, 'lead')}
+    <div class="leads">${who(TEAM_LEAD, 'lead')}${who(TEAM_LEAD2, 'lead')}</div>
     <div class="row">${TEAM.map(p => who(p)).join('')}</div>
   </div>`;
 
@@ -1964,10 +1970,10 @@ push({ dur:D.summary, dark:true, step:-1, spanCU:true, wall:{
 
 push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
   head:'ปิดท้าย', title:'ผลงานทั้งโครงการ',
-  rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','12 ท่า'],
-        ['วิดีโอที่สร้างได้','22 คลิป'],
-        ['ท่าใหม่ที่เกิดขึ้น','7 ท่า (A–G)'],
-        ['ขั้นตอนของกระบวนการ','5 ขั้นตอน']],
+  rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','๑๒ ท่า'],
+        ['วิดีโอที่สร้างได้','๒๒ คลิป'],
+        ['ท่าใหม่ที่เกิดขึ้น','๗ ท่า (A–G)'],
+        ['ขั้นตอนของกระบวนการ','๕ ขั้นตอน']],
   note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๒ ภาพ' },
   /* จอซ้าย ผู้สนับสนุน · จอกลาง สรุปโครงการ · จอขวา เครดิต — อยู่ในสไลด์เดียวกัน */
   left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
