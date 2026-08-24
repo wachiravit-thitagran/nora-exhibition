@@ -27,7 +27,7 @@ OUT = HERE / "preview-full.html"
 # assets/compare ต้องมีฝาแฝด เพราะตาราง PAIRS อ้างชื่อเป็น .png แต่ไฟล์จริงเป็น .jpg
 # assets/restore ไม่ต้อง เพราะ MASTERS อ้างชื่อตรงกับไฟล์อยู่แล้ว — ถ้าใส่ฝาแฝดไปด้วย
 # JSON จะเก็บ base64 ก้อนเดิมซ้ำสองรอบ ไฟล์พรีวิวโตขึ้นเท่าตัวฟรี ๆ
-DIRS = [("assets/compare", True), ("assets/restore", False)]
+DIRS = [("assets/compare", True), ("assets/restore", False), ("assets/team", False)]
 MAX_W = 1200      # กว้างพอสำหรับดูบนจอคอม ไม่ใช่ความละเอียดงานพิมพ์
 QUALITY = 72
 

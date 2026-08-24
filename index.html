@@ -541,6 +541,43 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .endstack{flex:1;min-height:0;display:flex;flex-direction:column;gap:80px}
 .endstack .sumgrid{flex:0 0 640px;height:auto}
 .endstack .credits{flex:1;height:auto;align-items:flex-start}
+/* ---- ทีมทำงานในหน้าเครดิต ----
+   ภาพถูกครอปเป็นจัตุรัสจัดใบหน้าให้ตรงกันมาแล้ว ที่นี่จึงแค่ตัดเป็นวงกลม
+   object-fit:cover กันภาพยืดถ้าวันหนึ่งมีคนเปลี่ยนไฟล์เป็นสัดส่วนอื่น */
+.team{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:34px}
+.team h3{font-size:52px;font-weight:700;color:var(--gold);letter-spacing:.04em;margin:0 0 6px}
+.team .who{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.team .ph{width:300px;height:300px;border-radius:50%;overflow:hidden;flex:0 0 auto;
+  background:#241E16;border:4px solid rgba(227,196,104,.42);
+  box-shadow:0 18px 46px rgba(0,0,0,.5)}
+.team .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.team .lead .ph{width:430px;height:430px;border-width:6px;border-color:rgba(227,196,104,.72)}
+.team .nm{font-size:42px;font-weight:600;line-height:1.3;max-width:15ch}
+.team .lead .nm{font-size:52px;max-width:22ch}
+.team .rl{font-size:34px;color:var(--muted);line-height:1.3}
+/* ชื่อย่อโผล่เฉพาะที่แคบ ถ้าไม่ได้ตั้ง short ไว้ ก็ใช้ชื่อเต็มตามเดิม */
+.team .nm .shrt{display:none}
+.endstack .team .nm:has(.shrt) .full{display:none}
+.endstack .team .nm .shrt{display:inline}
+.team .row{display:flex;gap:56px;align-items:flex-start;justify-content:center}
+
+/* จอขวาโหมด 48:9 — เครดิตเป็นข้อความคอลัมน์ซ้าย ทีมงานอยู่ครึ่งขวาที่ว่างอยู่ */
+.credpane{display:flex;gap:90px;align-items:center;height:100%}
+.credpane .credits.stack{flex:1 1 auto}
+
+/* จอเดียว 16:9 — ทีมงานเป็นแถวเดียว ชิดขวาให้พ้นแถบโลโก้ผู้สนับสนุน
+   ที่ปักอยู่มุมซ้ายล่างของ frame() ถ้าปล่อยให้ชิดซ้ายจะทับกันพอดี */
+.endstack{gap:48px}
+.endstack .team{flex-direction:row;align-items:center;gap:52px;
+  margin:0 4px 0 auto;align-self:flex-end}
+.endstack .team h3{margin:0;font-size:38px;white-space:nowrap}
+.endstack .team .who{gap:10px}
+.endstack .team .ph{width:150px;height:150px;border-width:3px}
+.endstack .team .lead .ph{width:190px;height:190px;border-width:4px}
+.endstack .team .nm{font-size:26px;max-width:none;white-space:nowrap}
+.endstack .team .lead .nm{font-size:28px;max-width:none}
+.endstack .team .rl{font-size:22px}
+.endstack .team .row{gap:38px}
 .credits{flex:1;height:100%;display:flex;gap:100px;align-items:center}
 .credits .col{flex:1;display:flex;flex-direction:column;gap:26px}
 .credits .col h3{font-size:44px;font-weight:700;color:var(--gold);letter-spacing:.06em}
@@ -995,6 +1032,7 @@ const CONFIG = {
   DIR_DRIVE     : 'assets/drive/',     // วิดีโอจาก Google Drive (โฟลเดอร์ วิดีโอ)
   DIR_COLOR     : 'assets/color/',     // วิดีโอที่ใส่สีแล้ว
   DIR_STUDENT   : 'assets/students/',  // วิดีโอ/ภาพ นักศึกษา-นักเรียนรำ
+  DIR_TEAM      : 'assets/team/',      // ภาพทีมทำงาน (ครอปจัดใบหน้าไว้แล้ว)
 };
 /* แถบโลโก้ผู้สนับสนุน — แสดงทุกสไลด์แทนการเขียนชื่อหน่วยงาน
    ถ้าไฟล์ยังไม่มี จะขึ้นกรอบประบอกชื่อหน่วยงานไว้ให้รู้ว่าต้องวางไฟล์อะไร */
@@ -1817,6 +1855,36 @@ const CR_SUP = `<div class="col" style="--i:2"><h3>สนับสนุนโ�
 const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั้งหมดได้ที่</h3>
       <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
 
+/* ---- ทีมทำงาน ----------------------------------------------------
+   หัวหน้าโครงการอยู่บนสุดวงใหญ่ ทีมงานเรียงเป็นสามวงเล็กด้านล่าง
+
+   ภาพถูกครอปเป็นสี่เหลี่ยมจัตุรัสโดยจัดตำแหน่งใบหน้าให้ตรงกันทุกคนแล้ว
+   (ดู deploy/make-team-photos.py) ที่นี่จึงแค่ตัดเป็นวงกลมด้วย CSS
+   ถ้าครอปกลางภาพเฉย ๆ หัวจะลอยสูงต่ำไม่เท่ากัน เรียงแล้วดูไม่เป็นชุด
+
+   เว้น name ว่างไว้ได้ ถ้ายังไม่มีชื่อ — จะไม่ขึ้นบรรทัดชื่อเปล่า ๆ ให้เก้อ */
+const TEAM_LEAD = { file:'ajarn.jpg', role:'หัวหน้าโครงการ',
+  name:'ผู้ช่วยศาสตราจารย์ ดร.ชิดชนก โชคสุชาติ',
+  // แถวแนวนอนของจอ 16:9 แคบ ชื่อเต็มจะตัดบรรทัดกลางคำ ใช้ชื่อย่อแทนตรงนั้น
+  short:'ผศ. ดร.ชิดชนก โชคสุชาติ' };
+const TEAM = [
+  { file:'m1.jpg', name:'', role:'' },
+  { file:'m2.jpg', name:'', role:'' },
+  { file:'m3.jpg', name:'', role:'' },
+];
+const face = f => mediaImg([CONFIG.DIR_TEAM + f]);
+const who = (p, cls) => `<div class="who ${cls || ''}">
+      <div class="ph">${face(p.file)}</div>
+      ${p.name ? `<div class="nm"><span class="full">${esc(p.name)}</span>${
+          p.short ? `<span class="shrt">${esc(p.short)}</span>` : ''}</div>` : ''}
+      ${p.role ? `<div class="rl">${esc(p.role)}</div>` : ''}
+    </div>`;
+const CR_TEAM = `<div class="team">
+    <h3>ทีมทำงาน</h3>
+    ${who(TEAM_LEAD, 'lead')}
+    <div class="row">${TEAM.map(p => who(p)).join('')}</div>
+  </div>`;
+
 /* ---- ก่อนสรุปโครงการ: เปิดให้ดาวน์โหลดชุดข้อมูล ----
    จอซ้าย/จอขวา ใช้ชุดเดียวกับหน้าสรุป จอกลางเป็นเรื่องชุดข้อมูลเปิด */
 const DSBUNDLES = [
@@ -1846,7 +1914,7 @@ push({ dur:D.summary, dark:true, step:-1, spanCU:true,
     body:DSBODY }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
     h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
-    body:`<div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>` }),
+    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>${CR_TEAM}</div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'ชุดข้อมูลเปิด',
     title:'ท่ารำโนราที่นำไปใช้ต่อได้',
     sub:'สิ่งที่ได้จากโครงการถูกจัดเป็นชุดข้อมูล เปิดให้นักวิจัยและครูโนราขอดาวน์โหลดไปใช้ต่อ',
@@ -1892,7 +1960,7 @@ push({ dur:D.summary, dark:true, step:-1, spanCU:true, wall:{
     body:`<div class="newgrid">${NEWGRID}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
     h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
-    body:`<div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>` }),
+    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>${CR_TEAM}</div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'สรุปผลงาน',
     title:'ท่าใหม่ที่เกิดขึ้นในกระบวนการ', sub:NEWSUB,
     body:`<div class="newgrid">${NEWGRID}</div>` })});
@@ -1911,7 +1979,7 @@ push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
     body:`<div class="sumgrid grid2">${KPI}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
     h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
-    body:`<div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>` }),
+    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>${CR_TEAM}</div>` }),
   /* โหมดจอเดียว 16:9 รวมทั้งสามส่วนไว้ในหน้าเดียว — โลโก้ผู้สนับสนุนอยู่แถบท้ายหน้าของ frame() */
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'ปิดท้าย',
     title:'ผลงานทั้งโครงการ',
@@ -1919,6 +1987,7 @@ push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
     body:`<div class="endstack">
       <div class="sumgrid">${KPI}</div>
       <div class="credits">${CR_SRC}${CR_ORG}${CR_SUP}</div>
+      ${CR_TEAM}
     </div>` })});
 
 /* ================================================================
