@@ -163,6 +163,36 @@ ok(await ctl2.evaluate(() =>
      document.querySelector('[data-cmd="deck"][data-arg="main"]').classList.contains('next')),
    'ปุ่มชุดหลักถูกตีกรอบไว้ว่าเป็นขั้นต่อไป');
 
+/* ---- กดชุดหลักระหว่างม่านกำลังรูด ต้องไม่มีอะไรค้าง ----
+   อนิเมชันเปิดม่านตั้งตัวจับเวลาไว้ปิดท้าย ถ้าไม่ยกเลิกตอนออกจากชุด intro
+   มันจะยิงทีหลังแล้วตั้งสถานะม่านเป็น "เปิดอยู่" ทั้งที่อยู่ชุดหลักไปแล้ว
+   controller จะอ่านสถานะผิด และรอบหน้าที่กดตั้งม่านจะเริ่มจากสถานะที่ผิด */
+/* ตอนนี้ม่านเปิดค้างอยู่ กด "ตั้งม่าน" ซ้ำต้องดึงม่านลงมาใหม่ได้เลย
+   ไม่ต้องอ้อมไปกดชุดหลักก่อน (ถ้าต้องอ้อม ผู้ชมจะเห็นสไลด์จริงโผล่ระหว่างนั้น) */
+await ctl2.click('[data-cmd="deck"][data-arg="intro"]');
+await ctl2.waitForTimeout(1600);            // รอจอรายงานสถานะกลับ ปุ่มเปิดม่านถึงจะกดได้
+ok(await s2.evaluate(() => window.NORA.state.curtain) === 'down',
+   'กดตั้งม่านซ้ำตอนม่านเปิดอยู่ — ม่านลงมาใหม่ ไม่ต้องอ้อมไปชุดหลักก่อน');
+ok(await s2.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'block',
+   'กดตั้งม่านซ้ำ — ม่านกลับมาคลุมจอจริง');
+await ctl2.click('[data-cmd="curtain"]'); await ctl2.waitForTimeout(1500);   // กลางอนิเมชัน
+await ctl2.click('[data-cmd="deck"][data-arg="main"]'); await ctl2.waitForTimeout(600);
+await s2.waitForTimeout(4200);                                              // เลยเวลาที่ตัวจับเวลาเดิมจะยิง
+ok(await s2.evaluate(() => window.NORA.state.deck) === 'main',
+   'กดชุดหลักกลางคัน — ยังอยู่ชุดหลัก');
+ok(await s2.evaluate(() => window.NORA.state.curtain) === 'down',
+   'กดชุดหลักกลางคัน — สถานะม่านไม่ถูกตัวจับเวลาเก่าตั้งเป็น up ทีหลัง');
+ok(await s2.evaluate(() =>
+     !document.documentElement.classList.contains('curtain-up')
+     && !document.getElementById('curtain').classList.contains('open')
+     && getComputedStyle(document.getElementById('curtain')).display === 'none'),
+   'กดชุดหลักกลางคัน — ม่านหายสนิท ไม่มีคลาสหรืออนิเมชันค้าง');
+
+// กลับเข้าชุด intro แล้วเปิดม่านให้สุด เพื่อทดสอบข้อถัดไปต่อจากสถานะเดิม
+await ctl2.click('[data-cmd="deck"][data-arg="intro"]');
+await ctl2.waitForTimeout(1600);
+await ctl2.click('[data-cmd="curtain"]'); await ctl2.waitForTimeout(5400);
+
 // หน้าแรกต้องไม่วิ่งต่อเอง แม้เวลาผ่านไปเกินความยาวของหน้า
 const dwell = await s2.evaluate(() => durMs);
 await s2.waitForTimeout(Math.min(dwell + 1200, 9000));

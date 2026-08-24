@@ -2323,10 +2323,15 @@ function setPlaying(v){
 
 /* ---------- สลับชุดสไลด์ / เปิดม่าน ---------- */
 const curtainEl = () => document.getElementById('curtain');
+let curtainTimer = 0;      // ตัวจับเวลาปิดท้ายอนิเมชันเปิดม่าน ต้องยกเลิกได้
 
 function setDeck(name, lag){
   const d = DECKS[name] ? name : 'main';
-  if(d === DECK) return;
+  /* ออกก็ต่อเมื่อ "ไม่มีอะไรต้องเปลี่ยนจริง ๆ" เท่านั้น
+     เดิมเช็กแค่ชื่อชุด ทำให้กด "ตั้งม่าน" ซ้ำตอนที่ม่านเปิดไปแล้ว
+     ไม่เกิดอะไรขึ้นเลย — ม่านลงมาใหม่ไม่ได้ ต้องอ้อมไปกดชุดหลักก่อน
+     ซึ่งระหว่างนั้นผู้ชมเห็นสไลด์จริงโผล่ออกมา ตอนซ้อมคิวจึงพังทุกครั้ง */
+  if(d === DECK && !CURTAIN_UP && !curtainTimer) return;
   DECK = d;
   PREF.set('deck', d);
   // กลับเข้าชุด intro = ตั้งม่านใหม่ตั้งแต่ต้น ไม่ใช่โผล่มาที่ม่านเปิดค้างอยู่
@@ -2335,7 +2340,12 @@ function setDeck(name, lag){
   const root = document.documentElement;
   root.classList.toggle('deck-intro', d === 'intro');
   root.classList.remove('curtain-up');
-  curtainEl().classList.remove('open');
+  // ยกเลิกอนิเมชันที่ยังรูดค้างอยู่ให้หมด ทั้งคลาส สไตล์อินไลน์ และตัวจับเวลา
+  // ไม่งั้นของที่ค้างจากรอบก่อนจะโผล่มาตอนกดตั้งม่านครั้งถัดไป
+  clearTimeout(curtainTimer); curtainTimer = 0;
+  const c = curtainEl();
+  c.classList.remove('open');
+  c.style.removeProperty('--copen');
   NORA.manual();                      // ทั้งสองทางต้องหลุดจากนาฬิกาโลกก่อน
   show(0, Math.max(0, lag || 0));     // หักเวลาเดินทางของคำสั่ง ทุกจอเริ่มนับตรงกัน
   setPlaying(d !== 'intro');          // ตั้งม่าน = ค้างหน้าแรกไว้ใต้ม่าน
@@ -2361,7 +2371,14 @@ function openCurtain(lag){
   setPlaying(true);                   // วิดีโอหน้าแรกเดิน แต่ tick ไม่พาไปหน้าถัดไป
   c.style.setProperty('--copen', -d + 'ms');
   c.classList.add('open');
-  setTimeout(() => {
+  /* เก็บ id ไว้ยกเลิกได้ — ถ้าสแตฟฟ์กด "ชุดหลัก" ระหว่างม่านกำลังรูด
+     ตัวจับเวลานี้จะยังทำงานต่อแล้วไปตั้ง curtain-up ทั้งที่ออกจากชุด intro
+     ไปแล้ว สถานะที่รายงานกลับ controller จะเพี้ยน (บอกว่าม่านเปิดอยู่
+     ทั้งที่อยู่ชุดหลัก) และรอบหน้าที่กดตั้งม่านจะเริ่มจากสถานะที่ผิด */
+  clearTimeout(curtainTimer);
+  curtainTimer = setTimeout(() => {
+    curtainTimer = 0;
+    if(DECK !== 'intro') return;      // ออกจากชุดม่านไปแล้วระหว่างทาง ไม่ต้องทำอะไร
     CURTAIN_UP = true;
     PREF.set('curtain', 'up');
     document.documentElement.classList.add('curtain-up');
