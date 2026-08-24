@@ -144,7 +144,8 @@ const srv = http.createServer(async (req, res) => {
     cur.state = { slide: body.slide, total: body.total, playing: !!body.playing,
                   mode: body.mode, title: body.title, sync: !!body.sync,
                   deck: body.deck, curtain: body.curtain, group: body.group,
-                  seam: !!body.seam, motion: !!body.motion, full: !!body.full };
+                  seam: !!body.seam, motion: !!body.motion, full: !!body.full,
+                  farm: !!body.farm };
     screens.set(id, cur);
     pushScreens();
     return json(res, 200, { ok: true });

@@ -920,6 +920,23 @@ html.motion #curtain.open .cfabric{
   opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;
 }
 #ui.show{opacity:1;pointer-events:auto}
+/* ป้ายตอนสั่งเต็มจอจาก controller แล้วเบราว์เซอร์ขอ "การกด" ก่อน
+   ต้องเห็นชัดจากระยะไกลและอยู่เหนือทุกอย่าง คนคุมงานจะได้เดินไปกดได้ถูกจอ
+   โผล่เฉพาะตอนรอ — ไม่ได้ค้างไว้ตลอด และหายเองใน 45 วินาที */
+#armfull{
+  position:fixed;left:50%;top:44px;transform:translateX(-50%);
+  display:none;align-items:center;gap:16px;z-index:120;
+  padding:20px 34px;border-radius:999px;
+  background:rgba(12,16,22,.92);backdrop-filter:blur(14px);
+  border:2px solid rgba(227,196,104,.85);color:#F6EEDC;
+  font-size:34px;font-weight:600;letter-spacing:.01em;
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  animation:armPulse 1.4s ease-in-out infinite;
+}
+html.armfull #armfull{display:flex}
+#armfull b{color:var(--gold);font-weight:700}
+@keyframes armPulse{50%{border-color:rgba(227,196,104,.30)}}
+html.nomotion #armfull{animation:none}
 #ui button{
   appearance:none;border:0;background:rgba(255,255,255,.10);color:#fff;
   font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:999px;cursor:pointer;
@@ -942,6 +959,9 @@ html.motion #curtain.open .cfabric{
     </div>
   </div>
 </div>
+
+<!-- ไม่ใส่ไอคอน ⛶ ตรงนี้ — ฟอนต์ของสไลด์ไม่มีตัวนั้น ขึ้นเป็นกล่องสี่เหลี่ยม -->
+<div id="armfull"><span>กดปุ่มใดก็ได้<b> ที่จอนี้ </b>เพื่อเข้าเต็มจอ</span></div>
 
 <div id="ui">
   <button data-act="prev">◀</button>
@@ -1241,10 +1261,10 @@ function panel(label, badge, inner, alt, twoUp, cls){
 /* กระบวนการ 5 ขั้นตอนของโครงการ — ใช้ทั้งสไลด์ปกขั้นตอนและบันไดขั้นตอนบนจอซ้าย
    ลำดับนี้คือลำดับการแสดงจริงในนิทรรศการ                                     */
 const SECTIONS = [
-  { n:'01', t:'สแกนภาพจากหนังสือ',   d:'ภาพฮาล์ฟโทนในตำรา ๒๔๖๖',        c:'๑๒ ภาพ',
+  { n:'01', t:'สแกนภาพจากหนังสือ',   d:'ภาพขาวดำในตำรา ๒๔๖๖',        c:'๑๒ ภาพ',
     longd:'เริ่มจากภาพท่ารำในตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ '
-        + 'ภาพฮาล์ฟโทนขาวดำอายุกว่า ๑๐๐ ปี ถูกสแกนเก็บไว้ทั้งชุด' },
-  { n:'02', t:'ฟื้นฟูภาพ',            d:'ภาพฮาล์ฟโทน → ภาพคมชัด',        c:'๑๒ ท่า',
+        + 'ภาพขาวดำอายุกว่า ๑๐๐ ปี ถูกสแกนเก็บไว้ทั้งชุด' },
+  { n:'02', t:'ฟื้นฟูภาพ',            d:'ภาพขาวดำ → ภาพคมชัด',        c:'๑๒ ท่า',
     longd:'ฟื้นฟูรายละเอียดเครื่องแต่งกาย เครื่องประดับ และท่ามือ กลับมาทีละท่า '
         + 'จนได้ภาพท่ารำที่คมชัดพอจะใช้งานต่อได้' },
   { n:'03', t:'สร้างการเคลื่อนไหว',    d:'ภาพนิ่ง → วิดีโอต่อเนื่อง',      c:'๒๒ คลิป',
@@ -1498,7 +1518,7 @@ const scanCell = (p, i) => {
     rows:[['ชุดที่แสดงหน้านี้','ท่าที่ ' + rng + ' จาก ๑๒ ท่า'],
           ['ที่มา','ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณ พ.ศ. ๒๔๖๖'],
           ['ผู้รำในภาพ', PERFORMER]],
-    note:'ทั้งหมดเป็นภาพฮาล์ฟโทนขาวดำที่สแกนจากตำราโดยตรง ยังไม่ผ่านการฟื้นฟู '
+    note:'ทั้งหมดเป็นภาพขาวดำที่สแกนจากตำราโดยตรง ยังไม่ผ่านการฟื้นฟู '
        + 'ผลการฟื้นฟูจะเห็นทีละท่าในขั้นตอนที่ ๐๒',
     },
     wide:()=> band({ eyebrow:stepEB(0), title:'ท่าครู ๑๒ ท่า',
@@ -1564,7 +1584,7 @@ for(let i = 0; i < PAIRS.length; i += 3){
 /* สามชุดเอกสารที่ถ่ายครบ "ท่าครู ๑๒ ท่า" ของครูโนราคนละท่าน
    หมายเลขภาพตรงกับ "ภาพที่ N" ในรายงาน ไฟล์อยู่ที่ assets/restore/figNN.jpg */
 const MASTERS = [
-  { set:'ชุดเอกสารที่ ๒', kind:'ภาพพิมพ์สกรีน (halftone) ฉากสถานที่จริง',
+  { set:'ชุดเอกสารที่ ๒', kind:'ภาพพิมพ์สกรีน ฉากสถานที่จริง',
     note:'ชุดท่าจีบ ๑๑ ท่า ปิดท้ายด้วยท่าเขาควาย',
     poses:[[13,'ท่าพนมจีบ'],[14,'จีบข้างซ้าย'],[15,'จีบข้างขวา'],[16,'จีบเพียงเอวซ้าย'],
            [17,'จีบเพียงเอวขวา'],[18,'จีบไว้หลังซ้าย'],[19,'จีบไว้หลังขวา'],[20,'จีบเพียงบ่าซ้าย'],
@@ -1974,7 +1994,7 @@ push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
         ['วิดีโอที่สร้างได้','๒๒ คลิป'],
         ['ท่าใหม่ที่เกิดขึ้น','๗ ท่า (A–G)'],
         ['ขั้นตอนของกระบวนการ','๕ ขั้นตอน']],
-  note:'ทั้งหมดเริ่มจากภาพฮาล์ฟโทนขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๒ ภาพ' },
+  note:'ทั้งหมดเริ่มจากภาพขาวดำในตำราอายุกว่า ๑๐๐ ปี จำนวน ๑๒ ภาพ' },
   /* จอซ้าย ผู้สนับสนุน · จอกลาง สรุปโครงการ · จอขวา เครดิต — อยู่ในสไลด์เดียวกัน */
   left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
   midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:'สรุปผลงาน',
@@ -2461,6 +2481,44 @@ function openCurtain(lag){
   }, Math.max(0, (MOTION_ON ? 4400 : 0) - d));   // 4.2s รูด + เผื่ออีกนิด
 }
 
+/* ---------- เต็มจอ ---------------------------------------------------
+   requestFullscreen() ต้องถูกเรียก "ต่อเนื่องจากการกดของคนที่เครื่องนั้น"
+   เท่านั้น เบราว์เซอร์ถึงจะยอม คำสั่งที่วิ่งมาตามสาย SSE จากหน้า controller
+   ไม่นับเป็นการกด จึงโดนปฏิเสธด้วย NotAllowedError — ของเดิม .catch() ทิ้ง
+   เงียบ ๆ คนสั่งเลยเห็นแค่ "จอไม่ยอมเต็มจอ" โดยไม่รู้ว่าเพราะอะไร
+   (ขาออกไม่มีข้อจำกัดนี้ สั่งให้ออกจากเต็มจอข้ามเครื่องได้ตามปกติ)
+
+   ทำได้สองทาง
+     มีคนอยู่หน้าเครื่อง → ตั้งท่ารอไว้ พอมีการกดอะไรก็ได้ที่จอนั้นครั้งถัดไป
+                          ค่อยเข้าเต็มจอ ระหว่างรอขึ้นป้ายบอกไว้บนจอ
+     จอผนังไม่มีคนเฝ้า  → เปิดเบราว์เซอร์แบบเต็มจอมาตั้งแต่แรก
+                          (ดูคำสั่งในการ์ด "จำลองผนัง" ของหน้า controller)  */
+let FULL_ARMED = false;
+function armFull(on){
+  if(FULL_ARMED === !!on) return;
+  FULL_ARMED = !!on;
+  document.documentElement.classList.toggle('armfull', FULL_ARMED);
+  clearTimeout(armFull._t);
+  // จอผนังที่ไม่มีใครอยู่ ไม่ควรค้างป้ายไว้ทั้งงาน — ปลดเองใน 45 วินาที
+  if(FULL_ARMED) armFull._t = setTimeout(() => armFull(false), 45000);
+  NORA.report();
+}
+function goFull(want){
+  const on = want === undefined ? !document.fullscreenElement : !!want;
+  if(!on){ armFull(false); if(document.fullscreenElement) document.exitFullscreen(); return; }
+  if(document.fullscreenElement) return;
+  document.documentElement.requestFullscreen()
+    .then(()  => armFull(false))
+    .catch(() => armFull(true));      // ไม่มีการกดรองรับ → รอการกดครั้งถัดไป
+}
+/* การกดใด ๆ ที่เครื่องนี้นับเป็นการกดของคน ใช้จังหวะนั้นสะสางที่ค้างไว้
+   capture:true เพื่อให้ได้จังหวะก่อนตัวจัดการอื่นจะกิน event ไป */
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, () => {
+  if(!FULL_ARMED) return;
+  armFull(false);
+  document.documentElement.requestFullscreen().catch(()=>{});
+}, true));
+
 /* controls */
 const ui = document.getElementById('ui');
 const KIOSK = PREVIEW || new URLSearchParams(location.search).get('kiosk') === '1';
@@ -2505,13 +2563,13 @@ ui.addEventListener('click', e=>{
   if(a==='next' && !SYNC) show(cur+1);
   if(a==='toggle') setPlaying(!playing);
   if(a==='restart' && !SYNC) show(0);
-  if(a==='full'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  if(a==='full'){ goFull(); }
 });
 addEventListener('keydown', e=>{
   if(e.code==='Space'){ e.preventDefault(); setPlaying(!playing); }
   if(!SYNC && (e.code==='ArrowRight'||e.code==='PageDown')) show(cur+1);
   if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
-  if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  if(e.key==='f'||e.key==='F'){ goFull(); }
   if((e.key==='r'||e.key==='R') && !SYNC) show(0);
   // C = วนสามจังหวะ ตั้งม่าน → เปิดม่าน → เข้าชุดหลัก
   // ไว้ซ้อมลำดับพิธีที่ตัวเครื่องโดยไม่ต้องหยิบมือถือ
@@ -2565,6 +2623,8 @@ const NORA = {
       sync:SYNC, mode:(PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'))),
       deck:DECK, curtain:(CURTAIN_UP ? 'up' : 'down'), group:GROUP || undefined,
       seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
+      // farm = สั่งเต็มจอมาแล้วแต่เบราว์เซอร์ยังไม่ยอม กำลังรอการกดที่เครื่องนั้น
+      farm:FULL_ARMED || undefined,
       title:(s && s.wall && s.wall.title) || '' };
   },
   /* คำสั่งเดินหน้า/ถอยหลังต้องหลุดจากโหมดนาฬิกาโลกก่อน
@@ -2616,9 +2676,9 @@ const NORA = {
                       NORA.rename(m.arg); break;
       case 'seam':    NORA.flag('seam', m.arg); break;
       case 'motion':  NORA.flag('motion', m.arg); break;
-      case 'full':    document.fullscreenElement ? document.exitFullscreen()
-                        : document.documentElement.requestFullscreen().catch(()=>{});
-                      break;
+      /* ไม่ส่ง arg = สลับ, '1' = เข้าเต็มจอ, '0' = ออกจากเต็มจอ */
+      case 'full':    goFull(m.arg === undefined || m.arg === null || m.arg === ''
+                        ? undefined : String(m.arg) === '1'); break;
       case 'reload':  location.reload(); break;
     }
     NORA.report();

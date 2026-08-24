@@ -410,6 +410,64 @@ await ctl.click('#enter'); await ctl.waitForTimeout(500);
 ok(/ออฟไลน์/.test(await ctl.textContent('#nowMeta')),
    'จอที่ปิดไปแล้ว — ขึ้นว่าออฟไลน์ ไม่ใช่โชว์เลขหน้าเก่าค้างไว้');
 
+/* ---- สั่งเต็มจอแล้วเบราว์เซอร์ไม่ยอม ต้องไม่เงียบ ----
+   ของจริง requestFullscreen สำเร็จเฉพาะตอนถูกเรียกต่อเนื่องจากการกดของคน
+   ที่เครื่องนั้น คำสั่งที่วิ่งมาตามสาย SSE จึงโดนปฏิเสธเสมอ — แต่โครมที่รันด้วย
+   Playwright ปล่อยผ่านให้หมด ทดสอบทางนั้นตรง ๆ ไม่ได้ จึงบังคับให้มันปฏิเสธ
+   แล้ววัดว่า "หลังโดนปฏิเสธ" ระบบทำถูกไหม (ของเดิม .catch() ทิ้งเงียบสนิท
+   ทั้งบนจอและบนหน้า controller คนสั่งเลยไม่รู้ว่าเกิดอะไรขึ้น)              */
+const fs1 = await mk('?screen=fs-a&sync=0');
+await fs1.evaluate(() => {
+  document.documentElement.requestFullscreen = () =>
+    Promise.reject(new DOMException('ต้องมีการกดก่อน', 'NotAllowedError'));
+});
+await ctl.click('#leave'); await ctl.fill('#sid', 'fs-a');
+await ctl.click('#enter'); await ctl.waitForTimeout(600);
+await ctl.click('[data-cmd="full"]'); await ctl.waitForTimeout(700);
+
+ok(await fs1.evaluate(() => document.documentElement.classList.contains('armfull')),
+   'สั่งเต็มจอแล้วโดนปฏิเสธ — จอตั้งท่ารอการกดไว้ ไม่ใช่เงียบหาย');
+ok(await fs1.isVisible('#armfull'), 'จอขึ้นป้ายบอกให้เดินไปกดที่เครื่องนั้น');
+ok(await fs1.evaluate(() => window.NORA.state.farm) === true,
+   'จอรายงานสถานะ "กำลังรอการกด" กลับไปที่รีเลย์');
+await ctl.waitForTimeout(1500);
+ok(await ctl.isVisible('#fullNote'),
+   'หน้า controller ขึ้นคำเตือนบอกสาเหตุ ไม่ปล่อยให้คนสั่งงงว่าทำไมไม่เต็มจอ');
+
+// การกดใด ๆ ที่เครื่องนั้นคือจังหวะที่เบราว์เซอร์ยอม ต้องสะสางที่ค้างไว้ทันที
+await fs1.evaluate(() => { window.__try = 0;
+  document.documentElement.requestFullscreen = () => { window.__try++; return Promise.resolve(); }; });
+await fs1.keyboard.press('ArrowRight');
+await fs1.waitForTimeout(400);
+const tried = await fs1.evaluate(() => window.__try);
+ok(tried === 1, 'พอมีคนกดที่จอนั้น เข้าเต็มจอให้ทันที (เรียก ' + tried + ' ครั้ง)');
+ok(!(await fs1.evaluate(() => document.documentElement.classList.contains('armfull'))),
+   'เข้าเต็มจอแล้ว ป้ายหายไป');
+await ctl.waitForTimeout(1500);
+ok(!(await ctl.isVisible('#fullNote')), 'คำเตือนบนหน้า controller หายตามไปด้วย');
+
+// สั่งออกจากเต็มจอไม่ติดข้อบังคับนี้ และต้องล้างท่าที่ค้างไว้ด้วย
+await fs1.evaluate(() => {
+  document.documentElement.requestFullscreen = () =>
+    Promise.reject(new DOMException('x', 'NotAllowedError'));
+  window.NORA.apply({ cmd:'full' });               // ตั้งท่ารออีกรอบ
+});
+await fs1.waitForTimeout(300);
+await fs1.evaluate(() => window.NORA.apply({ cmd:'full', arg:'0' }));
+await fs1.waitForTimeout(300);
+ok(!(await fs1.evaluate(() => document.documentElement.classList.contains('armfull'))),
+   'สั่ง full 0 — ยกเลิกท่าที่รออยู่ ไม่ค้างป้ายไว้บนจอ');
+
+// คำสั่งเปิดโครมเต็มจอต้องขึ้นให้ก๊อปได้ พร้อม URL ของช่องนั้นจริง ๆ
+await ctl.fill('#gid', 'wallx'); await ctl.waitForTimeout(300);
+const cmds = await ctl.evaluate(() =>
+  [...document.querySelectorAll('#kioskCmd .cmd')].map(c => c.textContent));
+ok(cmds.length === 3, 'การ์ดจำลองผนังขึ้นคำสั่งเปิดโครมเต็มจอครบ 3 ช่อง');
+ok(cmds.every((c, i) => /--kiosk/.test(c) && c.includes('panel=' + (i + 1))
+                     && c.includes('group=wallx')),
+   'คำสั่งชี้ไป URL ของช่องนั้นและใช้โหมด kiosk จริง');
+await fs1.close();
+
 // ---- โทเคนผิดต้องถูกปฏิเสธ ----
 const bad = await ctl.evaluate(async api => {
   const r = await fetch(api, { method:'POST', headers:{'content-type':'application/json'},

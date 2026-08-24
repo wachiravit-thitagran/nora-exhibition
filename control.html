@@ -97,6 +97,14 @@ a.lnk{flex:1 1 0;min-width:64px;text-align:center;line-height:38px;font-size:13p
 
 .hint{font-size:12px;color:var(--muted);line-height:1.5}
 .hint code{background:#26221A;border-radius:6px;padding:1px 6px}
+/* คำเตือนที่ต้องอ่านจริง ๆ ไม่ใช่คำอธิบายประกอบ จึงตีกรอบแยกออกมา */
+#fullNote{margin-top:10px;padding:10px 12px;border-radius:10px;
+  background:rgba(227,196,104,.09);border:1px solid rgba(227,196,104,.34)}
+/* คำสั่งที่ต้องก๊อปไปวางในเทอร์มินัล — ต้องเลือกข้อความได้และไม่ตัดบรรทัดกลางคำ */
+.cmd{display:block;margin:6px 0;padding:8px 10px;border-radius:8px;
+  background:#1B1813;border:1px solid #332C22;color:#D8CBB0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  line-height:1.5;overflow-x:auto;white-space:pre;user-select:all}
 
 /* ยังไม่ได้เลือกจอ = ยังไม่ต้องเห็นปุ่มสั่งงาน
    กันกดปุ่มแล้วงงว่าทำไมไม่มีอะไรเกิดขึ้น */
@@ -222,6 +230,13 @@ body.picked #pick{display:none}
       <button class="sm" data-cmd="motion">อนิเมชัน</button>
       <button class="sm" data-cmd="reload">โหลดใหม่</button>
     </div>
+    <div class="hint warn hide" id="fullNote">
+      <b>จอนั้นกำลังรอการกดอยู่</b> — เบราว์เซอร์ยอมให้เข้าเต็มจอเฉพาะตอนที่คน
+      <b>กดที่เครื่องนั้น</b> สั่งข้ามเครื่องมาอย่างเดียวไม่พอ (ขาออกไม่มีข้อจำกัดนี้)<br>
+      ตอนนี้จอขึ้นป้ายรอไว้แล้ว เดินไปกดปุ่มอะไรก็ได้ที่เครื่องนั้น หรือกด <b>F11</b> ตรงนั้นเลย<br>
+      จอผนังที่ไม่มีคนเฝ้า ให้เปิดเบราว์เซอร์แบบเต็มจอมาตั้งแต่แรก — คำสั่งอยู่ในการ์ด
+      <b>จำลองผนัง</b> ด้านล่าง จะได้ไม่ต้องมาสั่งทุกครั้งที่เปิดงาน
+    </div>
   </div>
 
   <div class="card" id="renameCard">
@@ -248,6 +263,12 @@ body.picked #pick{display:none}
     จะได้ภาพต่อเนื่องเหมือนผนัง 48:9 จริง<br>
     ทั้งสามจะโผล่ในรายการด้านล่างเป็น <b>แถวเดียว</b> กดเข้าคุมแล้วสั่งทีเดียวถึงพร้อมกันทุกช่อง<br>
     ถ้าเบราว์เซอร์บล็อกป๊อปอัป กดลิงก์ <b>ช่อง 1 · 2 · 3</b> ทีละอันแทนได้
+  </div>
+  <div class="hint" style="margin-top:12px">
+    <b>เปิดหน้างานจริง</b> — สั่ง <b>เต็มจอ</b> จากที่นี่ไม่ได้ เบราว์เซอร์บังคับว่าต้องมีคน
+    กดที่เครื่องนั้น ให้เปิดโครมแบบเต็มจอมาตั้งแต่แรกแทน สั่งครั้งเดียวจบ
+    <div id="kioskCmd" style="margin-top:8px"></div>
+    <span id="kioskHint"></span>
   </div>
 </div>
 
@@ -316,7 +337,9 @@ function buildView(){
       mixed,
       slide:same('slide'), total:same('total'), playing:same('playing'),
       deck:same('deck'), curtain:same('curtain'), sync:same('sync'),
-      seam:same('seam'), motion:same('motion'), full:same('full') });
+      seam:same('seam'), motion:same('motion'), full:same('full'),
+      // ช่องเดียวรออยู่ก็ต้องขึ้นคำเตือน ไม่ต้องรอให้ครบสามช่อง
+      farm:up.some(m => m.farm) });
   }
   out.sort((a, b) => a.id.localeCompare(b.id));
   // สมาชิกของกลุ่มไม่ต้องโผล่เป็นแถวแยกอีก — คุมทีละช่องไม่มีประโยชน์
@@ -454,6 +477,9 @@ function markState(s){
   set('[data-cmd="seam"]',   s && s.seam);
   set('[data-cmd="motion"]', s && s.motion);
   set('[data-cmd="full"]',   s && s.full);
+  // จอบอกกลับมาว่าโดนเบราว์เซอร์กั้นไว้ ต้องบอกคนสั่งให้รู้ ไม่ใช่ปล่อยให้งง
+  // ว่าทำไมกดแล้วไม่เกิดอะไรขึ้น (ของเดิมเงียบสนิททั้งสองฝั่ง)
+  $('#fullNote').classList.toggle('hide', !(s && s.farm));
 }
 /* ---------- ภาพตัวอย่าง ----------------------------------------------
    ไม่ได้ถ่ายภาพจากจอจริง (ทำไม่ได้ถ้าไม่ยัด canvas capture ลงไปทั้งระบบ)
@@ -526,10 +552,25 @@ $('#pv').addEventListener('load', () =>
      panel  ครอปเวทีกว้าง 11520px ให้เหลือช่องของตัวเอง
      kiosk  ซ่อนแถบปุ่มบนสไลด์ ลากไปเต็มจอแล้วสะอาดเลย                */
 const wallURL = (g, p) => PV_URL + '?group=' + encodeURIComponent(g) + '&panel=' + p + '&kiosk=1';
+/* คำสั่งเปิดโครมแบบเต็มจอตั้งแต่ตอนเปิดโปรแกรม
+   --start-fullscreen เต็มจอแต่ยังมีแถบเบราว์เซอร์ให้กดได้ตอนตั้งเครื่อง
+   --kiosk            เต็มจอสนิท ไม่มีทางกดออกนอกจาก Alt+F4 — ใช้ตอนเปิดงานจริง
+   ทั้งสองแบบไม่ต้องพึ่ง requestFullscreen จึงไม่ติดข้อบังคับเรื่องการกดของคน
+   --user-data-dir แยกโปรไฟล์ ไม่ให้ไปชนกับโครมที่คนคุมงานเปิดใช้อยู่          */
+const kioskCmd = (g, p) => 'chrome --kiosk --user-data-dir=/tmp/nora-' + p
+  + ' "' + location.origin + wallURL(g, p) + '"';
 function drawWall(){
   const g = $('#gid').value.trim().slice(0, 40);
   $('#wallLinks').innerHTML = !g ? '' : [1, 2, 3].map(p =>
     `<a class="lnk" target="_blank" rel="noopener" href="${esc(wallURL(g, p))}">ช่อง ${p}</a>`).join('');
+  const box = $('#kioskCmd');
+  box.innerHTML = !g ? '' : [1, 2, 3].map(p =>
+    `<code class="cmd">${esc(kioskCmd(g, p))}</code>`).join('');
+  $('#kioskHint').innerHTML = !g
+    ? 'ตั้งชื่อผนังด้านบนก่อน แล้วคำสั่งจะขึ้นตรงนี้'
+    : 'รันคำสั่งของช่องนั้นที่เครื่องของแต่ละจอ (แมค/ลินุกซ์ใช้ '
+      + '<code>google-chrome</code> หรือ <code>open -a "Google Chrome" --args</code>) '
+      + 'ออกจากโหมดนี้ด้วย <b>Alt+F4</b> หรือ <b>Cmd+Q</b>';
 }
 $('#gid').addEventListener('input', drawWall);
 $('#openWall').addEventListener('click', () => {
