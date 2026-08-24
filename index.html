@@ -1910,11 +1910,24 @@ const QS = new URLSearchParams(location.search);
    โหมดนี้ต้องไม่แตะอะไรที่เป็นของ "เครื่องจริง" เลย
    ห้ามเขียน localStorage · ห้ามรายงานตัวกับรีเลย์ · ไม่ต้องมีแถบปุ่ม */
 const PREVIEW = QS.get('preview') === '1' || window.__PREVIEW === true;
+
+/* ?group=<ชื่อ> = แท็บนี้เป็นหนึ่งช่องของผนังจำลอง ใช้คู่กับ ?panel=1|2|3
+   เปิดสามแท็บบนเครื่องเดียว ลากไปวางเรียงกัน แล้วสั่งพร้อมกันจาก controller
+   ได้ภาพต่อเนื่องเหมือนผนัง 48:9 โดยไม่ต้องมีจอจริงสามบาน
+
+   แท็บกลุ่มต้อง "ไม่ยุ่งกับค่าที่จำไว้" เด็ดขาด เพราะสามแท็บอยู่ origin เดียวกัน
+   จึงใช้ localStorage ก้อนเดียวกัน ถ้าเขียน แท็บหลังจะทับโหมดของแท็บหน้าทันที
+   (แท็บ 1 เขียน mode=1 · แท็บ 2 ทับเป็น 2 · แท็บ 3 ทับเป็น 3 แล้วพังทั้งชุด)
+   แท็บกลุ่มจึงถูกกำหนดด้วย query string ล้วน ๆ เหมือนโหมดภาพตัวอย่าง          */
+const GROUP = (QS.get('group') || '').trim().slice(0, 40);
+
+/* ค่าที่จำไว้เป็นของ "เครื่องจริง" เท่านั้น แท็บจำลองกับภาพตัวอย่างไม่แตะ */
+const EPHEMERAL = PREVIEW || !!GROUP;
 const PREF = {
-  get(k, d){ if(PREVIEW) return d;      // ภาพตัวอย่างต้องเริ่มสะอาด แล้วให้ controller สั่งทับ
+  get(k, d){ if(EPHEMERAL) return d;    // ต้องเริ่มสะอาด แล้วให้ query string / controller สั่ง
              try{ const v = localStorage.getItem('nora:' + k); return v === null ? d : v; }
              catch(e){ return d; } },
-  set(k, v){ if(PREVIEW) return;
+  set(k, v){ if(EPHEMERAL) return;
              try{ localStorage.setItem('nora:' + k, String(v)); }catch(e){} },
 };
 
@@ -1925,6 +1938,9 @@ const BOOT_MODE = MODE_IN_URL
   ? (Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0))
       ? String(Math.min(3, parseInt(QS.get('panel'), 10)))
       : QS.get('wall') === '1' ? 'wall' : 'w')
+  // แท็บกลุ่มที่ลืมใส่ ?panel= ให้ถือว่าเป็นช่องซ้าย ไม่ใช่ 16:9 เต็มจอ
+  // ไม่งั้นจะได้ผนังจำลองที่มีช่องซ้ายซ้อนกับภาพเต็มโดยไม่รู้ตัว
+  : GROUP ? '1'
   : PREF.get('mode', CONFIG.ULTRA ? 'w' : '0');
 
 let PANEL_ON = /^[123]$/.test(BOOT_MODE) ? +BOOT_MODE : 0;  // จอที่กำลังครอปแสดง (0 = ไม่ครอป)
@@ -2179,6 +2195,7 @@ function paintInfo(){
        : ULTRA_ON ? ' · 48:9 แบ่ง 3' : '')
     + (SYNC ? ' · sync' : '')
     + (DECK !== 'main' ? ' · ' + (CURTAIN_UP ? 'ม่านเปิดแล้ว รอกดชุดหลัก' : DECKS[DECK].label) : '')
+    + (GROUP ? ' · กลุ่ม ' + GROUP : '')
     // บอกด้วยว่าต่อรีเลย์ติดหรือยัง ไม่ใช่แค่ชื่อจอ — เดิมขึ้นชื่อจอเฉย ๆ
     // ทำให้เข้าใจผิดว่าจอพร้อมสั่งงานแล้ว ทั้งที่สาย SSE ยังต่อไม่ติดและ
     // กำลังลองใหม่เงียบ ๆ อยู่ทุก 5 วินาที กว่าจะรู้ก็ตอนหยิบมือถือขึ้นมาสั่ง
@@ -2346,6 +2363,9 @@ addEventListener('keydown', e=>{
    ชื่อซ้ำ = จอเดียวกันในสายตารีเลย์ เครื่องหลังจะเตะเครื่องแรกออก
    ชื่อจอแสดงท้ายแถบควบคุมของสไลด์ ตอนตั้งหน้างานจะได้รู้ว่าเครื่องไหนชื่ออะไร */
 let SCREEN_ID = (QS.get('screen') || '').trim().slice(0, 40)
+  // แท็บกลุ่มตั้งชื่อให้เองจาก กลุ่ม+ช่อง เช่น wall-1 wall-2 wall-3
+  // รีเลย์จึงถือสายแยกกันสามเส้น แต่ controller สั่งทีเดียวถึงทั้งกลุ่ม
+  || (GROUP ? GROUP + '-' + (PANEL_ON || 1) : '')
   || PREF.get('screen', '').trim().slice(0, 40)
   || 'main';
 if(QS.get('screen')) PREF.set('screen', SCREEN_ID);
@@ -2361,7 +2381,7 @@ const NORA = {
     const s = SLIDES[cur];
     return { screen:SCREEN_ID, slide:cur + 1, total:SLIDES.length, playing,
       sync:SYNC, mode:(PANEL_ON ? String(PANEL_ON) : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0'))),
-      deck:DECK, curtain:(CURTAIN_UP ? 'up' : 'down'),
+      deck:DECK, curtain:(CURTAIN_UP ? 'up' : 'down'), group:GROUP || undefined,
       seam:SEAM_ON, motion:MOTION_ON, full:!!document.fullscreenElement,
       title:(s && s.wall && s.wall.title) || '' };
   },
@@ -2384,12 +2404,19 @@ const NORA = {
                       PREF.set('sync', SYNC ? '1' : '0');
                       paintInfo();
                       break;
-      case 'mode':    if(['0','1','2','3','w','wall'].includes(String(m.arg)))
+      /* แท็บกลุ่มล็อกช่องของตัวเองไว้ ถ้ารับคำสั่งเปลี่ยนโหมด ทั้งสามแท็บ
+         จะกลายเป็นช่องเดียวกันหมด ผนังจำลองก็พัง */
+      case 'mode':    if(GROUP) break;
+                      if(['0','1','2','3','w','wall'].includes(String(m.arg)))
                         setMode(String(m.arg));
                       break;
       case 'deck':    setDeck(String(m.arg)); break;
       case 'curtain': openCurtain(); break;
-      case 'name':    NORA.rename(m.arg); break;
+      /* เปลี่ยนชื่อก็เช่นกัน — คำสั่งถึงทั้งสามแท็บพร้อมกัน ถ้ายอมเปลี่ยน
+         ทั้งสามจะใช้ชื่อเดียวกัน แล้วเตะกันเองออกจากรีเลย์เหลือสายเดียว
+         ชื่อของแท็บกลุ่มมาจาก ?group= กับ ?panel= เท่านั้น */
+      case 'name':    if(GROUP) break;
+                      NORA.rename(m.arg); break;
       case 'seam':    NORA.flag('seam', m.arg); break;
       case 'motion':  NORA.flag('motion', m.arg); break;
       case 'full':    document.fullscreenElement ? document.exitFullscreen()

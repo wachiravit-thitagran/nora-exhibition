@@ -52,6 +52,15 @@ button.scr:first-child{border-top:0}
 button.scr .id{font-weight:700;font-size:15px;flex:0 0 auto}
 button.scr .meta{color:var(--muted);margin-left:auto;text-align:right;line-height:1.35}
 button.scr.cur .id{color:var(--gold)}
+/* แถวกลุ่ม = ผนังจำลองหนึ่งผืน (หลายแท็บรวมกัน) ไม่ใช่จอจริงตัวเดียว
+   ติดป้ายไว้ให้แยกออกจากกัน เพราะทั้งคู่กดเข้าคุมได้เหมือนกัน */
+.tag{font-size:11px;font-weight:700;color:#2A2208;background:var(--gold-dk);
+  border-radius:999px;padding:2px 7px;flex:0 0 auto}
+.warn{color:var(--gold)}
+
+/* ลิงก์สำรองตอนเบราว์เซอร์บล็อกป๊อปอัป — ทำให้หน้าตาเหมือนปุ่มเล็ก */
+a.lnk{flex:1 1 0;min-width:64px;text-align:center;line-height:38px;font-size:13px;font-weight:600;
+  color:var(--ink);background:#26221A;border:1px solid var(--line);border-radius:12px;text-decoration:none}
 
 /* .row เป็น flex ซึ่งชนะ [hidden] จึงต้องมีคลาสซ่อนของตัวเอง */
 .hide{display:none !important}
@@ -152,16 +161,22 @@ body.picked #pick{display:none}
   <div class="card">
     <!-- เรียงให้ตรงกับแถบควบคุมบนตัวสไลด์: สองกลุ่มใหญ่ก่อน
          แล้วกลุ่มเลือกจอโผล่เฉพาะตอนอยู่ในตระกูล 16:9 -->
-    <label>โหมดจอ</label>
-    <div class="row">
-      <button class="sm" data-cmd="mode" data-arg="0" data-fam="s">16:9</button>
-      <button class="sm" data-cmd="mode" data-arg="w" data-fam="w">48:9 แบ่ง 3</button>
+    <div id="modeBox">
+      <label>โหมดจอ</label>
+      <div class="row">
+        <button class="sm" data-cmd="mode" data-arg="0" data-fam="s">16:9</button>
+        <button class="sm" data-cmd="mode" data-arg="w" data-fam="w">48:9 แบ่ง 3</button>
+      </div>
+      <div class="row hide" id="panels" style="margin-top:8px">
+        <button class="sm" data-cmd="mode" data-arg="0">เดี่ยว</button>
+        <button class="sm" data-cmd="mode" data-arg="1">จอ 1</button>
+        <button class="sm" data-cmd="mode" data-arg="2">จอ 2</button>
+        <button class="sm" data-cmd="mode" data-arg="3">จอ 3</button>
+      </div>
     </div>
-    <div class="row hide" id="panels" style="margin-top:8px">
-      <button class="sm" data-cmd="mode" data-arg="0">เดี่ยว</button>
-      <button class="sm" data-cmd="mode" data-arg="1">จอ 1</button>
-      <button class="sm" data-cmd="mode" data-arg="2">จอ 2</button>
-      <button class="sm" data-cmd="mode" data-arg="3">จอ 3</button>
+    <div class="hint hide" id="modeNote">
+      <b>ผนังจำลอง</b> ล็อกช่องของแต่ละแท็บไว้ตาม URL — เปลี่ยนโหมดหรือเปลี่ยนชื่อจากที่นี่ไม่ได้
+      ถ้าต้องการช่องอื่น ปิดแท็บแล้วเปิดใหม่จากการ์ด <b>จำลองผนัง</b> ด้านล่าง
     </div>
 
     <label style="margin-top:14px">การเดินเวลา</label>
@@ -184,7 +199,7 @@ body.picked #pick{display:none}
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="renameCard">
     <label for="rn">เปลี่ยนชื่อจอนี้</label>
     <div class="row">
       <input id="rn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ชื่อใหม่">
@@ -193,6 +208,21 @@ body.picked #pick{display:none}
     <div class="hint" style="margin-top:10px">
       จอจะจำชื่อใหม่ไว้เอง ไม่ต้องแก้ URL — ครั้งหน้าเปิด <code>/exhibition/</code> เปล่า ๆ ก็ยังชื่อเดิม
     </div>
+  </div>
+</div>
+
+<div class="card" id="wallCard">
+  <label for="gid">จำลองผนัง 48:9 ด้วย 3 แท็บ</label>
+  <div class="row">
+    <input id="gid" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ชื่อผนัง เช่น wall">
+    <button class="sm pri" id="openWall" style="min-height:46px">เปิด 3 แท็บ</button>
+  </div>
+  <div class="row" id="wallLinks" style="margin-top:8px"></div>
+  <div class="hint" style="margin-top:10px">
+    เปิดสามแท็บ ช่องซ้าย · กลาง · ขวา ของผนังเดียวกัน ลากไปคนละจอแล้วกด F11
+    จะได้ภาพต่อเนื่องเหมือนผนัง 48:9 จริง<br>
+    ทั้งสามจะโผล่ในรายการด้านล่างเป็น <b>แถวเดียว</b> กดเข้าคุมแล้วสั่งทีเดียวถึงพร้อมกันทุกช่อง<br>
+    ถ้าเบราว์เซอร์บล็อกป๊อปอัป กดลิงก์ <b>ช่อง 1 · 2 · 3</b> ทีละอันแทนได้
   </div>
 </div>
 
@@ -218,6 +248,10 @@ body.picked #pick{display:none}
 const QS = new URLSearchParams(location.search);
 const API = QS.get('api') || location.pathname.replace(/\/[^/]*$/, '') + '/api';
 const $ = s => document.querySelector(s);
+/* ชื่อจอถูกตั้งจากเครื่องอื่นได้ (ใครยิง /state ก็ตั้งได้) จึงห้ามยัดเข้า
+   innerHTML ดิบ ๆ ต่อให้เป็นระบบภายในก็เถอะ พลาดทีเดียวหน้านี้พังทั้งหน้า */
+const esc = t => String(t == null ? '' : t)
+  .replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 const tokBox = $('#tok');
 tokBox.value = sessionStorage.getItem('nora-token') || '';
 tokBox.addEventListener('input', () => sessionStorage.setItem('nora-token', tokBox.value));
@@ -225,7 +259,47 @@ tokBox.addEventListener('input', () => sessionStorage.setItem('nora-token', tokB
 /* คุมทีละจอ — ไม่มีโหมดสั่งพร้อมกันทุกจอแล้ว
    หนึ่งเครื่อง = หนึ่งชื่อจอ ส่วนจะแสดง 16:9 หรือ 48:9 เป็นเรื่องของ "โหมด" ไม่ใช่ชื่อ */
 let target = '';
-let screens = [];
+let screens = [];       // ตามที่รีเลย์ส่งมา — หนึ่งแถวต่อหนึ่งสาย SSE
+let view = [];          // ที่หน้านี้แสดงจริง = กลุ่มที่ยุบรวมแล้ว + จอเดี่ยว
+
+/* ---------- ผนังจำลอง (กลุ่ม) ---------------------------------------
+   สามแท็บที่เปิดด้วย ?group=<ชื่อ> เดียวกัน คนละ ?panel= เป็น "จอ" คนละตัว
+   ในสายตารีเลย์ (ชื่อ wall-1 wall-2 wall-3 สายละเส้น) แต่คนคุมมองว่าเป็น
+   ผนังผืนเดียว หน้านี้จึงยุบสมาชิกให้เหลือแถวเดียวชื่อเท่ากับชื่อกลุ่ม
+   แล้วส่งคำสั่งด้วยชื่อกลุ่ม — รีเลย์ยิงต่อให้ครบทุกช่องเอง
+
+   สรุปสถานะแบบ "ตรงกันทุกช่องเท่านั้นถึงบอก" ถ้าช่องไหนหลุดไปคนละหน้า
+   จะไม่แสดงเลขหน้ามั่ว ๆ แต่ขึ้นเตือนว่าไม่ตรงกัน ให้กดดึงกลับเข้าแถว */
+function buildView(){
+  const gs = new Map();
+  for(const s of screens){
+    if(!s.group) continue;
+    let g = gs.get(s.group);
+    if(!g) gs.set(s.group, g = []);
+    g.push(s);
+  }
+  const out = [];
+  for(const [id, members] of gs){
+    const up = members.filter(m => m.online);
+    // ค่าเดียวกันทุกช่องถึงจะสรุปได้ ไม่งั้นปล่อยว่างไว้
+    const same = k => { const v = new Set(up.map(m => m[k])); return v.size === 1 ? [...v][0] : undefined; };
+    const mixed = up.length > 1 && ['slide','deck','curtain'].some(k => same(k) === undefined);
+    out.push({ id, group:true, members:members.length, up:up.length,
+      online: up.length > 0,
+      seen: Math.max(0, ...members.map(m => m.seen || 0)),
+      mode: 'w',                       // ผนังจำลองมีสัดส่วน 48:9 เสมอ
+      mixed,
+      slide:same('slide'), total:same('total'), playing:same('playing'),
+      deck:same('deck'), curtain:same('curtain'), sync:same('sync'),
+      seam:same('seam'), motion:same('motion'), full:same('full') });
+  }
+  out.sort((a, b) => a.id.localeCompare(b.id));
+  // สมาชิกของกลุ่มไม่ต้องโผล่เป็นแถวแยกอีก — คุมทีละช่องไม่มีประโยชน์
+  // (ยังพิมพ์ชื่อ wall-2 เข้าคุมตรง ๆ ได้อยู่ ถ้าวันหนึ่งต้องแก้เฉพาะช่อง)
+  view = out.concat(screens.filter(s => !s.group));
+}
+const find = id => view.find(x => x.id === id)
+  || screens.find(x => x.id === id);      // เผื่อพิมพ์ชื่อช่องย่อยเข้ามาเอง
 
 function toast(t){
   const el = $('#toast'); el.textContent = t; el.classList.add('show');
@@ -240,7 +314,7 @@ function enter(id){
   document.body.classList.add('picked');
   $('#sid').value = id;
   drawNow(); drawList();
-  if(!screens.some(s => s.id === id)) toast('ยังไม่เห็นจอชื่อนี้ออนไลน์');
+  if(!find(id)) toast('ยังไม่เห็นจอชื่อนี้ออนไลน์');
 }
 function leave(){
   target = '';
@@ -302,18 +376,29 @@ function ago(ms){
      ออนไลน์       = บอกได้ว่ากำลังอยู่หน้าไหน โหมดอะไร
    เดิมกรณีแรกขึ้นว่า "ยังไม่ได้ต่อกับรีเลย์" ซึ่งชวนเข้าใจผิดว่ารีเลย์พัง
    และกรณีที่สองโชว์เลขหน้าเก่าค้างไว้เหมือนจอยังเล่นอยู่ */
+const where = s => s.deck === 'intro'
+  ? (s.curtain === 'up' ? 'ม่านเปิดแล้ว · ค้างหน้าแรก รอกดชุดหลัก' : 'ม่านเปิดงาน · รอสั่งเปิดม่าน')
+  : `${s.slide ? `หน้า ${s.slide} / ${s.total}` : '—'} · ${s.playing ? 'เล่นอยู่' : 'หยุด'}`;
 const meta = s => !s ? 'ไม่มีจอชื่อนี้ในรีเลย์ — ยังไม่ได้เปิดสไลด์ หรือชื่อไม่ตรง'
+  // นับเทียบกับ 3 เสมอ ผนังหนึ่งผืนมีสามช่องตามนิยาม
+  // ถ้าเปิดมาแค่สองแท็บก็ต้องเห็นว่า 2/3 ไม่ใช่ 2/2 ที่ดูเหมือนครบ
+  : s.group ? (!s.up ? `ผนังจำลอง · ออฟไลน์ทั้งหมด · เห็นล่าสุด ${ago(s.seen)}`
+      : `ผนังจำลอง ${s.up}/3 ช่อง · ` + (s.mixed ? 'ช่องไม่ตรงกัน — สั่งไปหน้าใดหน้าหนึ่งเพื่อดึงเข้าแถว' : where(s)))
   : !s.online ? 'ออฟไลน์ · เห็นล่าสุด ' + ago(s.seen)
-  : s.deck === 'intro' ? (s.curtain === 'up'
-      ? 'ม่านเปิดแล้ว · ค้างหน้าแรก รอกดชุดหลัก'
-      : 'ม่านเปิดงาน · รอสั่งเปิดม่าน')
-  : `${s.slide ? `หน้า ${s.slide} / ${s.total}` : '—'} · ${s.playing ? 'เล่นอยู่' : 'หยุด'}`
+  : where(s)
     + ` · ${MODE[s.mode] || s.mode || '?'}${s.sync ? ' · ตามนาฬิกา' : ' · เดินเอง'}`;
 
 /* ไฮไลต์ปุ่มตามสถานะที่จอรายงานกลับมา ไม่ใช่ตามปุ่มที่เพิ่งกด
    ถ้ามีคนเดินไปกดที่ตัวจอเอง หน้านี้ก็ยังตรงกับความจริง */
 function markState(s){
   const set = (sel, on) => { const b = $(sel); if(b) b.classList.toggle('on', !!on); };
+  /* ผนังจำลองไม่มีปุ่มโหมดกับปุ่มเปลี่ยนชื่อ — สองอย่างนี้ถูกส่งถึงทั้งสามแท็บ
+     พร้อมกัน ถ้ายอมให้กด ทั้งสามจะกลายเป็นช่องเดียวกัน หรือชื่อชนกันจนเหลือ
+     สายเดียว ตัวสไลด์ก็ปฏิเสธคำสั่งนี้อยู่แล้ว ที่นี่แค่ไม่ยั่วให้กด */
+  const grp = !!(s && s.group);
+  $('#modeBox').classList.toggle('hide', grp);
+  $('#modeNote').classList.toggle('hide', !grp);
+  $('#renameCard').classList.toggle('hide', grp);
   // ตระกูลโหมดไฮไลต์ด้วย data-fam ส่วนเลขจอไฮไลต์ด้วย data-arg
   // (ปุ่ม 16:9 กับ เดี่ยว ใช้ arg เดียวกันคือ '0' ถ้าดู arg อย่างเดียวจะติดพร้อมกันสองปุ่ม)
   const m = s ? s.mode : null;
@@ -404,13 +489,41 @@ function pvSync(s){
 }
 $('#pvtoggle').addEventListener('click', async () => {
   await setPreview(!pvOn);
-  if(pvOn) pvSync(screens.find(x => x.id === target));
+  if(pvOn) pvSync(find(target));
 });
 $('#pv').addEventListener('load', () =>
-  setTimeout(() => pvSync(screens.find(x => x.id === target)), 400));
+  setTimeout(() => pvSync(find(target)), 400));
+
+/* ---------- ปุ่มเปิดผนังจำลอง ---------------------------------------
+   สามลิงก์ ?group=<ชื่อ>&panel=1|2|3&kiosk=1
+     group  ผูกสามแท็บเข้าเป็นเป้าหมายเดียวในสายตารีเลย์ และสั่งให้แท็บนั้น
+            ไม่แตะค่าที่จำไว้ (สาม tab ใช้ localStorage ก้อนเดียวกัน)
+     panel  ครอปเวทีกว้าง 11520px ให้เหลือช่องของตัวเอง
+     kiosk  ซ่อนแถบปุ่มบนสไลด์ ลากไปเต็มจอแล้วสะอาดเลย                */
+const wallURL = (g, p) => PV_URL + '?group=' + encodeURIComponent(g) + '&panel=' + p + '&kiosk=1';
+function drawWall(){
+  const g = $('#gid').value.trim().slice(0, 40);
+  $('#wallLinks').innerHTML = !g ? '' : [1, 2, 3].map(p =>
+    `<a class="lnk" target="_blank" rel="noopener" href="${esc(wallURL(g, p))}">ช่อง ${p}</a>`).join('');
+}
+$('#gid').addEventListener('input', drawWall);
+$('#openWall').addEventListener('click', () => {
+  const g = $('#gid').value.trim().slice(0, 40);
+  if(!g) return toast('ตั้งชื่อผนังก่อน');
+  try{ localStorage.setItem('nora-group', g); }catch(e){}
+  // เบราว์เซอร์ยอมให้เปิดหลายหน้าต่างต่อการกดหนึ่งครั้งบ้างไม่ยอมบ้าง
+  // เปิดไม่ครบก็ไม่เป็นไร ลิงก์สำรองอยู่ใต้ปุ่มอยู่แล้ว
+  let ok = 0;
+  for(const p of [1, 2, 3]) if(window.open(wallURL(g, p), 'nora-' + g + '-' + p)) ok++;
+  toast(ok === 3 ? 'เปิดครบสามช่องแล้ว'
+    : ok ? `เปิดได้ ${ok} ช่อง — ที่เหลือกดลิงก์ด้านล่าง`
+         : 'เบราว์เซอร์บล็อกป๊อปอัป — กดลิงก์ช่อง 1·2·3 แทน');
+  // แท็บต้องต่อสายกับรีเลย์ก่อนถึงจะโผล่ในรายการ รอสักครู่แล้วค่อยเข้าคุม
+  setTimeout(() => enter(g), 1500);
+});
 
 function drawNow(){
-  const s = screens.find(x => x.id === target);
+  const s = find(target);
   $('#nowId').textContent = target;
   $('#nowDot').className = 'dot' + (s && s.online ? ' on' : '');
   $('#nowMeta').textContent = meta(s);
@@ -418,11 +531,12 @@ function drawNow(){
   pvSync(s);
 }
 function drawList(){
-  $('#list').innerHTML = screens.length ? screens.map(s => `
-    <button type="button" class="scr${s.id === target ? ' cur' : ''}" data-pick="${s.id}">
+  $('#list').innerHTML = view.length ? view.map(s => `
+    <button type="button" class="scr${s.id === target ? ' cur' : ''}" data-pick="${esc(s.id)}">
       <span class="dot ${s.online ? 'on' : ''}"></span>
-      <span class="id">${s.id}</span>
-      <span class="meta">${meta(s)}</span>
+      <span class="id">${esc(s.id)}</span>
+      ${s.group ? '<span class="tag">ผนัง</span>' : ''}
+      <span class="meta${s.group && s.mixed ? ' warn' : ''}">${esc(meta(s))}</span>
     </button>`).join('') : '<div class="hint">ยังไม่มีจอรายงานตัวเข้ามา</div>';
   $('#list').querySelectorAll('button[data-pick]')
     .forEach(b => b.onclick = () => enter(b.dataset.pick));
@@ -435,8 +549,9 @@ function connect(){
   es.addEventListener('open', () => { $('#conn').textContent = 'ต่อรีเลย์แล้ว'; });
   es.addEventListener('screens', ev => {
     try{ screens = JSON.parse(ev.data); }catch(e){ screens = []; }
-    const on = screens.filter(s => s.online).length;
-    $('#conn').textContent = `ต่อรีเลย์แล้ว · จอออนไลน์ ${on} จาก ${screens.length}`;
+    buildView();
+    const on = view.filter(s => s.online).length;
+    $('#conn').textContent = `ต่อรีเลย์แล้ว · จอออนไลน์ ${on} จาก ${view.length}`;
     if(target) drawNow();
     drawList();
   });
@@ -458,7 +573,10 @@ fetch(API + '/healthz').then(r => r.json()).then(h => {
    (ทำ QR ต่อ ?screen= ติดข้างเครื่องได้ สแกนแล้วเข้าคุมจอนั้นทันที) */
 let last = ''; try{ last = localStorage.getItem('nora-screen') || ''; }catch(e){}
 const boot = QS.get('screen') || last;
+try{ $('#gid').value = QS.get('group') || localStorage.getItem('nora-group') || ''; }catch(e){}
 setPreview(pvOn);
+drawWall();
+buildView();
 drawList();
 if(boot) enter(boot); else $('#sid').value = '';
 connect();

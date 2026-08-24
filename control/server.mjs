@@ -122,7 +122,9 @@ const srv = http.createServer(async (req, res) => {
     if(!msg.cmd) return json(res, 400, { error: 'ต้องระบุ cmd' });
     let sent = 0;
     for(const s of screens.values()){
-      if(target !== '*' && s.id !== target) continue;
+      // target ตรงกับ "ชื่อจอ" หรือ "ชื่อกลุ่ม" ก็ได้
+      // กลุ่มคือหลายแท็บที่จำลองผนังเดียวกัน สั่งทีเดียวต้องถึงทุกช่อง
+      if(target !== '*' && s.id !== target && (s.state && s.state.group) !== target) continue;
       if(!s.res) continue;
       sse(s.res, 'cmd', msg); sent++;
     }
@@ -141,7 +143,7 @@ const srv = http.createServer(async (req, res) => {
     // ไม่งั้นหน้า controller จะไม่เห็นค่านั้นเลย (ปุ่มไฮไลต์ไม่ติด)
     cur.state = { slide: body.slide, total: body.total, playing: !!body.playing,
                   mode: body.mode, title: body.title, sync: !!body.sync,
-                  deck: body.deck, curtain: body.curtain,
+                  deck: body.deck, curtain: body.curtain, group: body.group,
                   seam: !!body.seam, motion: !!body.motion, full: !!body.full };
     screens.set(id, cur);
     pushScreens();

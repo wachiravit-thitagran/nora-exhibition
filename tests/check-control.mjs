@@ -203,6 +203,122 @@ const beforeZ = await slideOf(s2);
 await ctl2.click('button[data-cmd="next"]'); await ctl2.waitForTimeout(1000);
 ok(await slideOf(s2) === beforeZ + 1, 'ชื่อใหม่แล้วยังสั่งงานได้ (ต่อสาย SSE ใหม่สำเร็จ)');
 
+/* ---- ผนังจำลอง 48:9 ด้วย 3 แท็บ -----------------------------------
+   สามแท็บ ?group=wall&panel=1|2|3 = จอสามตัวในสายตารีเลย์ แต่หน้า controller
+   ยุบให้เหลือแถวเดียวชื่อ wall แล้วสั่งทีเดียวถึงพร้อมกันทั้งสามช่อง
+
+   ใช้ context แยก เพราะข้อสำคัญที่สุดของฟีเจอร์นี้คือ "แท็บกลุ่มต้องไม่แตะ
+   localStorage" — สามแท็บอยู่ origin เดียวกัน ถ้าเขียน แท็บหลังจะทับโหมด
+   ของแท็บหน้าจนผนังพังทั้งชุด ต้องเริ่มจากที่เก็บสะอาดถึงจะพิสูจน์ได้ */
+const gctx = await b.newContext();
+const mkg = async q => { const pg = await gctx.newPage({ viewport:{width:900,height:520} });
+  pg.on('pageerror', e => fail.push('group js error: ' + e.message));
+  await pg.goto(base + '/index.html' + q); await pg.waitForTimeout(1200); return pg; };
+
+const w1 = await mkg('?group=wall&panel=1&sync=0');
+const w2 = await mkg('?group=wall&panel=2&sync=0');
+const w3 = await mkg('?group=wall&panel=3&sync=0');
+const gid = pg => pg.evaluate(() => window.NORA.id);
+ok(await gid(w1) === 'wall-1' && await gid(w2) === 'wall-2' && await gid(w3) === 'wall-3',
+   'แท็บกลุ่มตั้งชื่อเองเป็น wall-1 wall-2 wall-3');
+ok(await w2.evaluate(() => window.NORA.state.group) === 'wall', 'แท็บกลุ่มรายงานชื่อกลุ่มกลับมา');
+ok(await w2.evaluate(() => window.NORA.state.mode) === '2', 'แท็บที่สองครอปเฉพาะช่องกลาง');
+ok(await w1.evaluate(() => document.documentElement.classList.contains('ultra')),
+   'แท็บกลุ่มอยู่บนเวทีกว้าง 48:9 แล้วครอปเอา ไม่ใช่ 16:9');
+
+const ctl3 = await b.newPage({ viewport:{width:420,height:900} });
+ctl3.on('pageerror', e => fail.push('ctl3 js error: ' + e.message));
+await ctl3.goto(base + '/control.html');
+await ctl3.fill('#tok', 't0ken');
+await ctl3.waitForTimeout(1800);
+
+ok(await ctl3.evaluate(() => !!document.querySelector('#list button[data-pick="wall"]')),
+   'รายการจอมีแถวชื่อ wall แถวเดียวแทนสามช่อง');
+ok(await ctl3.evaluate(() => !document.querySelector('#list button[data-pick="wall-1"]')),
+   'ช่องย่อย wall-1 ไม่โผล่เป็นแถวแยกซ้ำอีก');
+ok(/ผนังจำลอง 3\/3 ช่อง/.test(await ctl3.textContent('#list')),
+   'แถวผนังบอกว่าออนไลน์ครบ 3 ช่อง');
+
+await ctl3.click('#list button[data-pick="wall"]'); await ctl3.waitForTimeout(400);
+await ctl3.click('button[data-cmd="toggle"]'); await ctl3.waitForTimeout(900);   // หยุดทั้งชุดก่อน
+ok(await ctl3.evaluate(() => document.getElementById('modeBox').classList.contains('hide')),
+   'คุมผนังอยู่ — ปุ่มเปลี่ยนโหมดถูกซ่อน (สั่งไปจะทำให้สามแท็บกลายเป็นช่องเดียวกัน)');
+ok(await ctl3.evaluate(() => document.getElementById('renameCard').classList.contains('hide')),
+   'คุมผนังอยู่ — ปุ่มเปลี่ยนชื่อถูกซ่อน (ชื่อจะชนกันจนเหลือสายเดียว)');
+ok(await ctl3.isVisible('#modeNote'), 'มีคำอธิบายแทนที่ว่าทำไมเปลี่ยนโหมดไม่ได้');
+
+await ctl3.fill('#n', '7'); await ctl3.click('#go'); await ctl3.waitForTimeout(1000);
+const gslides = [await slideOf(w1), await slideOf(w2), await slideOf(w3)];
+ok(gslides.join(',') === '7,7,7', 'สั่งครั้งเดียวถึงครบสามช่อง — ทุกช่องไปหน้า 7 (ได้ ' + gslides + ')');
+await ctl3.click('button[data-cmd="next"]'); await ctl3.waitForTimeout(1000);
+ok([await slideOf(w1), await slideOf(w2), await slideOf(w3)].join(',') === '8,8,8',
+   'สั่ง next แล้วทั้งสามช่องเดินพร้อมกัน');
+ok(await w1.evaluate(() => window.NORA.state.mode) === '1'
+   && await w3.evaluate(() => window.NORA.state.mode) === '3',
+   'เดินหน้าพร้อมกันแล้วแต่ละช่องยังครอปส่วนของตัวเองไว้เหมือนเดิม');
+
+// สั่ง mode / name ตรง ๆ ผ่าน API — ตัวสไลด์เองต้องปฏิเสธ ไม่ใช่แค่ซ่อนปุ่ม
+const raw = async (cmd, arg) => ctl3.evaluate(async ([api, cmd, arg]) => {
+  await fetch(api, { method:'POST', headers:{'content-type':'application/json'},
+    body:JSON.stringify({ cmd, arg, target:'wall', token:'t0ken' }) });
+}, [base + '/api/cmd', cmd, arg]);
+await raw('mode', '0'); await ctl3.waitForTimeout(800);
+ok(await w2.evaluate(() => window.NORA.state.mode) === '2',
+   'ยิงคำสั่งเปลี่ยนโหมดตรง ๆ ก็ไม่ผ่าน — แท็บกลุ่มล็อกช่องของตัวเอง');
+await raw('name', 'โดนเปลี่ยน'); await ctl3.waitForTimeout(800);
+ok(await gid(w2) === 'wall-2', 'ยิงคำสั่งเปลี่ยนชื่อตรง ๆ ก็ไม่ผ่าน');
+
+// ม่านเปิดงานต้องสั่งพร้อมกันได้ทั้งผืน ไม่งั้นม่านจะแยกกันเปิดคนละจังหวะ
+await ctl3.click('[data-cmd="deck"][data-arg="intro"]'); await ctl3.waitForTimeout(1000);
+ok([await w1.evaluate(() => window.NORA.state.deck),
+    await w2.evaluate(() => window.NORA.state.deck),
+    await w3.evaluate(() => window.NORA.state.deck)].join(',') === 'intro,intro,intro',
+   'สั่งตั้งม่านทีเดียว ม่านขึ้นครบทั้งสามช่อง');
+await ctl3.waitForTimeout(1300);
+ok(/ม่านเปิดงาน/.test(await ctl3.textContent('#nowMeta')), 'สรุปสถานะของผนังตามช่องที่ตรงกัน');
+await ctl3.click('[data-cmd="deck"][data-arg="main"]'); await ctl3.waitForTimeout(1000);
+
+// ช่องไหนหลุดออกไปคนละหน้า ต้องเตือน ไม่ใช่โชว์เลขหน้าของช่องใดช่องหนึ่งมั่ว ๆ
+await w2.evaluate(() => window.NORA.apply({ cmd:'goto', arg:20 }));
+await ctl3.waitForTimeout(1400);
+ok(/ช่องไม่ตรงกัน/.test(await ctl3.textContent('#nowMeta')),
+   'ช่องหลุดไปคนละหน้า — ขึ้นเตือนว่าไม่ตรงกัน');
+await ctl3.click('button[data-cmd="restart"]'); await ctl3.waitForTimeout(1400);
+ok(!/ช่องไม่ตรงกัน/.test(await ctl3.textContent('#nowMeta')),
+   'สั่งไปหน้าเดียวกันแล้วดึงกลับเข้าแถว คำเตือนหาย');
+
+// ภาพตัวอย่างของผนังต้องเป็นกล่อง 48:9 ไม่ใช่ 16:9 ของช่องเดียว
+await ctl3.click('#pvtoggle'); await ctl3.waitForTimeout(4500);
+ok(await ctl3.evaluate(() => document.getElementById('pvbox').style.aspectRatio) === '48 / 9',
+   'ภาพตัวอย่างของผนังเป็นกล่อง 48:9 เต็มผืน');
+ok(await ctl3.evaluate(() => {
+  try{ return document.getElementById('pv').contentWindow.NORA.state.mode; }catch(e){ return '?'; }
+}) === 'w', 'ภาพตัวอย่างแสดงทั้งผืน ไม่ได้ครอปเหลือช่องเดียว');
+await ctl3.click('#pvtoggle'); await ctl3.waitForTimeout(300);
+
+// ปุ่มเปิดผนังประกอบลิงก์ครบสามช่อง (ทดสอบตัว URL ไม่ต้องเด้งป๊อปอัปจริง)
+await ctl3.fill('#gid', 'ห้องโถง'); await ctl3.waitForTimeout(200);
+const links = await ctl3.evaluate(() =>
+  [...document.querySelectorAll('#wallLinks a')].map(a => a.getAttribute('href')));
+ok(links.length === 3, 'การ์ดจำลองผนังทำลิงก์ครบสามช่อง');
+ok(links.every((h, i) => h.includes('panel=' + (i + 1)) && h.includes('kiosk=1')
+     && h.includes('group=' + encodeURIComponent('ห้องโถง'))),
+   'ลิงก์แต่ละช่องพก group · panel · kiosk ครบ');
+
+// ข้อสำคัญที่สุด: แท็บกลุ่มต้องไม่ทิ้งร่องรอยไว้ในเครื่อง
+const clean = await mkg('?ctrl=0&sync=0');
+ok(await clean.evaluate(() => window.NORA.id) === 'main',
+   'เปิดหน้าเปล่าในเครื่องเดิม — ยังชื่อ main ไม่ใช่ wall-3 (แท็บกลุ่มไม่เขียนค่าที่จำไว้)');
+ok(!(await clean.evaluate(() => document.documentElement.classList.contains('ultra'))),
+   'เปิดหน้าเปล่าในเครื่องเดิม — ยังเป็น 16:9 ไม่ติดโหมดครอปของแท็บกลุ่ม');
+await clean.close();
+
+await w1.close(); await w2.close(); await w3.close();
+await ctl3.waitForTimeout(2200);
+ok(/ออฟไลน์ทั้งหมด/.test(await ctl3.textContent('#nowMeta')),
+   'ปิดทั้งสามแท็บแล้ว แถวผนังขึ้นว่าออฟไลน์ทั้งหมด');
+await ctl3.close(); await gctx.close();
+
 // ---- จำค่าไว้ในเครื่อง เปิดใหม่ไม่ต้องมี query string ----
 // ใช้ context แยกเพื่อให้ localStorage สะอาด ไม่ปนกับจอด้านบน
 const ctx = await b.newContext();
