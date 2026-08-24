@@ -821,12 +821,15 @@ html.deck-intro.curtain-up #curtain{display:none}
 }
 /* ไม่มีหน่วงแล้ว — เดิมหน่วง .25s ไว้ให้ชื่องานกลางม่านจางก่อน
    ตอนนี้ม่านเปล่า ๆ กดแล้วต้องขยับทันที ไม่ให้รู้สึกว่าปุ่มไม่ติด */
+/* --copen เป็นค่าติดลบเท่ากับเวลาที่คำสั่งใช้เดินทางมาถึงจอนี้
+   ม่านจึงเริ่มที่เฟรม "ผ่านมาแล้วเท่านั้น" ไม่ใช่เฟรมแรกเสมอ
+   จอสามบานได้รับคำสั่งห่างกันหลักสิบ ms ถ้าไม่หักออก ม่านจะรูดเหลื่อมกัน */
 html.motion #curtain.open .cpanel.l{
-  animation:curtainL 4.2s cubic-bezier(.42,0,.14,1) forwards}
+  animation:curtainL 4.2s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
 html.motion #curtain.open .cpanel.r{
-  animation:curtainR 4.2s cubic-bezier(.42,0,.14,1) forwards}
+  animation:curtainR 4.2s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
 html.motion #curtain.open .cfabric{
-  animation:cripple 4.2s cubic-bezier(.42,0,.14,1) forwards}
+  animation:cripple 4.2s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
 /* ปิดอนิเมชันไว้ = ไม่ต้องรูด ม่านหายไปพร้อมกับที่ชุดสลับเป็นชุดหลัก */
 
 /* รางม่านสีเข้มด้านบน อยู่กับที่ ไม่เลื่อนตามผ้า */
@@ -2202,6 +2205,52 @@ function paintInfo(){
     + (CTRL_ON ? ' · ' + SCREEN_ID + (NORA.linked ? '' : ' (ไม่ต่อรีเลย์)') : '');
 }
 
+/* ---------- ดึงวิดีโอเข้าจังหวะระหว่างที่หน้ายังไม่เปลี่ยน ----------
+   เดิมจัดตำแหน่งวิดีโอครั้งเดียวตอน show() ถ้าจอไหนเริ่มเล่นช้ากว่าเพื่อน
+   (ไฟล์ยังบัฟเฟอร์ · ตัวถอดรหัสสะดุด · แท็บเพิ่งกลับมาจากพื้นหลัง)
+   มันจะช้าอยู่เท่านั้นไปทั้งหน้า เพราะคลิปตั้ง loop ไว้ ความต่างจึงวนตามไปทุกรอบ
+   หน้าหนึ่งยาว 32 วินาที คลิป 2 วินาทีวน 16 รอบ ตาเห็นชัดมากว่าไม่พร้อมกัน
+
+   ตรวจทุก 300ms เทียบกับ "เวลาในหน้า" ที่ทุกจอคำนวณเหมือนกัน
+     ห่างนิดหน่อย  เร่ง/หน่วงความเร็วให้ค่อย ๆ ไหลเข้าหากัน (ตาไม่เห็น)
+     ห่างมาก      กระโดดไปเลย (เห็นเป็นภาพสะดุด จึงใช้เท่าที่จำเป็น)         */
+const V_SOFT = 0.06;      // ต่างเกินเท่านี้ (วินาที) เริ่มปรับความเร็วดึงกลับ
+                          // ต่ำกว่านี้ราว 2 เฟรม ปล่อยไว้ ตาแยกไม่ออกอยู่แล้ว
+                          // และถ้าไล่ละเอียดกว่านี้จะกลายเป็นแกว่งไปมาไม่หยุด
+const V_HARD = 0.25;      // ต่างเกินเท่านี้ ไล่ด้วยความเร็วช้าไป กระโดดเลยดีกว่า
+const V_EVERY = 250;      // ระยะห่างระหว่างการตรวจ (ms)
+const V_PULL = 0.12;      // เร่ง/หน่วงได้มากสุดกี่ % — 12% ตายังจับไม่ได้
+let vChecked = 0;
+function alignVideos(offMs, now){
+  if(!playing || now - vChecked < V_EVERY) return;
+  vChecked = now;
+  const s = SLIDES[cur];
+  if(!s) return;
+  const off = offMs / 1000;
+  s.el.querySelectorAll('video').forEach(v => {
+    const pn = v.closest('.pane');
+    if(pn && pn.offsetWidth === 0) return;              // pane ที่ถูกครอปทิ้ง ไม่ต้องเสียแรง
+    if(v.paused || v.readyState < 2 || !isFinite(v.duration) || v.duration <= 0.2) return;
+    const want = off % v.duration;
+    let d = v.currentTime - want;
+    // คลิปวนลูป ความต่างจึงต้องคิดแบบวงกลม ไม่งั้นตอนคาบเกี่ยวรอยต่อ
+    // จะอ่านว่าห่างกันเกือบเต็มคลิป แล้วสั่งกระโดดทั้งที่จริงห่างกันไม่กี่เฟรม
+    if(d >  v.duration / 2) d -= v.duration;
+    if(d < -v.duration / 2) d += v.duration;
+    const a = Math.abs(d);
+    if(a > V_HARD){
+      try{ v.currentTime = Math.min(want, v.duration - 0.05); }catch(e){}
+      if(v.playbackRate !== 1) v.playbackRate = 1;
+    } else if(a > V_SOFT){
+      // ยิ่งห่างยิ่งดึงแรง แต่ไม่เกิน ±12% — ห่างมากสุดที่ยังไม่กระโดด (0.25 วิ)
+      // กลับเข้าที่ในราว 2 วินาที และไม่มีจังหวะไหนที่ตาเห็นว่าภาพเร็วหรือช้าผิดปกติ
+      v.playbackRate = 1 - Math.max(-V_PULL, Math.min(V_PULL, d * 0.5));
+    } else if(v.playbackRate !== 1){
+      v.playbackRate = 1;
+    }
+  });
+}
+
 function tick(now){
   raf = requestAnimationFrame(tick);
   if(SYNC){
@@ -2210,6 +2259,7 @@ function tick(now){
     if(q.i !== cur) show(q.i, q.off);
     const s = SLIDES[cur];
     if(s && s.bar) s.bar.style.width = (Math.min(1, q.off / q.dur) * 100).toFixed(2) + '%';
+    alignVideos(q.off, now);
     return;
   }
   const s = SLIDES[cur];
@@ -2217,6 +2267,9 @@ function tick(now){
   if(!playing){ t0 = now - Math.min(now - t0, durMs); return; }
   const p = Math.min(1, (now - t0) / durMs);
   if(s.bar) s.bar.style.width = (p*100).toFixed(2) + '%';
+  // เดินเวลาเองก็ยังดึงวิดีโอเข้าจังหวะได้ เพราะ t0 ถูกตั้งจากเวลาของรีเลย์
+  // ทุกจอจึงนับ "เวลาในหน้า" เป็นเลขเดียวกัน ไม่ใช่ต่างคนต่างนับจากตอนที่คำสั่งมาถึง
+  alignVideos(now - t0, now);
   // ชุด intro ค้างหน้าแรกไว้เสมอ วิดีโอยังวนเล่นได้ (loop) แต่ไม่ไปหน้าถัดไป
   // ต้องรอสแตฟฟ์กด "ชุดหลัก" เอง
   if(p >= 1 && DECK !== 'intro') show(cur + 1);
@@ -2236,7 +2289,7 @@ function setPlaying(v){
 /* ---------- สลับชุดสไลด์ / เปิดม่าน ---------- */
 const curtainEl = () => document.getElementById('curtain');
 
-function setDeck(name){
+function setDeck(name, lag){
   const d = DECKS[name] ? name : 'main';
   if(d === DECK) return;
   DECK = d;
@@ -2249,7 +2302,7 @@ function setDeck(name){
   root.classList.remove('curtain-up');
   curtainEl().classList.remove('open');
   NORA.manual();                      // ทั้งสองทางต้องหลุดจากนาฬิกาโลกก่อน
-  show(0);
+  show(0, Math.max(0, lag || 0));     // หักเวลาเดินทางของคำสั่ง ทุกจอเริ่มนับตรงกัน
   setPlaying(d !== 'intro');          // ตั้งม่าน = ค้างหน้าแรกไว้ใต้ม่าน
   paintInfo();
 }
@@ -2262,21 +2315,26 @@ function setDeck(name){
 
    ใช้ตัวจับเวลาไม่ใช่ transitionend เพราะ transitionend หายได้ถ้าแท็บถูกพัก
    แล้วม่านจะค้างครึ่ง ๆ กลาง ๆ อยู่อย่างนั้น */
-function openCurtain(){
+/* lag = คำสั่งนี้ออกจากรีเลย์มาแล้วกี่ ms หักออกจากทั้งอนิเมชันและตัวจับเวลา
+   ม่านของจอสามบานจึงรูดพร้อมกันเป็นผืนเดียว ไม่ใช่ทยอยกันเปิดทีละบาน */
+function openCurtain(lag){
   if(DECK !== 'intro' || CURTAIN_UP) return;
   const c = curtainEl();
+  const d = Math.max(0, Math.min(4200, lag || 0));
   NORA.manual();
-  show(0);
+  show(0, d);
   setPlaying(true);                   // วิดีโอหน้าแรกเดิน แต่ tick ไม่พาไปหน้าถัดไป
+  c.style.setProperty('--copen', -d + 'ms');
   c.classList.add('open');
   setTimeout(() => {
     CURTAIN_UP = true;
     PREF.set('curtain', 'up');
     document.documentElement.classList.add('curtain-up');
     c.classList.remove('open');
+    c.style.removeProperty('--copen');
     paintInfo();
     NORA.report();
-  }, MOTION_ON ? 4400 : 0);          // 4.2s รูด + เผื่ออีกนิด
+  }, Math.max(0, (MOTION_ON ? 4400 : 0) - d));   // 4.2s รูด + เผื่ออีกนิด
 }
 
 /* controls */
@@ -2390,17 +2448,32 @@ const NORA = {
   manual(){ if(SYNC){ SYNC = false; t0 = performance.now(); durMs = slideDuration(SLIDES[cur]); } },
   apply(m){
     if(!m || !m.cmd) return;
+    /* คำสั่งจากรีเลย์พก at = เวลาของรีเลย์ตอนยิงคำสั่งออกมา ทุกจอได้เลขเดียวกัน
+       ส่วนเวลาที่คำสั่ง "มาถึง" แต่ละจอไม่เท่ากัน — รีเลย์เขียนลงสาย SSE ทีละเส้น
+       และแต่ละจอกว่าจะตื่นมาประมวลผลก็ไม่พร้อมกัน ต่างกันหลักสิบ ms
+
+       ถ้าตั้ง t0 จากเวลาที่คำสั่งมาถึง ความต่างนั้นจะติดไปกับ t0 แล้วอยู่ยาว
+       จนกว่าจะเปลี่ยนหน้าครั้งหน้า — จอสามบานพลิกหน้าไม่พร้อมกันตลอดทั้งรอบ
+       ตั้งจาก at แทน ทุกจอจึงนับเวลาในหน้าเป็นเลขเดียวกันตั้งแต่วินาทีแรก
+       (กันนาฬิกาเพี้ยนไว้ด้วย ถ้าห่างเกิน 5 วินาทีถือว่าเชื่อไม่ได้ ใช้ 0) */
+    const lag = m.at && Math.abs(Date.now() - m.at) < 5000
+      ? Math.max(0, Date.now() - m.at) : 0;
     switch(m.cmd){
       case 'play':    setPlaying(true); break;
       case 'pause':   setPlaying(false); break;
       case 'toggle':  setPlaying(!playing); break;
-      case 'next':    NORA.manual(); show(cur + 1); break;
-      case 'prev':    NORA.manual(); show(cur - 1); break;
-      case 'goto':    NORA.manual(); show((parseInt(m.arg, 10) || 1) - 1); break;
-      case 'restart': NORA.manual(); show(0); break;
-      /* sync ไม่มี arg = กลับเข้าจังหวะนาฬิกา · arg '0' = ปล่อยให้เดินเวลาของตัวเอง */
+      case 'next':    NORA.manual(); show(cur + 1, lag); break;
+      case 'prev':    NORA.manual(); show(cur - 1, lag); break;
+      case 'goto':    NORA.manual(); show((parseInt(m.arg, 10) || 1) - 1, lag); break;
+      case 'restart': NORA.manual(); show(0, lag); break;
+      /* sync ไม่มี arg = กลับเข้าจังหวะนาฬิกา · arg '0' = ปล่อยให้เดินเวลาของตัวเอง
+
+         กลับเข้าจังหวะแล้วต้องกระโดดไปที่ตำแหน่งตามนาฬิกา "เดี๋ยวนั้น" เลย
+         เดิมแค่ตั้ง SYNC=true แล้วรอ tick — ถ้าบังเอิญยังอยู่หน้าเดียวกัน
+         tick จะไม่เรียก show() วิดีโอจึงค้างอยู่ตำแหน่งเดิมไปจนกว่าจะเปลี่ยนหน้า
+         กดปุ่มแล้วเหมือนไม่มีอะไรเกิดขึ้น ทั้งที่ภาพยังเหลื่อมกันอยู่ */
       case 'sync':    if(String(m.arg) === '0'){ NORA.manual(); }
-                      else { SYNC = true; }
+                      else { SYNC = true; const q = clockPos(); show(q.i, q.off); }
                       PREF.set('sync', SYNC ? '1' : '0');
                       paintInfo();
                       break;
@@ -2410,8 +2483,8 @@ const NORA = {
                       if(['0','1','2','3','w','wall'].includes(String(m.arg)))
                         setMode(String(m.arg));
                       break;
-      case 'deck':    setDeck(String(m.arg)); break;
-      case 'curtain': openCurtain(); break;
+      case 'deck':    setDeck(String(m.arg), lag); break;
+      case 'curtain': openCurtain(lag); break;
       /* เปลี่ยนชื่อก็เช่นกัน — คำสั่งถึงทั้งสามแท็บพร้อมกัน ถ้ายอมเปลี่ยน
          ทั้งสามจะใช้ชื่อเดียวกัน แล้วเตะกันเองออกจากรีเลย์เหลือสายเดียว
          ชื่อของแท็บกลุ่มมาจาก ?group= กับ ?panel= เท่านั้น */

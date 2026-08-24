@@ -62,6 +62,7 @@ pipeline {
                 // เปิดสไลด์จริงด้วย Playwright ตรวจ 4 โหมดการแสดงผล
                 // แล้วตรวจว่าสระบน+วรรณยุกต์ไทยไม่โดนตัดสักจุด
                 // แล้วต่อด้วยการทดสอบ controller ครบวง (เปิดจอ 2 บาน + หน้าสั่งงาน)
+                // ปิดท้ายด้วยการวัดว่าสามช่องของผนังเล่นพร้อมกันกี่ ms
                 // เบราว์เซอร์อยู่ในอิมเมจแล้ว จึงข้ามการดาวน์โหลด
                 // รันด้วย uid ของ jenkins ไม่ใช่ root ไฟล์ที่เกิดใน workspace จะได้ลบได้
                 sh '''
@@ -77,7 +78,9 @@ pipeline {
                                && echo "" \
                                && node tests/check-thai.mjs /w \
                                && echo "" \
-                               && node tests/check-control.mjs /w' | tee deck_report.txt
+                               && node tests/check-control.mjs /w \
+                               && echo "" \
+                               && node tests/check-sync.mjs /w' | tee deck_report.txt
                 '''
             }
             post {
