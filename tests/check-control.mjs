@@ -85,6 +85,22 @@ await ctl.waitForTimeout(400);
 ok(await ctl.isVisible('#ctl'), 'กรอกชื่อจอแล้ว — ปุ่มสั่งงานโผล่');
 ok((await ctl.textContent('#nowId')).trim() === 'hall-a', 'การ์ดบนบอกว่ากำลังคุมจอ hall-a');
 
+// ---- ทางลัดไปหน้าแรกของแต่ละขั้นตอน — หาเลขหน้าจากข้อมูลสไลด์จริง ----
+const shortcutCount = await ctl.locator('#stepShortcuts [data-cmd="step"]').count();
+ok(shortcutCount === 5, 'controller มีทางลัดครบ 5 ขั้นตอน');
+if(shortcutCount === 5){
+  const starts = await s1.evaluate(() => [0,1,2,3,4].map(step =>
+    SLIDES.findIndex(slide => slide.step === step) + 1));
+  for(let step = 0; step < starts.length; step++){
+    await ctl.click(`#stepShortcuts [data-cmd="step"][data-arg="${step}"]`);
+    await ctl.waitForTimeout(500);
+    ok(await slideOf(s1) === starts[step],
+       `ทางลัดขั้นตอน ${step + 1} — ไปหน้าแรกของขั้นตอน (หน้า ${starts[step]})`);
+  }
+  // คืนหน้าเดิมก่อนทดสอบ next ต่อ เพื่อไม่ให้กรณีทดสอบนี้เปลี่ยนฐานของข้อเดิม
+  await ctl.fill('#n', String(before1)); await ctl.click('#go'); await ctl.waitForTimeout(500);
+}
+
 await ctl.click('button[data-cmd="next"]'); await ctl.waitForTimeout(900);
 ok(await slideOf(s1) === before1 + 1, 'สั่ง next — hall-a ขยับ');
 ok(await slideOf(s2) === before2,     'สั่ง next — hall-b ไม่ขยับ (คุมทีละจอ)');

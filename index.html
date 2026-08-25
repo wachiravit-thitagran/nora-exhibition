@@ -1057,7 +1057,7 @@ const CONFIG = {
   DIR_POSES     : 'assets/poses/',     // เฟรมท่ารำที่ตัดจากวิดีโอ ด้วย frame-picker.html
                                        // ตั้งชื่อ <videoId>-<ลำดับท่าเริ่มจาก 0>.jpg
   /* ภาพท่าบนสไลด์ "ภาพท่า + ภาพท่า = วิดีโอ" เอามาจากที่เดียว ไม่ไล่สำรอง
-       'compare' = ภาพท่าที่ฟื้นฟูจากตำรา (มีอยู่แล้วครบ ใช้ได้ทันที)
+       'compare' = ภาพท่าที่ฟื้นฟูจากตำรา (มี ๑๑ ท่า ใช้ได้ทันที)
        'frames'  = เฟรมที่ตัดจากวิดีโอ (ต้องตัด 66 ภาพด้วย frame-picker.html ก่อน) */
   POSE_SRC      : 'compare',
   DIR_RESTORE   : 'assets/restore/',   // การ์ดเทียบก่อน-หลัง จากรายงานฟื้นฟูภาพ ๖๓ ภาพ
@@ -1088,9 +1088,9 @@ function logoStrip(){
    2. DATA
    ================================================================ */
 
-/* --- 2.1 คู่ภาพ ต้นฉบับ (จากหนังสือ) / ซ่อมแซม  — 12 ท่า -------------
+/* --- 2.1 ภาพต้นฉบับจากหนังสือ 12 ท่า / ภาพฟื้นฟูแล้ว 11 ท่า -----------
    ชื่อไฟล์ตรงตามโฟลเดอร์ Nora/เปรียบเทียบ-ต้นฉบับ-ซ่อมแซม/
-   ใช้ 12 ท่า ตามชุดภาพที่ฟื้นฟูเสร็จแล้ว                            */
+   ท่าแมงมุมชักใยยังไม่มีภาพฟื้นฟู จึงแสดงเฉพาะในขั้นตอนสแกนภาพ       */
 /* note ของแต่ละท่าเก็บไว้เป็น "บันทึกภายใน" เท่านั้น ไม่ได้แสดงบนสไลด์แล้ว
    (เคยขึ้นเป็นบรรทัดเล็ก ๆ ใต้ภาพ — ถอดออกตามที่ขอ เพราะรกและอ่านไม่ทัน
    ในจังหวะที่สไลด์วิ่งผ่าน) แต่ไม่ลบทิ้ง เพราะบางบรรทัดเป็นบันทึกการแก้ไข
@@ -1143,6 +1143,7 @@ const PAIRS = [
   { no:12, book:'ท่าแมงมุมชักไย', file:'13_ท่าแมงมุมชักไย', pending:true,
     note:'ภาพสแกนตัดมาจากแผ่นตำรา ยังไม่มีทั้งสแกนความละเอียดเต็มและภาพที่ฟื้นฟูแล้ว' },
 ];
+const RESTORED_PAIRS = PAIRS.filter(p => !p.pending);
 /* ไฟล์ 07_ท่าพรหมสี่หน้า ไม่ได้อยู่ในรายการนี้ — เทียบกับแผ่นตำราแล้วไม่ตรงกับ
    ท่าใดในสิบสองท่า (ชายหนุ่มยกขาสูง แขนขึ้นสองข้าง) ท่าพรหมสี่หน้าตัวจริงคือ
    ไฟล์ 09 ไฟล์ยังอยู่บนดิสก์ รอยืนยันว่าเป็นท่าอะไรก่อนจะเอากลับเข้าเด็ค    */
@@ -1311,7 +1312,7 @@ const SECTIONS = [
   { n:'01', t:'สแกนภาพจากหนังสือ',   d:'ภาพขาวดำในตำรา ๒๔๖๖',        c:'๑๒ ภาพ',
     longd:'เริ่มจากภาพท่ารำในตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ '
         + 'ภาพขาวดำอายุกว่า ๑๐๐ ปี ถูกสแกนเก็บไว้ทั้งชุด' },
-  { n:'02', t:'ฟื้นฟูภาพ',            d:'ภาพขาวดำ → ภาพคมชัด',        c:'๑๒ ท่า',
+  { n:'02', t:'ฟื้นฟูภาพ',            d:'ภาพขาวดำ → ภาพคมชัด',        c:'๑๑ ท่า',
     longd:'ฟื้นฟูรายละเอียดเครื่องแต่งกาย เครื่องประดับ และท่ามือ กลับมาทีละท่า '
         + 'จนได้ภาพท่ารำที่คมชัดพอจะใช้งานต่อได้' },
   { n:'03', t:'สร้างการเคลื่อนไหว',    d:'ภาพนิ่ง → วิดีโอต่อเนื่อง',      c:'๒๒ คลิป',
@@ -1563,13 +1564,13 @@ const scanCell = (p, i) => {
   return `<div class="cell" style="--i:${i}">
       <div class="im"><img alt="" data-chip="1" data-fb='${esc(JSON.stringify(['▧','ภาพสแกน']))}'
         data-srcs='${esc(JSON.stringify(o))}' data-i="0" src="${enc(o[0])}"></div>
-      <div class="nm">${esc(thNum(p.n))} ${esc(p.book)}</div>
+      <div class="nm">${esc(thNum(p.no))} ${esc(p.book)}</div>
     </div>`;
 };
 [0, 1].forEach(half => {
   const set   = PAIRS.slice(half * 6, half * 6 + 6);
   const cells = set.map(scanCell).join('');
-  const rng   = thNum(+set[0].n) + '–' + thNum(+set[set.length - 1].n);
+  const rng   = thNum(+set[0].no) + '–' + thNum(+set[set.length - 1].no);
   const SUB   = 'ภาพสแกนจากหนังสือ · ท่าที่ ' + rng + ' จาก ๑๒';
   push({ dur:D.poses12, step:0, span:true, section:stepFoot(0, half + 1, 2), wall:{
     head:stepEB(0), title:'ท่าครู ๑๒ ท่า',
@@ -1593,24 +1594,23 @@ divider(1);
    เดิมท่าละหน้ากางเต็มสองจอ (spanLC) 12 ท่าจึงกิน 12 หน้า
    ยุบมาจอละท่าเหลือ 4 หน้า และแต่ละจอครบในตัวเอง ทั้งภาพสแกน ภาพฟื้นฟู และคำอธิบาย */
 function poseCompare(p){
-  const fixed = p.pending ? phBox('image', '') : imgFix(p).map(mediaImg).join('');
-  return band({ eyebrow:'ท่าที่ ' + thNum(p.no) + ' จาก ๑๒', h2:82, title:esc(p.book),
+  const fixed = imgFix(p).map(mediaImg).join('');
+  return band({ eyebrow:'ท่าที่ ' + thNum(p.no) + ' จาก ' + thNum(RESTORED_PAIRS.length), h2:82, title:esc(p.book),
     sub:'ภาพสแกนจากหนังสือ → ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์',
     nologo:true,
     body:`<div class="cmpcol">
       <div class="duowide portrait tall">
         ${panel('ภาพสแกนจากหนังสือ', thNum(p.no), mediaImg(imgOrig(p)), false, false, 'tight')}
         <div class="arrow">»<small>ฟื้นฟู</small></div>
-        ${panel(p.pending ? 'ภาพที่ฟื้นฟูแล้ว (อยู่ระหว่างจัดเตรียม)' : 'ภาพที่ฟื้นฟูแล้ว',
-          thNum(p.no), fixed, true, p.two, 'tight')}
+        ${panel('ภาพที่ฟื้นฟูแล้ว', thNum(p.no), fixed, true, p.two, 'tight')}
       </div>
     </div>` });
 }
-for(let i = 0; i < PAIRS.length; i += 3){
-  const set = PAIRS.slice(i, i + 3);
+for(let i = 0; i < RESTORED_PAIRS.length; i += 3){
+  const set = RESTORED_PAIRS.slice(i, i + 3);
   const rng = thNum(i + 1) + '–' + thNum(i + set.length);
   push({ dur:D.compare, step:1, spanCU:true,
-    wall:{ head:stepEB(1), title:'ท่าที่ ' + rng + ' จาก ๑๒',
+    wall:{ head:stepEB(1), title:'ท่าที่ ' + rng + ' จาก ' + thNum(RESTORED_PAIRS.length),
       rows:set.map(p => [p.book, 'ท่าที่ ' + thNum(p.no)])
         .concat([['ผู้รำในภาพ', PERFORMER], ['ชุดท่า', 'ท่าครู สิบสองท่า']]),
       note:'ภาพขวาของแต่ละคู่คือภาพที่ปัญญาประดิษฐ์สร้างขึ้นใหม่จากภาพซ้าย ไม่ใช่การกู้คืนฟิล์มต้นฉบับ '
@@ -1621,16 +1621,14 @@ for(let i = 0; i < PAIRS.length; i += 3){
     /* โหมดจอเดียว 16:9 — ยกทั้งสามท่ามาไว้ในจอเดียว คอลัมน์ละท่า
        ครบทั้งภาพสแกน ภาพที่ฟื้นฟู และคำอธิบาย เหมือนที่แต่ละจอบนผนังได้รับ */
     html: frame({ eyebrow:stepEB(1),
-      title:'ท่าที่ ' + rng + ' จาก ๑๒',
+      title:'ท่าที่ ' + rng + ' จาก ' + thNum(RESTORED_PAIRS.length),
       sub:'ภาพสแกนจากหนังสือ → ภาพที่ฟื้นฟูด้วยปัญญาประดิษฐ์',
       body:`<div class="trio3">${set.map(q => `
         <div class="t3">
           <div class="hd"><small>ท่าที่ ${esc(thNum(q.no))}</small>${esc(q.book)}</div>
           <div class="pair">
             ${panel('ภาพสแกน', '', mediaImg(imgOrig(q)), false, false, 'tight')}
-            ${panel(q.pending ? 'อยู่ระหว่างจัดเตรียม' : 'ฟื้นฟูแล้ว', '',
-              q.pending ? phBox('image','') : imgFix(q).map(mediaImg).join(''),
-              true, q.two, 'tight')}
+            ${panel('ฟื้นฟูแล้ว', '', imgFix(q).map(mediaImg).join(''), true, q.two, 'tight')}
           </div>
         </div>`).join('')}</div>` })});
 }
@@ -1676,7 +1674,7 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
        + 'ภาพที่ไม่ผ่านเกณฑ์อัตโนมัติเข้าสู่การทบทวนโดยคน และบันทึกผลไว้อย่างโปร่งใส' },
   left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
   midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
-    h2:86, title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
+    h2:86, title:'ไม่ได้ฟื้นฟูเฉพาะท่าในตำรา',
     sub:'ภาพถ่ายจดหมายเหตุอีก ๖๓ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
     body:`<div class="sumgrid grid2">${RESTORE_KPI}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'ระเบียบวิธี', h2:88,
@@ -1690,7 +1688,7 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
         <p>ทบทวนโดยคน แล้วบันทึกเหตุผลไว้<small>๒ ภาพที่พลาดเกณฑ์เพียงเล็กน้อย ผ่านด้วยการตรวจพินิจ</small></p></div>
     </div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
-    title:'ไม่ได้ฟื้นฟูแค่ ๑๒ ท่าในตำรา',
+    title:'ไม่ได้ฟื้นฟูเฉพาะท่าในตำรา',
     sub:'ภาพถ่ายจดหมายเหตุอีก ๖๓ ภาพ จาก ๖ ชุดเอกสาร ในนั้นมีท่าครูครบ ๑๒ ท่า ของครูโนราอีก ๓ ท่าน',
     body:`<div class="sumgrid">${RESTORE_KPI}</div>` })});
 
@@ -1889,7 +1887,7 @@ if(CONFIG.SHOW_CLASSROOM) STUDENT_STILLS.forEach((st,i)=>{
 });
 
 /* ---- ปิดท้าย: ผู้สนับสนุน | สรุปโครงการ | เครดิต — สไลด์เดียว จอละส่วน ---- */
-const KPI = [['12','ท่ารำต้นแบบที่ฟื้นฟูแล้ว'],['22','วิดีโอที่ AI สร้างได้'],
+const KPI = [['11','ท่ารำต้นแบบที่ฟื้นฟูแล้ว'],['22','วิดีโอที่ AI สร้างได้'],
              ['7','ท่าใหม่ที่เกิดในกระบวนการ'],['5','ขั้นตอนของกระบวนการ']]
   .map(([n,t],i)=>`<div class="kpi" style="--i:${i}"><b>${esc(thNum(n))}</b><span>${esc(t)}</span></div>`).join('');
 
@@ -1970,7 +1968,7 @@ const CR_TEAM = `<div class="team">
 /* ---- ก่อนสรุปโครงการ: เปิดให้ดาวน์โหลดชุดข้อมูล ----
    จอซ้าย/จอขวา ใช้ชุดเดียวกับหน้าสรุป จอกลางเป็นเรื่องชุดข้อมูลเปิด */
 const DSBUNDLES = [
-  ['ภาพท่าครู ๑๒ ท่า', 'ภาพสแกนจากหนังสือ คู่กับภาพที่ฟื้นฟูแล้ว พร้อมไฟล์ชื่อท่า'],
+  ['ภาพท่าครูจากตำรา', 'ภาพสแกน ๑๒ ท่า และภาพที่ฟื้นฟูแล้ว ๑๑ ท่า พร้อมไฟล์ชื่อท่า'],
   ['วิดีโอที่ AI สร้าง',  'คลิปท่ารำที่สร้างจากภาพนิ่ง พร้อมลำดับท่าที่ใช้'],
   ['ตำแหน่งท่ารำ',      'พิกัดข้อต่อที่สกัดด้วยคอมพิวเตอร์วิทัศน์ สำหรับงานวิจัย'],
 ].map(([t, d], i) => `<div class="ds" style="--i:${i}">
@@ -1983,7 +1981,7 @@ const DSBODY = `<div class="dscol">
 
 push({ dur:D.summary, dark:true, step:-1, spanCU:true,
   wall:{ head:'ชุดข้อมูลเปิด', title:'ainora.psu.ac.th/dataset',
-    rows:[['ภาพท่าครู ๑๒ ท่า','ภาพสแกน + ภาพที่ฟื้นฟู พร้อมชื่อท่า'],
+    rows:[['ภาพท่าครูจากตำรา','ภาพสแกน ๑๒ ท่า + ภาพที่ฟื้นฟูแล้ว ๑๑ ท่า พร้อมชื่อท่า'],
           ['วิดีโอ','คลิปท่ารำที่ปัญญาประดิษฐ์สร้าง'],
           ['ตำแหน่งท่ารำ','พิกัดข้อต่อที่สกัดด้วยคอมพิวเตอร์วิทัศน์'],
           ['การขอใช้','กรอกแบบขอสิทธิ์บนหน้าเว็บ แล้วดาวน์โหลดได้ทันที']],
@@ -2049,7 +2047,7 @@ push({ dur:D.summary, dark:true, step:-1, spanCU:true, wall:{
 
 push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
   head:'ปิดท้าย', title:'ผลงานทั้งโครงการ',
-  rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','๑๒ ท่า'],
+  rows:[['ท่ารำต้นแบบที่ฟื้นฟูแล้ว','๑๑ ท่า'],
         ['วิดีโอที่สร้างได้','๒๒ คลิป'],
         ['ท่าใหม่ที่เกิดขึ้น','๗ ท่า (A–G)'],
         ['ขั้นตอนของกระบวนการ','๕ ขั้นตอน']],
@@ -2625,6 +2623,7 @@ ui.addEventListener('click', e=>{
   if(a==='full'){ goFull(); }
 });
 addEventListener('keydown', e=>{
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
   if(e.code==='Space'){ e.preventDefault(); setPlaying(!playing); }
   if(!SYNC && (e.code==='ArrowRight'||e.code==='PageDown')) show(cur+1);
   if(!SYNC && (e.code==='ArrowLeft' ||e.code==='PageUp'))   show(cur-1);
@@ -2708,6 +2707,12 @@ const NORA = {
       case 'next':    NORA.manual(); show(cur + 1, lag); break;
       case 'prev':    NORA.manual(); show(cur - 1, lag); break;
       case 'goto':    NORA.manual(); show((parseInt(m.arg, 10) || 1) - 1, lag); break;
+      case 'step':    {
+        const step = parseInt(m.arg, 10);
+        const first = SLIDES.findIndex(s => s.step === step);
+        if(first >= 0){ NORA.manual(); show(first, lag); }
+        break;
+      }
       case 'restart': NORA.manual(); show(0, lag); break;
       /* sync ไม่มี arg = กลับเข้าจังหวะนาฬิกา · arg '0' = ปล่อยให้เดินเวลาของตัวเอง
 

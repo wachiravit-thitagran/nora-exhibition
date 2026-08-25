@@ -90,6 +90,35 @@ for (const m of MODES) {
   await page.close();
 }
 
+// regression: ข้อมูลเลขท่า, modifier key และรายการภาพฟื้นฟู
+const regression = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+await regression.goto(base, { waitUntil: 'load' });
+await regression.waitForTimeout(500);
+const rr = await regression.evaluate(() => {
+  const step1Text = SLIDES.filter(s => s.step === 0).map(s => s.el.innerText).join('\n');
+  const step2Text = SLIDES.filter(s => s.step === 1).map(s => s.el.innerText).join('\n');
+  const beforeDeck = window.NORA.state.deck;
+  dispatchEvent(new KeyboardEvent('keydown', { key:'c', code:'KeyC', ctrlKey:true, bubbles:true }));
+  return {
+    step1HasUndefined: step1Text.includes('undefined'),
+    step1HasNaN: step1Text.includes('NaN'),
+    step2HasPendingPose: step2Text.includes('ท่าแมงมุมชักไย'),
+    restoredCount: RESTORED_PAIRS.length,
+    beforeDeck,
+    afterDeck: window.NORA.state.deck,
+  };
+});
+if(rr.step1HasUndefined) fails.push('ขั้นตอนที่ 1 ยังแสดง undefined แทนเลขท่า');
+if(rr.step1HasNaN) fails.push('ช่วงเลขท่าในขั้นตอนที่ 1 ยังแสดง NaN');
+if(rr.step2HasPendingPose) fails.push('ขั้นตอนที่ 2 ยังมีท่าแมงมุมชักไย');
+if(rr.restoredCount !== 11) fails.push(`ขั้นตอนที่ 2 มี ${rr.restoredCount} ท่า (คาด 11)`);
+if(rr.afterDeck !== rr.beforeDeck) fails.push('Ctrl+C ยังสั่งเปลี่ยนสถานะม่าน');
+console.log(!rr.step1HasUndefined && !rr.step1HasNaN && !rr.step2HasPendingPose && rr.restoredCount === 11
+  && rr.afterDeck === rr.beforeDeck
+  ? 'ok    regression — เลขท่า, Ctrl และภาพฟื้นฟู 11 ท่า'
+  : 'FAIL  regression — ' + fails.slice(-4).join(' · '));
+await regression.close();
+
 await browser.close();
 server.close();
 

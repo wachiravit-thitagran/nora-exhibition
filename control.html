@@ -56,6 +56,7 @@ button[disabled]{opacity:.4}
 button.on{background:var(--gold);color:#2A2208;border-color:#8E7124}
 /* "ขั้นต่อไปกดอันนี้" — ตีกรอบทองไว้ ไม่ถมพื้น จะได้ไม่ชนกับปุ่มที่ติดอยู่ */
 button.next{color:var(--gold);border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.step-grid button{flex:1 1 calc(50% - 4px);text-align:left;padding:0 12px}
 input{width:100%;min-height:46px;font:inherit;font-size:15px;color:var(--ink);background:#26221A;
   border:1px solid var(--line);border-radius:12px;padding:0 12px}
 label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
@@ -180,6 +181,17 @@ body.picked #pick{display:none}
       <button data-cmd="prev">◀ ย้อน</button>
       <button data-cmd="next">ถัดไป ▶</button>
       <button data-cmd="restart">↻ หน้าแรก</button>
+    </div>
+  </div>
+
+  <div class="card" id="stepShortcuts">
+    <label>ทางลัดไปต้นขั้นตอน</label>
+    <div class="row step-grid">
+      <button class="sm" data-cmd="step" data-arg="0">๑ สแกนภาพ</button>
+      <button class="sm" data-cmd="step" data-arg="1">๒ ฟื้นฟูภาพ</button>
+      <button class="sm" data-cmd="step" data-arg="2">๓ สร้างการเคลื่อนไหว</button>
+      <button class="sm" data-cmd="step" data-arg="3">๔ ถอดรหัสท่ารำ</button>
+      <button class="sm" data-cmd="step" data-arg="4">๕ ถ่ายทอดสู่ผู้รำ</button>
     </div>
   </div>
 

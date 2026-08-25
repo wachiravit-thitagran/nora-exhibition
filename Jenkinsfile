@@ -76,9 +76,13 @@ pipeline {
                         sh -c 'npm install --no-save --no-audit --no-fund playwright@1.59.1 >/dev/null 2>&1 \
                                && node tests/check-team.mjs /w \
                                && echo "" \
+                               && node tests/check-content-regressions.mjs /w \
+                               && echo "" \
                                && node tests/check-deck.mjs /w \
                                && echo "" \
                                && node tests/check-thai.mjs /w \
+                               && echo "" \
+                               && node tests/check-step-shortcuts.mjs /w \
                                && echo "" \
                                && node tests/check-control.mjs /w \
                                && echo "" \
