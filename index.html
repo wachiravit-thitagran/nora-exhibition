@@ -559,7 +559,7 @@ html.motion .slide.on .pstack .pc{animation:dealIn .85s cubic-bezier(.2,.7,.3,1)
 .team .nm .shrt{display:none}
 .endstack .team .nm:has(.shrt) .full{display:none}
 .endstack .team .nm .shrt{display:inline}
-.team .row{display:flex;gap:56px;align-items:flex-start;justify-content:center}
+.team .row{display:flex;gap:40px;align-items:flex-start;justify-content:center}
 /* หัวหน้าสองคนอยู่แถวเดียวกัน วงเท่ากัน — คนละทีมแต่ระดับเดียวกัน
    flex-start ให้ขอบบนของวงตรงกัน ต่อให้ชื่อใต้ภาพยาวไม่เท่ากัน */
 .team .leads{display:flex;gap:72px;align-items:flex-start;justify-content:center}
@@ -1935,23 +1935,24 @@ const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั�
       <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
 
 /* ---- ทีมทำงาน ----------------------------------------------------
-   หัวหน้าสองคนอยู่แถวบน วงใหญ่เท่ากัน ทีมงานเรียงเป็นสามวงเล็กด้านล่าง
+   หัวหน้าสองคนอยู่แถวบน วงใหญ่เท่ากัน ทีมงานเรียงเป็นสี่วงเล็กด้านล่าง
 
    ภาพถูกครอปเป็นสี่เหลี่ยมจัตุรัสโดยจัดตำแหน่งใบหน้าให้ตรงกันทุกคนแล้ว
    (ดู deploy/make-team-photos.py) ที่นี่จึงแค่ตัดเป็นวงกลมด้วย CSS
    ถ้าครอปกลางภาพเฉย ๆ หัวจะลอยสูงต่ำไม่เท่ากัน เรียงแล้วดูไม่เป็นชุด
 
    เว้น name ว่างไว้ได้ ถ้ายังไม่มีชื่อ — จะไม่ขึ้นบรรทัดชื่อเปล่า ๆ ให้เก้อ */
-const TEAM_LEAD = { file:'ajarn.jpg', role:'หัวหน้าโครงการ',
-  name:'ผู้ช่วยศาสตราจารย์ ดร.ชิดชนก โชคสุชาติ',
-  // แถวแนวนอนของจอ 16:9 แคบ ชื่อเต็มจะตัดบรรทัดกลางคำ ใช้ชื่อย่อแทนตรงนั้น
-  short:'ผศ. ดร.ชิดชนก โชคสุชาติ' };
-// หัวหน้าอีกทีม อยู่ระดับเดียวกัน จึงเป็นวงใหญ่เท่ากันวางเคียงข้าง ไม่ใช่ลดชั้นลงไปแถวล่าง
-const TEAM_LEAD2 = { file:'lead2.jpg', role:'', name:'', short:'' };
+const TEAM_LEADS = [
+  { file:'sinchai.jpg', role:'หัวหน้าโครงการ',
+    name:'รองศาสตราจารย์ ดร.สินชัย กมลภิวงศ์', short:'รศ. ดร.สินชัย กมลภิวงศ์' },
+  { file:'lead2.jpg', role:'',
+    name:'ผศ.ธรรมนิตย์ นิคมรัตน์' },
+];
 const TEAM = [
-  { file:'m1.jpg', name:'', role:'' },
-  { file:'m2.jpg', name:'', role:'' },
-  { file:'m3.jpg', name:'', role:'' },
+  { file:'ajarn.jpg', name:'ผศ. ดร.ชิดชนก โชคสุชาติ', role:'' },
+  { file:'m1.jpg', name:'วชิรวิทย์ ฐิตะกาญจน์', role:'' },
+  { file:'m2.jpg', name:'ภาณุวิชญ์ รักใหม่', role:'' },
+  { file:'m3.jpg', name:'คีตศิลป์ คงศรี', role:'' },
 ];
 const face = f => mediaImg([CONFIG.DIR_TEAM + f]);
 const who = (p, cls) => `<div class="who ${cls || ''}">
@@ -1962,7 +1963,7 @@ const who = (p, cls) => `<div class="who ${cls || ''}">
     </div>`;
 const CR_TEAM = `<div class="team">
     <h3>ทีมทำงาน</h3>
-    <div class="leads">${who(TEAM_LEAD, 'lead')}${who(TEAM_LEAD2, 'lead')}</div>
+    <div class="leads">${TEAM_LEADS.map(p => who(p, 'lead')).join('')}</div>
     <div class="row">${TEAM.map(p => who(p)).join('')}</div>
   </div>`;
 

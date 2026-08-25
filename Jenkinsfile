@@ -74,6 +74,8 @@ pipeline {
                         -e EXPECT_SLIDES=64 \
                         mcr.microsoft.com/playwright:v1.59.1-jammy \
                         sh -c 'npm install --no-save --no-audit --no-fund playwright@1.59.1 >/dev/null 2>&1 \
+                               && node tests/check-team.mjs /w \
+                               && echo "" \
                                && node tests/check-deck.mjs /w \
                                && echo "" \
                                && node tests/check-thai.mjs /w \

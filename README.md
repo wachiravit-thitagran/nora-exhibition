@@ -631,7 +631,7 @@ chromium-browser --kiosk --user-data-dir=/tmp/nora \
 | `assets/static/background.png` | `deploy/fetch-media.sh` | ภาพพื้นหลังลายไทย |
 | `assets/drive/` 12 คลิป | `deploy/fetch-media.sh` | คลิปจาก Google Drive ใช้ในหน้า ๓ คลิปพร้อมกัน |
 | `assets/restore/` 39 ภาพ | repo | การ์ดเทียบก่อน-หลังจากรายงานฟื้นฟู |
-| `assets/team/` 5 ภาพ | repo | ภาพทีมทำงาน (ครอปด้วย `deploy/make-team-photos.py`) |
+| `assets/team/` 6 ภาพ | repo | ภาพทีมทำงาน (ครอปด้วย `deploy/make-team-photos.py`) |
 | `assets/color/` `students/` `poses/` | ต้องผลิตเอง วางในโฟลเดอร์ก่อน build | ยังไม่มีไฟล์ — หน้าที่เกี่ยวข้องขึ้นกล่อง "อยู่ระหว่างจัดเตรียม" |
 
 **เช็กว่าตอนนี้ขาดตรงไหน** — `node deploy/media-report.mjs` เปิดสไลด์จริงทุกหน้า
