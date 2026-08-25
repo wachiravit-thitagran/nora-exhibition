@@ -284,7 +284,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 
    แก้ด้วยการดันขอบกล่องขึ้น-ลงด้วย padding แล้วหักกลับด้วย margin เท่ากัน
    พื้นที่ระบายสีจึงกว้างพอคลุมหมึกส่วนที่ล้น ส่วนขนาดกล่องนอกเท่าเดิมเป๊ะ
-   เลย์เอาต์ทั้ง 64 หน้าไม่ขยับสักพิกเซล                                  */
+   เลย์เอาต์ทุกหน้าไม่ขยับสักพิกเซล                                      */
 .hero .big, .wide-hero .big, .wide-sec .num, .sumgrid .kpi b, .dsurl .u{
   padding-block:.32em;
   margin-block:-.32em;
@@ -783,7 +783,7 @@ html.motion .slide.dark.on .bgimg       {animation:kb 18s ease-out both}
    ชุด intro — ม่านเปิดงาน
    ============================================================
    ม่านเป็น "เลเยอร์คลุม" ไม่ใช่หน้าหนึ่งใน SLIDES
-   จึงไม่ไปยุ่งกับไทม์ไลน์ เลขหน้า หรือนาฬิกาโลกเลย — 64 หน้ายังเป็น 64 หน้า
+   จึงไม่ไปยุ่งกับไทม์ไลน์ เลขหน้า หรือนาฬิกาโลกเลย — จำนวนหน้าของโหมดไม่เปลี่ยน
    และวางไว้ใน #viewport ไม่ใช่ใน #stage เพราะต้องคลุม "จอจริง" ทั้งบาน
    ไม่ใช่ผืนเวทีที่ถูกย่อด้วย transform (ไม่งั้นม่านจะโดนย่อไปด้วย)      */
 /* ม่านอยู่ "ใน" #stage ไม่ใช่ใน #viewport
@@ -1006,10 +1006,9 @@ const CONFIG = {
      นิทรรศการเปิดให้คนนอกดู ถ้าไฟล์ยังไม่มา สไลด์จะขึ้นกล่อง "อยู่ระหว่างจัดเตรียม"
      ซ้ำ ๆ หลายสิบหน้า ให้ตั้งเป็น false ปิดช่วงนั้นไปเลย
      รอบการแสดงจะยืดหน้าที่เหลือให้ครบ 30 นาทีเองโดยอัตโนมัติ            */
-  SHOW_COLORIZE : true,   // 22 หน้า — ต้องมีไฟล์ใน assets/color/
+  SHOW_COLORIZE : true,   // 8 หน้า — แสดงเฉพาะไฟล์ที่มีอยู่ใน assets/color/
   SHOW_TWOSETS  : true,   // 4 หน้า หน้าละ 3 คลิป — ต้องมีไฟล์ใน assets/drive/
-  SHOW_STUDENT  : true,   //  4 หน้า — ต้องมีไฟล์ assets/students/นักศึกษา-N.mp4
-  SHOW_CLASSROOM: true,   //  2 หน้า — ต้องมีไฟล์ assets/students/นักเรียน-N.mp4
+  SHOW_STUDENT  : true,   //  6 หน้า — ต้องมีไฟล์ assets/students/นักศึกษา-N.mp4
   /* ---- ผังรายการ 30 นาที : วินาทีตั้งต้นต่อหน้า ----------------------
      หน้าที่มีวิดีโอจะเพิ่มเวลาอัตโนมัติให้ไม่น้อยกว่าคลิปยาวที่สุดในหน้า
      จาก assets/durations.json ทุกจอจึงยังคำนวณไทม์ไลน์เดียวกันได้       */
@@ -1021,8 +1020,7 @@ const CONFIG = {
     compare   : 30,   // เปรียบเทียบ ต้นฉบับ/ซ่อมแซม (12)
     combine   : 25,   // ภาพท่า + ภาพท่า = วิดีโอ (22)
     colorize  : 19,   // ขาวดำ/ใส่สี (22)
-    student   : 30,   // AI/นักศึกษารำ (4)
-    classroom : 22,   // ภาพท่ารำ/นักเรียนรำ (2)
+    student   : 30,   // นักศึกษารำ (6)
     threeway  : 26,   // 3 คลิปพร้อมกัน จอละคลิป (4)
     summary   : 25,   // สรุปผลงาน
     credits   : 20,   // เครดิต
@@ -1232,6 +1230,19 @@ const VIDEOS = [
   ['6a77fb5aeab1361e29e304fe','ท่าจีบหน้า → ท่าใหม่ (E)'],
   ['6a783c54e8c21f9b2fa12b3c','ท่าใหม่ (F) → ท่าใหม่ (G) → ท่าเขาควาย'],
 ];
+/* ลงสีแล้วจริง 8 คลิป — รายการนี้ต้องตรงกับไฟล์ใน assets/color/
+   คลิปที่ยังไม่มีไฟล์จะไม่ถูกสร้างเป็นสไลด์ จึงไม่ขึ้นกล่องรอไฟล์บนจอจริง */
+const COLORIZED_IDS = [
+  '6a6d8a98e8c21f9b2fa12ae4',
+  '6a6d8ae44e74c6635728add3',
+  '6a6d8b34c262c1cc3e46a496',
+  '6a6d8b704e74c6635728adda',
+  '6a6d8ba1e8c21f9b2fa12ae9',
+  '6a6d8bdec262c1cc3e46a49e',
+  '6a6d8d43eab1361e29e3045e',
+  '6a6d8e374e74c6635728ade0',
+];
+const COLOR_VIDEOS = VIDEOS.filter(([id]) => COLORIZED_IDS.includes(id));
 /* คืนรายการไฟล์ตามลำดับที่จะลอง: ไฟล์ในเครื่องหรือ URL บนเว็บ แล้วสลับกันเป็นตัวสำรอง */
 const vremote = id => CONFIG.AINORA_BASE + '/videos/' + id + '/file';
 const vlocal  = id => CONFIG.DIR_VIDEOS + id + '.mp4';
@@ -1254,18 +1265,14 @@ const DRIVE_PAIRS = [
   ['6a6d8a98e8c21f9b2fa12ae4','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า.mp4'],
 ];
 
-/* --- 2.5 หมวด D / E : 4 คลิปเด่น + 2 ภาพท่า ----------------------- */
-const STUDENT_VIDEOS = [
-  '6a7b4e69a8615dbe0af2672e',
-  '6a791869a8615dbe0af2670b',
-  '6a6d8a98e8c21f9b2fa12ae4',
-  '6a6d8ae44e74c6635728add3',
-];
-/* ชื่อท่าเป็นตัวตั้ง ไฟล์ต้องตามชื่อ — ไม่ใช่กลับกัน
-   เดิมชี้ไปไฟล์ 11 กับ 07 ตามชื่อไฟล์ ซึ่งเป็นคนละท่ากับที่พาดหัวบอก */
-const STUDENT_STILLS = [
-  { img:'04_ท่าจีบหน้า_B-ซ่อมแซม.png',  name:'ท่าเขาควาย' },
-  { img:'09_ท่าสามย่าง_B-ซ่อมแซม.png',  name:'ท่าพรหมสี่หน้า' },
+/* --- 2.5 วิดีโอนักศึกษารำ เรียงตามชื่อไฟล์ต้นฉบับใน /นักศึกษารำ/ --- */
+const STUDENT_CLIPS = [
+  'นักศึกษา-1.mp4',
+  'นักศึกษา-2.mp4',
+  'นักศึกษา-3.mp4',
+  'นักศึกษา-4.mp4',
+  'นักศึกษา-5.mp4',
+  'นักศึกษา-6.mp4',
 ];
 
 /* ================================================================
@@ -1322,9 +1329,8 @@ const SECTIONS = [
   { n:'04', t:'ถอดรหัสท่ารำสู่ตำแหน่งในคอมพิวเตอร์', d:'ท่ารำกลายเป็นตำแหน่งข้อต่อ', c:'๑๒ คลิป',
     longd:'คอมพิวเตอร์อ่านตำแหน่งข้อต่อของผู้รำออกมาจากวิดีโอทีละเฟรม แล้ววาดโครงร่างทับไว้ '
         + 'ท่ารำที่เคยเป็นแค่ภาพเคลื่อนไหว จึงกลายเป็นข้อมูลที่วัดและสร้างซ้ำได้' },
-  { n:'05', t:'ถ่ายทอดสู่ผู้รำ',       d:'จากจอ กลับสู่คนจริง',            c:'๖ ชิ้น',
-    longd:'ขั้นสุดท้ายคือการคืนท่ารำให้คน — นักศึกษาและนักเรียนรำตามวิดีโอและภาพที่ได้ '
-        + 'เพื่อยืนยันว่าท่ารำเหล่านี้รำได้จริงด้วยร่างกายมนุษย์' },
+  { n:'05', t:'ถ่ายทอดสู่ผู้รำ',       d:'จากจอ กลับสู่คนจริง',            c:'๖ คลิป',
+    longd:'ขั้นสุดท้ายคือการคืนท่ารำให้คน — นักศึกษาถ่ายทอดท่ารำผ่านการเคลื่อนไหวของร่างกายจริง' },
 ];
 /* ป้ายขั้นตอน — ใช้เป็น eyebrow / หัวจอขวา / บรรทัดล่าง ให้ทุกหน้าบอกได้ว่าอยู่ขั้นไหน */
 const stepEB   = i => 'ขั้นตอนที่ ' + thNum(SECTIONS[i].n) + ' · ' + SECTIONS[i].t;
@@ -1781,9 +1787,9 @@ for(let i = 0; i < VIDEOS.length; i += 2){
 }
 
 /* ลงสี (อยู่ในขั้นที่ 03) — โหมด 1｜1｜1 (ค่าเริ่มต้น) */
-if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
+if(CONFIG.SHOW_COLORIZE) COLOR_VIDEOS.forEach(([id,title],i)=>{
   push({ dur:D.colorize, step:2, vids:[id],
-    section:stepFoot(2, i+1, VIDEOS.length) + ' (ลงสี)',
+    section:stepFoot(2, i+1, COLOR_VIDEOS.length) + ' (ลงสี)',
     wall:{ head:stepEB(2) + ' — ลงสี', title:title,
       rows:[['ต้นทาง', 'วิดีโอขาวดำ สร้างจากภาพขาวดำในตำรา'],
             ['สิ่งที่เพิ่มเข้ามา', 'สีเครื่องแต่งกาย เครื่องประดับ และฉาก']],
@@ -1791,9 +1797,9 @@ if(CONFIG.SHOW_COLORIZE) VIDEOS.forEach(([id,title],i)=>{
          + 'การลงสีอ้างอิงสีเครื่องแต่งกายโนราตามธรรมเนียมจริง ไม่ใช่การเดาสีเอง',
       },
     html: frame({ eyebrow:stepEB(2) + ' — ลงสี',
-      section:stepFoot(2, i+1, VIDEOS.length) + ' (ลงสี)',
+      section:stepFoot(2, i+1, COLOR_VIDEOS.length) + ' (ลงสี)',
       title:esc(title),
-      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(VIDEOS.length) + ' · ขาวดำตามต้นฉบับ → ลงสีเครื่องแต่งกายและฉาก',
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(COLOR_VIDEOS.length) + ' · ขาวดำตามต้นฉบับ → ลงสีเครื่องแต่งกายและฉาก',
       body:`<div class="cmp">
         ${panel('วิดีโอขาวดำ (ต้นทาง)','ก่อน', mediaVid(vurl(id)))}
         <div class="arrow">»<small>ลงสี</small></div>
@@ -1842,53 +1848,52 @@ if(CONFIG.SHOW_TWOSETS) for(let i = 0; i < DRIVE_PAIRS.length; i += 3){
       }).join('')}</div>` })});
 }
 
-/* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — นักศึกษา (2｜1) ---- */
+/* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — วิดีโอนักศึกษาเพียงอย่างเดียว (2｜1) ---- */
 divider(4);
-if(CONFIG.SHOW_STUDENT) STUDENT_VIDEOS.forEach((id,i)=>{
-  const title = (VIDEOS.find(v=>v[0]===id)||[,''])[1];
-  const body = `<div class="duowide">
-      ${panel('วิดีโอที่ AI สร้างได้','AI', mediaVid(vurl(id)))}
-      <div class="arrow">»<small>รำตาม</small></div>
-      ${panel('นักศึกษารำตามวิดีโอ','คนจริง', mediaVid(alt(CONFIG.DIR_STUDENT+'นักศึกษา-'+(i+1)+'.mp4')), true)}
+if(CONFIG.SHOW_STUDENT) STUDENT_CLIPS.forEach((file,i)=>{
+  const total = STUDENT_CLIPS.length;
+  const title = 'นักศึกษารำ';
+  const body = `<div class="cmp solo clip">
+      ${panel('วิดีโอนักศึกษารำ','คนจริง', mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)}
     </div>`;
-  push({ dur:D.student, step:4, vids:[id], spanLC:true,
-    section:stepFoot(4, i+1, 4) + ' (นักศึกษา)',
-    wall:{ head:stepEB(4) + ' — นักศึกษา', title:title,
+  push({ dur:D.student, step:4, spanLC:true, studentSingle:true,
+    section:stepFoot(4, i+1, total) + ' (นักศึกษา)',
+    wall:{ head:stepEB(4) + ' — นักศึกษา', title:'คลิปที่ ' + thNum(i+1),
       rows:[['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง'],
-            ['สิ่งที่ตรวจ', 'ท่ารำที่ AI สร้างขึ้น รำได้จริงหรือไม่']],
-      note:'ขั้นตอนนี้เป็นการตรวจสอบกลับ ถ้าคนรำตามได้จริง แปลว่าท่ารำที่ AI ออกแบบ '
-         + 'ยังอยู่ในหลักการเคลื่อนไหวของโนรา ไม่ใช่ท่าที่เป็นไปไม่ได้ทางกายภาพ' },
+            ['สื่อที่แสดง', 'การรำของนักศึกษา']],
+      note:'ขั้นตอนนี้แสดงผลการถ่ายทอดท่ารำกลับสู่ผู้รำ ผ่านการเคลื่อนไหวของร่างกายจริง' },
     lc:()=> band({ eyebrow:stepEB(4) + ' — นักศึกษา', title:esc(title),
-      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ๔ · นำวิดีโอที่ AI สร้างไปให้นักศึกษารำตาม เพื่อตรวจว่ารำได้จริง',
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(total) + ' · การรำของนักศึกษาสาขาศิลปะการแสดง',
       body }),
     html: frame({ eyebrow:stepEB(4) + ' — นักศึกษา',
-      section:stepFoot(4, i+1, 4) + ' (นักศึกษา)',
+      section:stepFoot(4, i+1, total) + ' (นักศึกษา)',
       title:esc(title),
-      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ๔ · นักศึกษารำตามวิดีโอที่ AI สร้าง', body })});
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(total) + ' · การรำของนักศึกษาสาขาศิลปะการแสดง', body })});
 });
 
-/* ---- ขั้นที่ 05 (ต่อ) ถ่ายทอดสู่ผู้รำ — นักเรียนในชั้นเรียน (1｜2) ---- */
-if(CONFIG.SHOW_CLASSROOM) STUDENT_STILLS.forEach((st,i)=>{
-  const body = `<div class="duowide">
-      ${panel('ภาพท่ารำที่ฟื้นฟูแล้ว','สื่อการสอน', mediaImg(cmp(st.img)))}
-      <div class="arrow">»<small>นำไปรำ</small></div>
-      ${panel('นักเรียนรำตามภาพ','ห้องเรียน', mediaVid(alt(CONFIG.DIR_STUDENT+'นักเรียน-'+(i+1)+'.mp4')), true)}
-    </div>`;
-  push({ dur:D.classroom, step:4, spanCR:true,
-    section:stepFoot(4, i+1, 2) + ' (ห้องเรียน)',
-    wall:{ head:stepEB(4) + ' — ห้องเรียน', title:st.name,
-      rows:[['สื่อที่ใช้', 'ภาพท่ารำที่ฟื้นฟูแล้ว'],
-            ['ผู้ใช้', 'นักเรียนในชั้นเรียน']],
-      note:'ภาพที่ฟื้นฟูแล้วคมชัดพอที่จะใช้เป็นสื่อการสอนได้โดยตรง '
-         + 'นักเรียนดูภาพแล้วฝึกรำตามได้ทันทีโดยไม่ต้องมีครูสาธิต',
-      },
-    cr:()=> band({ eyebrow:stepEB(4) + ' — ห้องเรียน', title:esc(st.name),
-      sub:'ท่าที่ ' + thNum(i+1) + ' จาก ๒ · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body }),
-    html: frame({ eyebrow:stepEB(4) + ' — ห้องเรียน',
-      section:stepFoot(4, i+1, 2) + ' (ห้องเรียน)',
-      title:esc(st.name),
-      sub:'ท่าที่ ' + thNum(i+1) + ' จาก ๒ · ใช้ภาพที่ฟื้นฟูแล้วเป็นสื่อการสอนโดยตรง', body })});
-});
+/* โหมดผนัง 48:9 วางคลิปนักศึกษาจอละหนึ่งคลิป จึงใช้เพียง 2 สไลด์ */
+if(CONFIG.SHOW_STUDENT) for(let i = 0; i < STUDENT_CLIPS.length; i += 3){
+  const set = STUDENT_CLIPS.slice(i, i + 3);
+  const pageNo = i / 3 + 1;
+  const pageTotal = Math.ceil(STUDENT_CLIPS.length / 3);
+  const studentPane = (file, k) => band({
+    eyebrow:stepEB(4) + ' — นักศึกษา',
+    title:'นักศึกษารำ',
+    sub:'คลิปที่ ' + thNum(i+k+1) + ' จาก ' + thNum(STUDENT_CLIPS.length),
+    body:`<div class="cmp solo clip">${panel('วิดีโอนักศึกษารำ','คนจริง',
+      mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)}</div>`,
+  });
+  push({ dur:D.student, step:4, spanCU:true, studentWide:true,
+    section:stepFoot(4, pageNo, pageTotal) + ' (นักศึกษา)',
+    left:()=> studentPane(set[0], 0),
+    midU:()=> studentPane(set[1], 1),
+    right:()=> studentPane(set[2], 2),
+    html:frame({ eyebrow:stepEB(4) + ' — นักศึกษา', title:'นักศึกษารำ',
+      sub:'คลิปที่ ' + thNum(i+1) + '–' + thNum(i+set.length) + ' จาก ' + thNum(STUDENT_CLIPS.length),
+      body:`<div class="cmp3">${set.map((file,k) => panel('วิดีโอนักศึกษารำ',
+        thNum(i+k+1), mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)).join('')}</div>` }),
+  });
+}
 
 /* ---- ปิดท้าย: ผู้สนับสนุน | สรุปโครงการ | เครดิต — สไลด์เดียว จอละส่วน ---- */
 const KPI = [['11','ท่ารำต้นแบบที่ฟื้นฟูแล้ว'],['22','วิดีโอที่ AI สร้างได้'],
@@ -2140,6 +2145,13 @@ let ULTRA_ON = BOOT_MODE !== '0';
 if(WALL_ON) document.documentElement.classList.add('wall');
 if(ULTRA_ON) document.documentElement.classList.add('ultra');
 
+/* 16:9 ใช้สไลด์นักศึกษาเดี่ยว 6 หน้า ส่วนผนัง 48:9 และจอ 1–3 ของผนัง
+   ใช้ชุด 3 คลิปต่อหน้า 2 หน้า เลือกก่อนสร้าง DOM และคำนวณ timeline */
+const WIDE_DECK = BOOT_MODE !== '0';
+const ALL_SLIDES = SLIDES.slice();
+SLIDES.splice(0, SLIDES.length, ...ALL_SLIDES.filter(s =>
+  WIDE_DECK ? !s.studentSingle : !s.studentWide));
+
 /* เส้นแบ่งจอ (ไว้เล็งตอนจัดวางจอจริง) */
 let SEAM_ON = QS.has('seam') ? QS.get('seam') === '1' : PREF.get('seam') === '1';
 if(SEAM_ON) document.documentElement.classList.add('seam');
@@ -2159,7 +2171,7 @@ let MOTION_ON = CONFIG.ANIMATE
 if(MOTION_ON) document.documentElement.classList.add('motion');
 
 /* ---------- ชุดสไลด์ ----------------------------------------------
-   main   รายการ 64 หน้าที่วนลูปตามปกติ
+   main   รายการ 50 หน้าใน 16:9 หรือ 46 หน้าใน 48:9 ที่วนลูปตามปกติ
    intro  ม่านแดงหน้าเดียว ค้างรอสั่ง "เปิดม่าน" จาก controller
           แล้วเล่นอนิเมชันแยกม่านเผยหน้าแรกของชุดหลัก
 
@@ -2329,10 +2341,20 @@ function clockPos(){
   return { i, off: t - TL[i], dur: fixedDur(i) };
 }
 
+/* ใน ?panel=1|2|3 ผืน 48:9 ถูกเลื่อนมาครอปทีละช่วง แม้ pane นอกช่วงครอป
+   ยังมี offsetWidth อยู่ จึงต้องตรวจตำแหน่งบนเวทีด้วย ไม่เช่นนั้นจะเล่นคลิป
+   ของอีกสองจอเบื้องหลังและนับรวมในการรอวิดีโอจบ */
+function paneIsVisible(pn){
+  if(!pn) return true;
+  if(pn.offsetWidth === 0) return false;
+  if(!PANEL_ON) return true;
+  const left = (PANEL_ON - 1) * 3840;
+  return pn.offsetLeft < left + 3840 && pn.offsetLeft + pn.offsetWidth > left;
+}
 function visibleVideos(s){
   return [...s.el.querySelectorAll('video')].filter(v => {
     const pn = v.closest('.pane');
-    return !pn || pn.offsetWidth > 0;
+    return paneIsVisible(pn);
   });
 }
 function visibleVideoDurationMs(s){
@@ -2375,8 +2397,8 @@ function show(i, seekMs){
   const seek = Math.max(0, (seekMs || 0) / 1000);
   // เล่นเฉพาะวิดีโอใน pane ที่แสดงอยู่จริง (pane ที่ซ่อนมี offsetWidth = 0)
   const all = [...s.el.querySelectorAll('video')];
-  all.forEach(v => { const pn = v.closest('.pane'); if(pn && pn.offsetWidth === 0){ try{ v.pause(); }catch(e){} } });
-  const vids = all.filter(v => { const pn = v.closest('.pane'); return !pn || pn.offsetWidth > 0; });
+  all.forEach(v => { const pn = v.closest('.pane'); if(!paneIsVisible(pn)){ try{ v.pause(); }catch(e){} } });
+  const vids = all.filter(v => paneIsVisible(v.closest('.pane')));
   vids.forEach(v => {
     v.muted = true;
     /* เดินอิสระ: รอบแรกไม่ loop เพื่อให้ ended เป็น state ที่เชื่อถือได้
@@ -2457,7 +2479,7 @@ function alignVideos(offMs, now){
   const off = offMs / 1000;
   s.el.querySelectorAll('video').forEach(v => {
     const pn = v.closest('.pane');
-    if(pn && pn.offsetWidth === 0) return;              // pane ที่ถูกครอปทิ้ง ไม่ต้องเสียแรง
+    if(!paneIsVisible(pn)) return;                      // pane ที่ถูกครอปทิ้ง ไม่ต้องเสียแรง
     // รอบแรกในโหมดเดินอิสระต้องปล่อยให้เล่นตามธรรมชาติ หากอิงเวลาหน้าแล้ว
     // modulo กลับต้นคลิปก่อน ended จะไม่มีวันตั้งสถานะว่าจบรอบแรก
     if(!SYNC && v.dataset.firstRound === '0') return;
@@ -2648,13 +2670,26 @@ function markMode(m){
      48:9        m = 'w' (แบ่ง 3 จอ) หรือ 'wall' (ผืนเดียวยาว ไม่มีขอบคั่น)
    บนแถบของสไลด์มีปุ่มถึงแค่ 'w' ส่วน 'wall' สั่งจากมือถือหรือ ?wall=1 */
 function setMode(m){
+  const targetWide = m !== '0';
+  PREF.set('mode', m);
+  /* จำนวนสไลด์นักศึกษาของสองตระกูลโหมดไม่เท่ากัน จึงต้องสร้าง timeline ใหม่
+     เมื่อสลับข้าม 16:9 ↔ 48:9 ส่วนการสลับจอ 1/2/3 หรือ wall ภายใน 48:9
+     ยังทำสดได้เหมือนเดิมเพราะใช้ชุดสไลด์เดียวกัน */
+  if(targetWide !== WIDE_DECK){
+    const q = new URLSearchParams(location.search);
+    q.delete('panel'); q.delete('ultra'); q.delete('wall');
+    if(m === 'wall') q.set('wall', '1');
+    else if(m === 'w') q.set('ultra', '1');
+    else if(/^[123]$/.test(m)) q.set('panel', m);
+    location.search = q.toString();
+    return;
+  }
   const root = document.documentElement;
   PANEL_ON = (m === '1' || m === '2' || m === '3') ? +m : 0;
   WALL_ON  = (m === 'wall');
   ULTRA_ON = (m !== '0');
   root.classList.toggle('ultra', ULTRA_ON);
   root.classList.toggle('wall', WALL_ON);
-  PREF.set('mode', m);                    // จำไว้ให้เครื่องนี้ รีเฟรชแล้วยังเป็นโหมดเดิม
   markMode(m);
   fit();
   const c = cur; cur = -1; show(c);       // สร้าง/หยุดวิดีโอตาม pane ที่เห็น

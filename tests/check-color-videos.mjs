@@ -20,6 +20,14 @@ const ok = (condition, message) => {
   if(!condition) fail.push(message);
 };
 
+const colorIds = source.match(/const COLORIZED_IDS = \[[\s\S]*?\n\];/)?.[0] || '';
+ok((colorIds.match(/[0-9a-f]{24}/g) || []).length === expected.length,
+   'รายการวิดีโอลงสีมีเฉพาะ 8 ไฟล์ที่พร้อมใช้งาน');
+ok(/const COLOR_VIDEOS = VIDEOS\.filter\(\(\[id\]\) => COLORIZED_IDS\.includes\(id\)\);/.test(source),
+   'กรองรายการสไลด์ลงสีจากรหัสไฟล์ที่พร้อม');
+ok(/if\(CONFIG\.SHOW_COLORIZE\) COLOR_VIDEOS\.forEach/.test(source),
+   'สร้างสไลด์ลงสีจากรายการที่กรองแล้ว');
+
 for(const [id, title] of expected){
   ok(source.includes(`['${id}','${title}']`), `ชื่อไฟล์จับคู่กับคลิป “${title}”`);
   const file = path.join(ROOT, 'assets', 'color', id + '.mp4');

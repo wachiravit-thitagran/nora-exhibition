@@ -74,9 +74,9 @@ ok(skew <= 30, `เวลาเริ่มหน้าห่างกัน ${s
 const vidErr = () => Promise.all(tabs.map(t => t.evaluate(() => {
   const off = (performance.now() - t0) / 1000;
   const out = [];
-  for(const v of SLIDES[cur].el.querySelectorAll('video')){
+  for(const v of SLIDES[cur].el.querySelectorAll('video[data-sync-fixture]')){
     const pn = v.closest('.pane');
-    if(pn && pn.offsetWidth === 0) continue;
+    if(!paneIsVisible(pn)) continue;
     if(v.paused || v.readyState < 2 || !isFinite(v.duration) || v.duration <= 0.2) continue;
     let d = v.currentTime - (off % v.duration);
     if(d >  v.duration/2) d -= v.duration;
@@ -89,9 +89,10 @@ const vidErr = () => Promise.all(tabs.map(t => t.evaluate(() => {
 /* คลิปทดสอบยาว 2 วินาที วางลงในช่องที่มองเห็นของทุกแท็บ
    ไม่พึ่ง assets/ จริง ซึ่งไม่ได้อยู่ใน repo (วิดีโองานจริงถูกใส่ตอน build) */
 const vinfo = await Promise.all(tabs.map(t => t.evaluate(async () => {
-  const pane = [...SLIDES[cur].el.querySelectorAll('.pane')].find(p => p.offsetWidth > 0);
+  const pane = [...SLIDES[cur].el.querySelectorAll('.pane')].find(p => paneIsVisible(p));
   if(!pane) return { err:'ไม่มี pane ที่มองเห็น' };
   const v = document.createElement('video');
+  v.dataset.syncFixture = '1';
   v.src = 'tests/fixtures/loop2s.webm';
   v.muted = true; v.loop = true; v.playsInline = true;
   v.style.cssText = 'position:absolute;left:0;top:0;width:2px;height:2px;opacity:.01';
@@ -119,9 +120,9 @@ ok(e0.length > 0 && Math.max(...e0) <= 120,
    วัดทีหลังจึงได้ค่าที่ถูกแก้ไปแล้ว แล้วข้อทดสอบจะพลาดแบบสุ่มทั้งที่โค้ดทำงานถูก */
 const pushed = await tabs[1].evaluate(() => {
   const out = [];
-  for(const v of SLIDES[cur].el.querySelectorAll('video')){
+  for(const v of SLIDES[cur].el.querySelectorAll('video[data-sync-fixture]')){
     const pn = v.closest('.pane');
-    if(pn && pn.offsetWidth === 0) continue;
+    if(!paneIsVisible(pn)) continue;
     if(!isFinite(v.duration) || v.duration <= 0.2) continue;
     const was = v.currentTime;
     try{ v.currentTime = (was + v.duration - 0.40) % v.duration; }catch(e){}

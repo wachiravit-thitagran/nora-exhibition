@@ -5,7 +5,7 @@
  *
  * ตรวจ 4 อย่างต่อ 1 โหมดการแสดงผล
  *   1. ไม่มี JavaScript error
- *   2. จำนวนสไลด์เท่ากับที่คาดไว้ (EXPECT_SLIDES)
+ *   2. จำนวนสไลด์เท่ากับที่คาดไว้สำหรับโหมด 16:9 / 48:9
  *   3. ไม่มีการเลื่อนหน้าจอ  scrollHeight == innerHeight, scrollWidth == innerWidth
  *   4. pane ที่ต้องแสดงในโหมดนั้น ถูกแสดงจริง
  *
@@ -17,7 +17,8 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { chromium } from 'playwright';
 
 const ROOT = resolve(process.argv[2] || process.cwd());
-const EXPECT_SLIDES = Number(process.env.EXPECT_SLIDES || 64);
+const EXPECT_SINGLE_SLIDES = Number(process.env.EXPECT_SINGLE_SLIDES || 50);
+const EXPECT_WIDE_SLIDES = Number(process.env.EXPECT_WIDE_SLIDES || 46);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
@@ -44,10 +45,10 @@ function serve() {
 }
 
 const MODES = [
-  { name: '16:9',        qs: '',          pane: 'pC'  },
-  { name: '48:9 ยาว',    qs: '&wall=1',   pane: 'pW'  },
-  { name: '48:9 แบ่ง 3', qs: '&ultra=1',  pane: 'pW'  },
-  { name: 'จอ 2',        qs: '&panel=2',  pane: null  },  // หน้าไหนก็ได้ ขึ้นกับเวลาที่ซิงก์
+  { name: '16:9',        qs: '',          pane: 'pC', slides:EXPECT_SINGLE_SLIDES },
+  { name: '48:9 ยาว',    qs: '&wall=1',   pane: 'pW', slides:EXPECT_WIDE_SLIDES },
+  { name: '48:9 แบ่ง 3', qs: '&ultra=1',  pane: 'pW', slides:EXPECT_WIDE_SLIDES },
+  { name: 'จอ 2',        qs: '&panel=2',  pane: null, slides:EXPECT_WIDE_SLIDES },
 ];
 
 const server = await serve();
@@ -67,8 +68,16 @@ for (const m of MODES) {
   const r = await page.evaluate(() => {
     const de = document.documentElement;
     const on = document.querySelector('.slide.on');
+    const studentSlides = SLIDES.filter(s => s.step === 4 && s.el.querySelector('video'));
+    const studentSources = studentSlides.map(s => [...s.el.querySelectorAll('.pane')]
+      .filter(p => getComputedStyle(p).display !== 'none')
+      .flatMap(p => [...p.querySelectorAll('video')])
+      .map(v => decodeURIComponent(v.getAttribute('src') || '')));
     return {
       slides: document.querySelectorAll('.slide').length,
+      colorSlides: SLIDES.filter(s => s.section?.includes('(ลงสี)')).length,
+      studentSlides: studentSlides.length,
+      studentSources,
       overY: de.scrollHeight - innerHeight,
       overX: de.scrollWidth - innerWidth,
       panes: on ? [...on.querySelectorAll('.pane')].filter(p => p.offsetWidth > 0)
@@ -78,7 +87,14 @@ for (const m of MODES) {
 
   const bad = [];
   if (errs.length)                  bad.push(`JS error: ${errs[0]}`);
-  if (r.slides !== EXPECT_SLIDES)   bad.push(`สไลด์ ${r.slides} หน้า (คาด ${EXPECT_SLIDES})`);
+  if (r.slides !== m.slides)        bad.push(`สไลด์ ${r.slides} หน้า (คาด ${m.slides})`);
+  if (r.colorSlides !== 8)          bad.push(`สไลด์ลงสี ${r.colorSlides} หน้า (คาด 8)`);
+  const expectedStudentSlides = m.slides === EXPECT_SINGLE_SLIDES ? 6 : 2;
+  const expectedVideosPerSlide = m.slides === EXPECT_SINGLE_SLIDES ? 1 : 3;
+  if (r.studentSlides !== expectedStudentSlides)
+    bad.push(`สไลด์นักศึกษา ${r.studentSlides} หน้า (คาด ${expectedStudentSlides})`);
+  if (!r.studentSources.every(srcs => new Set(srcs).size === expectedVideosPerSlide))
+    bad.push(`จำนวนวิดีโอนักศึกษาต่อหน้าต้องเป็น ${expectedVideosPerSlide}`);
   if (r.overY > 0)                  bad.push(`เลื่อนแนวตั้งได้ ${r.overY}px`);
   if (r.overX > 0)                  bad.push(`เลื่อนแนวนอนได้ ${r.overX}px`);
   if (!r.panes.length)              bad.push('ไม่มี pane ที่แสดงผล');
@@ -136,6 +152,38 @@ console.log(!rr.step1HasUndefined && !rr.step1HasNaN && !rr.step2HasPendingPose 
   ? 'ok    regression — เลขท่า, Ctrl และภาพฟื้นฟู 11 ท่า'
   : 'FAIL  regression — ' + fails.slice(-9).join(' · '));
 
+// regression: ขั้นตอนถ่ายทอดสู่ผู้รำต้องเป็นคลิปนักศึกษาเดี่ยว 6 หน้า
+// และไฟล์ที่ deploy ต้องอ่าน metadata ได้จริงใน Chromium
+await regression.waitForFunction(() => {
+  const studentSlides = SLIDES.filter(s => s.step === 4 && s.el.querySelector('video'));
+  return studentSlides.length === 6
+    && studentSlides.every(s => [...s.el.querySelectorAll('video')].every(v => v.readyState >= 1));
+});
+const student = await regression.evaluate(() => {
+  const studentSlides = SLIDES.filter(s => s.step === 4 && s.el.querySelector('video'));
+  return {
+    count: studentSlides.length,
+    oneSourceEach: studentSlides.every(s => new Set([...s.el.querySelectorAll('video')]
+      .map(v => decodeURIComponent(v.getAttribute('src') || ''))).size === 1),
+    allPlayable: studentSlides.every(s => [...s.el.querySelectorAll('video')]
+      .every(v => Number.isFinite(v.duration) && v.duration > 0)),
+    sources: studentSlides.flatMap(s => [...s.el.querySelectorAll('video')]
+      .map(v => decodeURIComponent(v.getAttribute('src') || ''))),
+    text: studentSlides.map(s => s.el.textContent).join('\n'),
+  };
+});
+if(student.count !== 6) fails.push(`ขั้นตอนที่ 5 มีวิดีโอนักศึกษา ${student.count} หน้า (คาด 6)`);
+if(!student.oneSourceEach) fails.push('บางสไลด์ในขั้นตอนที่ 5 อ้างวิดีโอมากกว่าหนึ่งไฟล์');
+if(!student.allPlayable) fails.push('มีไฟล์วิดีโอนักศึกษาที่ Chromium อ่าน metadata ไม่ได้');
+if(student.sources.some(src => !/assets\/students\/นักศึกษา-[1-6]\.mp4$/.test(src)))
+  fails.push('ขั้นตอนที่ 5 อ้างวิดีโออื่นที่ไม่ใช่ไฟล์นักศึกษา 1–6');
+if(student.text.includes('วิดีโอที่ AI สร้างได้')) fails.push('ขั้นตอนที่ 5 ยังมีข้อความเปรียบเทียบวิดีโอ AI');
+console.log(student.count === 6 && student.oneSourceEach && student.allPlayable
+  && student.sources.every(src => /assets\/students\/นักศึกษา-[1-6]\.mp4$/.test(src))
+  && !student.text.includes('วิดีโอที่ AI สร้างได้')
+  ? 'ok    student videos — 6 คลิปเดี่ยวและ Chromium อ่านได้ครบ'
+  : 'FAIL  student videos — ' + fails.slice(-5).join(' · '));
+
 // regression: เมื่อเวลาหน้าหมด แต่คลิปยังไม่จบรอบแรก ต้องค้างหน้าเดิม
 // และ ended ของคลิปทุกตัวจึงปล่อยให้เดินต่อได้
 await regression.evaluate(() => NORA.apply({ cmd:'goto', arg:30 }));
@@ -169,4 +217,4 @@ await browser.close();
 server.close();
 
 if (fails.length) { console.error(`\nไม่ผ่าน ${fails.length} โหมด`); process.exit(1); }
-console.log(`\nผ่านทั้ง ${MODES.length} โหมด (${EXPECT_SLIDES} หน้า)`);
+console.log(`\nผ่านทั้ง ${MODES.length} โหมด (16:9 ${EXPECT_SINGLE_SLIDES} หน้า · 48:9 ${EXPECT_WIDE_SLIDES} หน้า)`);
