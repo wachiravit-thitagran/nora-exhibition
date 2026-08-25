@@ -97,6 +97,10 @@ await regression.waitForTimeout(500);
 const rr = await regression.evaluate(() => {
   const step1Text = SLIDES.filter(s => s.step === 0).map(s => s.el.innerText).join('\n');
   const step2Text = SLIDES.filter(s => s.step === 1).map(s => s.el.innerText).join('\n');
+  const step3Slides = SLIDES.filter(s => s.step === 2);
+  const step3Text = step3Slides.map(s => s.el.innerText).join('\n');
+  const poseLabels = step3Slides.flatMap(s => [...s.el.querySelectorAll('.chip .nm')]
+    .map(n => n.textContent.trim()));
   const beforeDeck = window.NORA.state.deck;
   dispatchEvent(new KeyboardEvent('keydown', { key:'c', code:'KeyC', ctrlKey:true, bubbles:true }));
   return {
@@ -104,6 +108,12 @@ const rr = await regression.evaluate(() => {
     step1HasNaN: step1Text.includes('NaN'),
     step2HasPendingPose: step2Text.includes('ท่าแมงมุมชักไย'),
     restoredCount: RESTORED_PAIRS.length,
+    slide22Text: SLIDES[21].el.innerText,
+    step3HasOldPoseName: step3Text.includes('ท่าจีบปรกหน้า'),
+    step3HasHeavenImage: [...document.querySelectorAll('.chip .nm')].some(n =>
+      n.textContent.trim() === 'ท่าเทวดา'
+      && n.parentElement.querySelector('img')?.getAttribute('src')?.includes('14_ท่าเทวดา_B-ซ่อมแซม.jpg')),
+    step3HasHandPrayerBox: poseLabels.includes('ท่าพนมมือ'),
     beforeDeck,
     afterDeck: window.NORA.state.deck,
   };
@@ -113,10 +123,15 @@ if(rr.step1HasNaN) fails.push('ช่วงเลขท่าในขั้น�
 if(rr.step2HasPendingPose) fails.push('ขั้นตอนที่ 2 ยังมีท่าแมงมุมชักไย');
 if(rr.restoredCount !== 11) fails.push(`ขั้นตอนที่ 2 มี ${rr.restoredCount} ท่า (คาด 11)`);
 if(rr.afterDeck !== rr.beforeDeck) fails.push('Ctrl+C ยังสั่งเปลี่ยนสถานะม่าน');
+if(!rr.slide22Text.includes('ท่าจีบหน้า → ท่าเทวดา → ท่าเขาควาย')) fails.push('สไลด์ 22 ยังไม่ได้เปลี่ยนเป็นท่าจีบหน้า');
+if(rr.step3HasOldPoseName) fails.push('ขั้นตอนที่ 3 ยังมีชื่อท่าจีบปรกหน้า');
+if(!rr.step3HasHeavenImage) fails.push('ท่าเทวดายังไม่ได้ใช้ภาพใหม่');
+if(rr.step3HasHandPrayerBox) fails.push('ยังมีกล่องภาพท่าพนมมือ');
 console.log(!rr.step1HasUndefined && !rr.step1HasNaN && !rr.step2HasPendingPose && rr.restoredCount === 11
-  && rr.afterDeck === rr.beforeDeck
+  && rr.afterDeck === rr.beforeDeck && !rr.step3HasOldPoseName && rr.step3HasHeavenImage
+  && !rr.step3HasHandPrayerBox
   ? 'ok    regression — เลขท่า, Ctrl และภาพฟื้นฟู 11 ท่า'
-  : 'FAIL  regression — ' + fails.slice(-4).join(' · '));
+  : 'FAIL  regression — ' + fails.slice(-9).join(' · '));
 await regression.close();
 
 await browser.close();

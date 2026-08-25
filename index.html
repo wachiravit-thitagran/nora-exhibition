@@ -1195,7 +1195,8 @@ const POSE_IMG = {
   'ท่าเขาควาย'     : '04_ท่าจีบหน้า_B-ซ่อมแซม.png',
   'เขาควาย'        : '04_ท่าจีบหน้า_B-ซ่อมแซม.png',
   'ท่าเหาะเหิน'    : '12_ท่าเหาะเหิน_B-ซ่อมแซม.png',
-  // ยังไม่ได้จับคู่: ท่าเทวดา, ท่าพนมมือ, ท่าจีบปรกหน้า  → แสดงเป็นการ์ดชื่อท่า
+  'ท่าเทวดา'       : '14_ท่าเทวดา_B-ซ่อมแซม.jpg',
+  // ท่าพนมมือยังไม่มีภาพ จึงไม่สร้างการ์ดภาพจนกว่าจะได้รับไฟล์
 };
 
 /* ภาพท่าหนึ่งใบ มาจากที่เดียวตาม CONFIG.POSE_SRC */
@@ -1219,7 +1220,7 @@ const VIDEOS = [
   ['6a7488164e74c6635728adf4','ท่าย่างสามขุม → ท่าลงฉากน้อย'],
   ['6a6d8d43eab1361e29e3045e','ท่าขุนศรัทธา → ท่าครู'],
   ['6a6d8d9dc262c1cc3e46a4a6','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า → ท่าเทวดา'],
-  ['6a6d8dfce8c21f9b2fa12af4','ท่าจีบปรกหน้า → ท่าเทวดา → ท่าเขาควาย'],
+  ['6a6d8dfce8c21f9b2fa12af4','ท่าจีบหน้า → ท่าเทวดา → ท่าเขาควาย'],
   ['6a6d8e374e74c6635728ade0','ท่าย่างสามขุม → ท่าย่างสามขุม'],
   ['6a6d8e6fc262c1cc3e46a4ab','ท่าเขาควาย → ท่าจีบหน้า → ท่าพนมมือ → ท่าเขาควาย'],
   ['6a6d8eadc262c1cc3e46a4bc','ท่าขุนศรัทธา → ท่าเขาควาย → ท่าใหม่ (D)'],
@@ -1670,7 +1671,8 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
           ['ครบ ๑๒ ท่า','๓ ชุด (ชุดที่ ๒ ๓ และ ๔) จากครูโนราคนละท่าน'],
           ['ผ่านเกณฑ์อัตโนมัติ','๕๙ ภาพ'],
           ['โหมดสงวนต้นฉบับ','๒ ภาพ (คุณภาพดีอยู่แล้ว ไม่แตะต้อง)']],
-    note:'เกณฑ์ยอมรับ ๔ ข้อต่อภาพ วัดด้วยตัวชี้วัดแบบไม่อ้างอิง (BRISQUE / ความคมชัด / สัญญาณรบกวน / SSIM) '
+    note:'เกณฑ์ยอมรับ ๔ ข้อต่อภาพ วัดด้วย BRISQUE (Blind/Referenceless Image Spatial Quality Evaluator) '
+       + 'ความคมชัด สัญญาณรบกวน และ SSIM (Structural Similarity Index Measure) '
        + 'ภาพที่ไม่ผ่านเกณฑ์อัตโนมัติเข้าสู่การทบทวนโดยคน และบันทึกผลไว้อย่างโปร่งใส' },
   left: ()=> `<div class="bgimg"></div>` + band({ nologo:true, body:SPONSOR_PANE }),
   midU: ()=> `<div class="bgimg"></div>` + band({ eyebrow:stepEB(1) + ' — ครูโนราท่านอื่น',
@@ -1683,7 +1685,7 @@ push({ dur:D.compare, step:1, dark:true, spanCU:true,
       <div class="col" style="--i:0"><h3>๖ ขั้นตอนต่อภาพ</h3>
         <p>ปรับสมดุลสีขาว → ขจัดสัญญาณรบกวน → กู้คอนทราสต์<small>แล้วเพิ่มความละเอียด ๒ เท่า ปิดท้ายด้วยการตรวจคุณภาพ</small></p></div>
       <div class="col" style="--i:1"><h3>วัดผลทุกภาพ</h3>
-        <p>BRISQUE · ความคมชัด · สัญญาณรบกวน · SSIM<small>ไม่มีภาพต้นแบบให้เทียบ จึงใช้ตัวชี้วัดแบบไม่อ้างอิง</small></p></div>
+        <p>BRISQUE (Blind/Referenceless Image Spatial Quality Evaluator)<small>ความคมชัด · สัญญาณรบกวน · SSIM (Structural Similarity Index Measure)<br>ไม่มีภาพต้นแบบให้เทียบ จึงใช้ตัวชี้วัดแบบไม่อ้างอิง</small></p></div>
       <div class="col" style="--i:2"><h3>ไม่ผ่านเกณฑ์ ไม่ซ่อน</h3>
         <p>ทบทวนโดยคน แล้วบันทึกเหตุผลไว้<small>๒ ภาพที่พลาดเกณฑ์เพียงเล็กน้อย ผ่านด้วยการตรวจพินิจ</small></p></div>
     </div>` }),
@@ -1743,7 +1745,9 @@ function clipUnit(entry, i){
   const id = entry[0], title = entry[1];
   const poses = title.split('→').map(x => x.trim());
   const nNew  = poses.filter(x => /ท่าใหม่/.test(x)).length;
-  const chips = poses.map((nm,k)=>{
+  const visiblePoses = poses.map((nm, k) => ({ nm, k }))
+    .filter(({ nm }) => nm !== 'ท่าพนมมือ');
+  const chips = visiblePoses.map(({ nm, k })=>{
     const isNew = /ท่าใหม่/.test(nm);
     const srcs  = poseSrc(id, k, nm);
     const fb    = isNew ? ['✦','ท่าที่ AI สร้างใหม่'] : ['▧','ภาพท่านี้อยู่ระหว่างจัดเตรียม'];
@@ -1760,7 +1764,7 @@ function clipUnit(entry, i){
     sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(VIDEOS.length) + ' · ประกอบจาก ' + thNum(poses.length) + ' ท่า'
       + (nNew ? ' · ท่าที่ AI สร้างใหม่ ' + thNum(nNew) + ' ท่า' : ''),
     body:`<div class="combine">
-      <div class="chips n${Math.min(poses.length,4)}">${chips}</div>
+      <div class="chips n${Math.min(visiblePoses.length,4)}">${chips}</div>
       <div class="arrow">»<small>ได้เป็น</small></div>
       ${panel('วิดีโอที่ AI สร้างได้','ผลลัพธ์', mediaVid(vurl(id)), true)}
     </div>` });

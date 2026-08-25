@@ -26,6 +26,21 @@ ok(/\{ n:'02',[\s\S]*?c:'๑๑ ท่า'/.test(source),
 ok(/for\(let i = 0; i < RESTORED_PAIRS\.length; i \+= 3\)/.test(source),
    'หน้าภาพเปรียบเทียบวนจากรายการฟื้นฟู 11 ท่า');
 
+ok(source.includes('BRISQUE (Blind/Referenceless Image Spatial Quality Evaluator)')
+   && source.includes('SSIM (Structural Similarity Index Measure)'),
+   'BRISQUE และ SSIM มีคำเต็มภาษาอังกฤษในวงเล็บ');
+
+const heavenFile = '14_ท่าเทวดา_B-ซ่อมแซม.jpg';
+ok(fs.existsSync(path.join(ROOT, 'assets', 'compare', heavenFile)),
+   'มีไฟล์ภาพท่าเทวดาที่ผู้ใช้ให้มาใน assets/compare');
+ok(new RegExp(`'ท่าเทวดา'\\s*:\\s*'${heavenFile}'`).test(source),
+   'POSE_IMG จับคู่ท่าเทวดากับภาพใหม่');
+ok(source.includes("['6a6d8dfce8c21f9b2fa12af4','ท่าจีบหน้า → ท่าเทวดา → ท่าเขาควาย']"),
+   'สไลด์ 22 เปลี่ยนท่าจีบปรกหน้าเป็นท่าจีบหน้า');
+ok(/const visiblePoses = poses\.map\(\(nm, k\) => \(\{ nm, k \}\)\)[\s\S]*?\.filter\(\(\{ nm \}\) => nm !== 'ท่าพนมมือ'\)/.test(source)
+   && /const chips = visiblePoses\.map\(\(\{ nm, k \}\)/.test(source),
+   'ไม่สร้างกล่องภาพสำหรับท่าพนมมือที่ยังไม่มีภาพ');
+
 if(fail.length){
   console.error(`\nไม่ผ่าน ${fail.length} ข้อ`);
   process.exitCode = 1;
