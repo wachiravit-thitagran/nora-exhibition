@@ -78,6 +78,10 @@ pipeline {
                                && echo "" \
                                && node tests/check-content-regressions.mjs /w \
                                && echo "" \
+                               && node tests/check-color-videos.mjs /w \
+                               && echo "" \
+                               && node tests/check-video-timing.mjs /w \
+                               && echo "" \
                                && node tests/check-deck.mjs /w \
                                && echo "" \
                                && node tests/check-thai.mjs /w \

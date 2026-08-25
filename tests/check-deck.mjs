@@ -95,10 +95,12 @@ const regression = await browser.newPage({ viewport: { width: 1600, height: 900 
 await regression.goto(base, { waitUntil: 'load' });
 await regression.waitForTimeout(500);
 const rr = await regression.evaluate(() => {
-  const step1Text = SLIDES.filter(s => s.step === 0).map(s => s.el.innerText).join('\n');
-  const step2Text = SLIDES.filter(s => s.step === 1).map(s => s.el.innerText).join('\n');
+  // innerText ของสไลด์ที่ visibility:hidden เป็นสตริงว่างใน Chromium
+  // ใช้ textContent เพื่อตรวจเนื้อหาของทุกหน้า ไม่ใช่เฉพาะหน้าที่กำลังแสดง
+  const step1Text = SLIDES.filter(s => s.step === 0).map(s => s.el.textContent).join('\n');
+  const step2Text = SLIDES.filter(s => s.step === 1).map(s => s.el.textContent).join('\n');
   const step3Slides = SLIDES.filter(s => s.step === 2);
-  const step3Text = step3Slides.map(s => s.el.innerText).join('\n');
+  const step3Text = step3Slides.map(s => s.el.textContent).join('\n');
   const poseLabels = step3Slides.flatMap(s => [...s.el.querySelectorAll('.chip .nm')]
     .map(n => n.textContent.trim()));
   const beforeDeck = window.NORA.state.deck;
@@ -108,11 +110,12 @@ const rr = await regression.evaluate(() => {
     step1HasNaN: step1Text.includes('NaN'),
     step2HasPendingPose: step2Text.includes('ท่าแมงมุมชักไย'),
     restoredCount: RESTORED_PAIRS.length,
-    slide22Text: SLIDES[21].el.innerText,
+    slide22Text: SLIDES[21].el.textContent,
     step3HasOldPoseName: step3Text.includes('ท่าจีบปรกหน้า'),
     step3HasHeavenImage: [...document.querySelectorAll('.chip .nm')].some(n =>
       n.textContent.trim() === 'ท่าเทวดา'
-      && n.parentElement.querySelector('img')?.getAttribute('src')?.includes('14_ท่าเทวดา_B-ซ่อมแซม.jpg')),
+      && decodeURIComponent(n.parentElement.querySelector('img')?.getAttribute('src') || '')
+        .includes('14_ท่าเทวดา_B-ซ่อมแซม.jpg')),
     step3HasHandPrayerBox: poseLabels.includes('ท่าพนมมือ'),
     beforeDeck,
     afterDeck: window.NORA.state.deck,
@@ -132,6 +135,34 @@ console.log(!rr.step1HasUndefined && !rr.step1HasNaN && !rr.step2HasPendingPose 
   && !rr.step3HasHandPrayerBox
   ? 'ok    regression — เลขท่า, Ctrl และภาพฟื้นฟู 11 ท่า'
   : 'FAIL  regression — ' + fails.slice(-9).join(' · '));
+
+// regression: เมื่อเวลาหน้าหมด แต่คลิปยังไม่จบรอบแรก ต้องค้างหน้าเดิม
+// และ ended ของคลิปทุกตัวจึงปล่อยให้เดินต่อได้
+await regression.evaluate(() => NORA.apply({ cmd:'goto', arg:30 }));
+await regression.waitForFunction(() => {
+  const s = SLIDES[cur];
+  return visibleVideos(s).length > 0 && visibleVideos(s).every(v => v.readyState >= 1);
+});
+const timing = await regression.evaluate(() => {
+  const before = cur;
+  const vids = visibleVideos(SLIDES[cur]);
+  const mediaMs = Math.max(...vids.map(v => v.duration * 1000));
+  vids.forEach(v => { v.dataset.firstRound = '0'; v.pause(); });
+  t0 = performance.now() - durMs - 1000;
+  return { before, mediaMs, durMs, mapCount:Object.keys(VID_DUR).length };
+});
+await regression.waitForTimeout(250);
+const held = await regression.evaluate(() => cur === 29);
+await regression.evaluate(() => visibleVideos(SLIDES[cur]).forEach(v => v.dispatchEvent(new Event('ended'))));
+await regression.waitForTimeout(250);
+const advanced = await regression.evaluate(() => cur === 30);
+if(timing.mapCount < 22) fails.push(`โหลดความยาววิดีโอได้เพียง ${timing.mapCount} รายการ`);
+if(timing.durMs + 1 < timing.mediaMs + 2000) fails.push('เวลาสไลด์สั้นกว่าคลิปจริงพร้อมระยะเผื่อเริ่มเล่น 2 วินาที');
+if(!held) fails.push('สไลด์เปลี่ยนหน้าก่อนวิดีโอจบรอบแรก');
+if(!advanced) fails.push('สไลด์ไม่เดินต่อหลังวิดีโอจบรอบแรกครบทุกคลิป');
+console.log(timing.mapCount >= 22 && timing.durMs + 1 >= timing.mediaMs + 2000 && held && advanced
+  ? 'ok    video timing — รอ ended รอบแรก แล้วจึงเปลี่ยนหน้า'
+  : 'FAIL  video timing — ' + fails.slice(-4).join(' · '));
 await regression.close();
 
 await browser.close();

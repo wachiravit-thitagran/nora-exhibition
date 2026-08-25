@@ -1010,9 +1010,9 @@ const CONFIG = {
   SHOW_TWOSETS  : true,   // 4 หน้า หน้าละ 3 คลิป — ต้องมีไฟล์ใน assets/drive/
   SHOW_STUDENT  : true,   //  4 หน้า — ต้องมีไฟล์ assets/students/นักศึกษา-N.mp4
   SHOW_CLASSROOM: true,   //  2 หน้า — ต้องมีไฟล์ assets/students/นักเรียน-N.mp4
-  /* ---- ผังรายการ 30 นาที : วินาทีต่อหน้า (แก้ตัวเลขที่นี่ที่เดียว) ----
-     ทุกหน้ามีเวลาคงที่ ไทม์ไลน์จึงคาดเดาได้ ทุกจอซิงก์กันได้แม้ไฟล์สื่อยังไม่ครบ
-     คลิปวิดีโอตั้ง loop ไว้ ถ้าคลิปสั้นกว่าเวลาหน้าจะวนซ้ำในหน้าเดียว   */
+  /* ---- ผังรายการ 30 นาที : วินาทีตั้งต้นต่อหน้า ----------------------
+     หน้าที่มีวิดีโอจะเพิ่มเวลาอัตโนมัติให้ไม่น้อยกว่าคลิปยาวที่สุดในหน้า
+     จาก assets/durations.json ทุกจอจึงยังคำนวณไทม์ไลน์เดียวกันได้       */
   DWELL : {
     title     : 14,   // ปกใหญ่
     timeline  : 26,   // ไทม์ไลน์กระบวนการ
@@ -2291,15 +2291,30 @@ let cur = -1, playing = true, t0 = 0, durMs = 0, raf = 0;
 /* ================================================================
    ไทม์ไลน์คงที่ + นาฬิกาโลก (ใช้ในโหมด SYNC)
    ทุกเครื่องคำนวณจากสูตรเดียวกันและนาฬิกาเดียวกัน จึงตรงกันเองโดยไม่ต้องคุยกัน
-   ความยาววิดีโออ่านจาก assets/durations.json (สร้างจาก frame-picker.html)
-   ถ้าไม่มีไฟล์นั้นจะใช้ SEC_VIDEO_DEF เท่ากันทุกคลิป ซึ่งก็ยังตรงกันทุกจอ
+   ความยาววิดีโออ่านจาก assets/durations.json (สร้างด้วย deploy/build-durations.mjs)
+   ถ้าไม่มีไฟล์นั้นจะใช้เวลาตั้งต้นจาก DWELL ซึ่งยังตรงกันทุกจอ
    ================================================================ */
 const TL = [];            // เวลาเริ่มของแต่ละหน้า (ms) สะสม
 let CYCLE = 0;            // ความยาวรอบทั้งหมด (ms)
 let STRETCH = 1;          // ตัวคูณให้รอบลงตัวตาม CYCLE_TARGET_SEC
+let VID_DUR = {};         // ความยาวไฟล์จริงจาก assets/durations.json ใช้ร่วมกันทุกจอ
+const MEDIA_STARTUP_MS = 2000; // เผื่อเวลาโหลด metadata/เริ่มถอดรหัสก่อนเฟรมแรก
+
+function mediaFloorMs(s){
+  let seconds = 0;
+  (s.vids || []).forEach(id => { seconds = Math.max(seconds, +VID_DUR[id] || 0); });
+  if(s.el) s.el.querySelectorAll('video[data-srcs]').forEach(v => {
+    let srcs = [];
+    try{ srcs = JSON.parse(v.dataset.srcs || '[]'); }catch(e){}
+    srcs.forEach(src => { seconds = Math.max(seconds, +VID_DUR[src] || 0); });
+  });
+  return seconds > 0 ? seconds * 1000 + MEDIA_STARTUP_MS : 0;
+}
 
 function fixedDur(i){
-  return (SLIDES[i].dur || 10) * 1000 * STRETCH;
+  const s = SLIDES[i];
+  const base = (s.dur || 10) * 1000 * STRETCH;
+  return Math.max(base, mediaFloorMs(s));
 }
 function buildTimeline(){
   const nat = SLIDES.reduce((a,s)=> a + (s.dur || 10), 0);   // วินาทีตามตาราง DWELL
@@ -2314,8 +2329,25 @@ function clockPos(){
   return { i, off: t - TL[i], dur: fixedDur(i) };
 }
 
-/* ทุกหน้าใช้เวลาคงที่ตามตาราง DWELL — โหมดปกติกับโหมดซิงก์จึงเดินเหมือนกันเป๊ะ */
-function slideDuration(s){ return fixedDur(SLIDES.indexOf(s)); }
+function visibleVideos(s){
+  return [...s.el.querySelectorAll('video')].filter(v => {
+    const pn = v.closest('.pane');
+    return !pn || pn.offsetWidth > 0;
+  });
+}
+function visibleVideoDurationMs(s){
+  const seconds = visibleVideos(s).reduce((d, v) =>
+    Math.max(d, isFinite(v.duration) && v.duration > 0 ? v.duration : 0), 0);
+  return seconds > 0 ? seconds * 1000 + MEDIA_STARTUP_MS : 0;
+}
+/* โหมดเดินอิสระใช้ metadata ของไฟล์ที่เห็นจริงเพิ่มอีกชั้น เผื่อมีการเปลี่ยนไฟล์
+   แต่ยังไม่ได้สร้าง durations.json ใหม่ จะได้ไม่ตัดวิดีโอกลางคัน */
+function slideDuration(s){
+  return Math.max(fixedDur(SLIDES.indexOf(s)), visibleVideoDurationMs(s));
+}
+function firstRoundComplete(s){
+  return visibleVideos(s).every(v => v.dataset.firstRound === '1');
+}
 
 /* โหมดจอเดียวยาว: ของที่ควรมี "อันเดียวต่อจอ" ต้องไม่ซ้ำ 3 ชุดบนผืนเดียว
    เหลือแถบโลโก้ผู้สนับสนุนไว้ซ้ายสุด · โลโก้ AI NORA ไว้ขวาสุด */
@@ -2347,7 +2379,15 @@ function show(i, seekMs){
   const vids = all.filter(v => { const pn = v.closest('.pane'); return !pn || pn.offsetWidth > 0; });
   vids.forEach(v => {
     v.muted = true;
-    v.loop = true;                       // คลิปสั้นกว่าเวลาหน้า จะวนซ้ำในหน้าเดียว
+    /* เดินอิสระ: รอบแรกไม่ loop เพื่อให้ ended เป็น state ที่เชื่อถือได้
+       พอจบรอบแรกจึงเปิด loop และเล่นต่อระหว่างรอเวลา DWELL */
+    v.dataset.firstRound = SYNC ? '1' : '0';
+    v.loop = !!SYNC;
+    v.onended = SYNC ? null : () => {
+      v.dataset.firstRound = '1';
+      v.loop = true;
+      if(playing && v.closest('.slide')?.classList.contains('on')) v.play().catch(()=>{});
+    };
     const align = () => {
       if(seek > 0 && isFinite(v.duration) && v.duration > 0.2){
         // คลิปสั้นกว่าเวลาหน้าและตั้ง loop ไว้ จึงหาตำแหน่งด้วยเศษของการหาร
@@ -2418,6 +2458,9 @@ function alignVideos(offMs, now){
   s.el.querySelectorAll('video').forEach(v => {
     const pn = v.closest('.pane');
     if(pn && pn.offsetWidth === 0) return;              // pane ที่ถูกครอปทิ้ง ไม่ต้องเสียแรง
+    // รอบแรกในโหมดเดินอิสระต้องปล่อยให้เล่นตามธรรมชาติ หากอิงเวลาหน้าแล้ว
+    // modulo กลับต้นคลิปก่อน ended จะไม่มีวันตั้งสถานะว่าจบรอบแรก
+    if(!SYNC && v.dataset.firstRound === '0') return;
     if(v.paused || v.readyState < 2 || !isFinite(v.duration) || v.duration <= 0.2) return;
     const want = off % v.duration;
     let d = v.currentTime - want;
@@ -2460,7 +2503,7 @@ function tick(now){
   alignVideos(now - t0, now);
   // ชุด intro ค้างหน้าแรกไว้เสมอ วิดีโอยังวนเล่นได้ (loop) แต่ไม่ไปหน้าถัดไป
   // ต้องรอสแตฟฟ์กด "ชุดหลัก" เอง
-  if(p >= 1 && DECK !== 'intro') show(cur + 1);
+  if(p >= 1 && firstRoundComplete(s) && DECK !== 'intro') show(cur + 1);
 }
 
 function setPlaying(v){
@@ -2808,9 +2851,13 @@ const NORA = {
 window.NORA = NORA;
 
 /* ---------- เริ่มทำงาน ---------- */
-function boot(){
-  // ทุกหน้าใช้เวลาคงที่ตามตาราง DWELL — ไม่ต้องรออ่านความยาววิดีโอ
-  // ไทม์ไลน์จึงเหมือนกันทุกเครื่องแม้ไฟล์สื่อยังไม่ครบ
+async function boot(){
+  /* โหลดความยาวจากไฟล์กลางก่อนสร้างไทม์ไลน์ ทุกจอจึงเพิ่มเวลาเท่ากัน
+     ถ้าไฟล์หายยังใช้ DWELL ได้ตามเดิม ไม่ทำให้หน้าเปิดไม่ได้ */
+  try{
+    const r = await fetch('assets/durations.json', { cache:'no-store' });
+    if(r.ok){ const j = await r.json(); VID_DUR = j.durations || j; }
+  }catch(e){}
   buildTimeline();
 
   if(SYNC){
