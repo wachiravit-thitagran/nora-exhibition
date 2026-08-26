@@ -2088,8 +2088,9 @@ const QS = new URLSearchParams(location.search);
 /* ================================================================
    ค่าตั้งของ "เครื่องนี้" — จำไว้ในเครื่อง ไม่ผูกกับ query string
    ================================================================
-   เป้าหมายคือเปิด /exhibition/ เปล่า ๆ บนทุกเครื่อง แล้วตั้งทุกอย่าง
+   จอติดตั้งต้องส่ง ?screen=, ?group= หรือ query สำหรับงานควบคุม แล้วตั้งค่า
    จากมือถือ พอไฟดับหรือรีเฟรช เครื่องกลับมาเป็นเหมือนเดิมเอง
+   ส่วน /exhibition/ เปล่า ๆ สงวนเป็นหน้าสาธารณะ ไม่อ่านค่าที่จำไว้
 
    ลำดับความสำคัญ: query string > ค่าที่จำไว้ > ค่าตั้งต้นใน CONFIG
    query string ยังใช้ได้และชนะเสมอ เอาไว้บังคับตอนตั้งเครื่องหรือทำ QR
@@ -2106,6 +2107,9 @@ const QS = new URLSearchParams(location.search);
    โหมดนี้ต้องไม่แตะอะไรที่เป็นของ "เครื่องจริง" เลย
    ห้ามเขียน localStorage · ห้ามรายงานตัวกับรีเลย์ · ไม่ต้องมีแถบปุ่ม */
 const PREVIEW = QS.get('preview') === '1' || window.__PREVIEW === true;
+/* URL เปล่าเป็นหน้าสาธารณะ คนทั่วไปอาจเปิดจากเครื่องที่เคยใช้คุมงานมาก่อน
+   จึงต้องไม่รับชื่อจอ โหมด sync ม่าน หรือ 48:9 ที่ค้างอยู่ใน localStorage */
+const PUBLIC_VIEW = !PREVIEW && location.search === '';
 
 /* ?group=<ชื่อ> = แท็บนี้เป็นหนึ่งช่องของผนังจำลอง ใช้คู่กับ ?panel=1|2|3
    เปิดสามแท็บบนเครื่องเดียว ลากไปวางเรียงกัน แล้วสั่งพร้อมกันจาก controller
@@ -2118,7 +2122,7 @@ const PREVIEW = QS.get('preview') === '1' || window.__PREVIEW === true;
 const GROUP = (QS.get('group') || '').trim().slice(0, 40);
 
 /* ค่าที่จำไว้เป็นของ "เครื่องจริง" เท่านั้น แท็บจำลองกับภาพตัวอย่างไม่แตะ */
-const EPHEMERAL = PREVIEW || !!GROUP;
+const EPHEMERAL = PREVIEW || PUBLIC_VIEW || !!GROUP;
 const PREF = {
   get(k, d){ if(EPHEMERAL) return d;    // ต้องเริ่มสะอาด แล้วให้ query string / controller สั่ง
              try{ const v = localStorage.getItem('nora:' + k); return v === null ? d : v; }
@@ -2130,7 +2134,8 @@ const PREF = {
 /* โหมดจอ: '0' 16:9 เดี่ยว · '1'|'2'|'3' เฉพาะจอซ้าย/กลาง/ขวา ·
    'w' 48:9 แบ่ง 3 · 'wall' 48:9 ผืนเดียวยาว */
 const MODE_IN_URL = QS.has('panel') || QS.get('ultra') === '1' || QS.get('wall') === '1';
-const BOOT_MODE = MODE_IN_URL
+const BOOT_MODE = PUBLIC_VIEW ? '0'
+  : MODE_IN_URL
   ? (Math.max(0, Math.min(3, parseInt(QS.get('panel'), 10) || 0))
       ? String(Math.min(3, parseInt(QS.get('panel'), 10)))
       : QS.get('wall') === '1' ? 'wall' : 'w')
@@ -2158,7 +2163,7 @@ if(SEAM_ON) document.documentElement.classList.add('seam');
 
 /* โหมดซิงก์ตามนาฬิกา — จอแยกเครื่องกันแต่คำนวณเวลาเดียวกัน จึงแสดงหน้าเดียวกันพร้อมกัน */
 const PREF_SYNC = PREF.get('sync', '');
-let SYNC = PREVIEW ? false           // ภาพตัวอย่างเดินตามที่ controller สั่ง ไม่ใช่ตามนาฬิกา
+let SYNC = (PREVIEW || PUBLIC_VIEW) ? false // ภาพตัวอย่าง/หน้าสาธารณะเดินอิสระ
          : QS.get('sync') === '1' ? true
            : QS.get('sync') === '0' ? false
            : PREF_SYNC === '1' ? true
@@ -2192,7 +2197,8 @@ const DECKS = {
   intro: { label: 'ม่านเปิดงาน', overlay: true },
 };
 const DECK_Q = QS.get('deck');
-let DECK = DECKS[DECK_Q] ? DECK_Q
+let DECK = PUBLIC_VIEW ? 'main'
+         : DECKS[DECK_Q] ? DECK_Q
          : DECKS[PREF.get('deck', '')] ? PREF.get('deck', '')
          : 'main';
 if(DECK_Q && DECKS[DECK_Q]) PREF.set('deck', DECK);
@@ -2728,7 +2734,7 @@ addEventListener('keydown', e=>{
 /* ================================================================
    CONTROLLER — สั่งงานจอจากอีกอุปกรณ์
    ================================================================
-   ?screen=<id>  ตั้งชื่อจอนี้ เพื่อให้ controller เรียกถึงได้ ไม่ใส่ = main
+   ?screen=<id>  ตั้งชื่อจอนี้ เพื่อให้ controller เรียกถึงได้
    ?api=<base>   ที่อยู่รีเลย์ ค่าเริ่มต้น <AINORA_BASE>/api
 
    ถ้าไม่มีรีเลย์ให้ต่อ ทุกอย่างทำงานเหมือนเดิมทุกประการ
@@ -2738,11 +2744,14 @@ addEventListener('keydown', e=>{
    หนึ่งเครื่อง = หนึ่งชื่อ · 48:9 คือเครื่องเดียวขับทั้งผนัง (จอเดียวในสายตารีเลย์)
    ส่วน 16:9 ก็กดเลือกเลขจอจาก controller ได้ จึงไม่ต้องมีชื่อแยกซ้าย/กลาง/ขวา
 
-   ที่มาของชื่อ ตามลำดับ: ?screen= > ชื่อที่ตั้งไว้ครั้งก่อน > 'main'
+   URL ที่มี query สำหรับงานควบคุมใช้ชื่อตามลำดับ:
+   ?screen= > ชื่อที่ตั้งไว้ครั้งก่อน > 'main'
+   ส่วน URL เปล่าใช้ชื่อ public ภายในและไม่ต่อรีเลย์
    ตั้งจากมือถือได้ด้วยคำสั่ง name แล้วเครื่องจำไว้เอง ไม่ต้องแก้ URL
    ชื่อซ้ำ = จอเดียวกันในสายตารีเลย์ เครื่องหลังจะเตะเครื่องแรกออก
    ชื่อจอแสดงท้ายแถบควบคุมของสไลด์ ตอนตั้งหน้างานจะได้รู้ว่าเครื่องไหนชื่ออะไร */
-let SCREEN_ID = (QS.get('screen') || '').trim().slice(0, 40)
+let SCREEN_ID = PUBLIC_VIEW ? 'public'
+  : (QS.get('screen') || '').trim().slice(0, 40)
   // แท็บกลุ่มตั้งชื่อให้เองจาก กลุ่ม+ช่อง เช่น wall-1 wall-2 wall-3
   // รีเลย์จึงถือสายแยกกันสามเส้น แต่ controller สั่งทีเดียวถึงทั้งกลุ่ม
   || (GROUP ? GROUP + '-' + (PANEL_ON || 1) : '')
@@ -2752,7 +2761,7 @@ if(QS.get('screen')) PREF.set('screen', SCREEN_ID);
 const API_BASE = (QS.get('api') || (CONFIG.AINORA_BASE + '/api')).replace(/\/$/, '');
 // ภาพตัวอย่างต้องไม่ไปรายงานตัวกับรีเลย์จนโผล่เป็นจออีกตัวในรายการ
 // และใน srcdoc ไม่มี origin ให้ยิง API อยู่แล้ว
-const CTRL_ON  = !PREVIEW && QS.get('ctrl') !== '0';
+const CTRL_ON  = !PREVIEW && !PUBLIC_VIEW && QS.get('ctrl') !== '0';
 
 const NORA = {
   id: SCREEN_ID,

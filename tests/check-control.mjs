@@ -46,10 +46,32 @@ const base = `http://127.0.0.1:${port}/exhibition`;
 const fail = [];
 const ok = (c, m) => { console.log((c ? 'ok   ' : 'พลาด ') + m); if(!c) fail.push(m); };
 
-const b = await chromium.launch();
+const b = await chromium.launch({
+  executablePath: process.env.CHROMIUM_PATH || undefined,
+});
 const mk = async q => { const pg = await b.newPage({ viewport:{width:900,height:520} });
   pg.on('pageerror', e => fail.push('js error: ' + e.message));
   await pg.goto(base + '/index.html' + q); await pg.waitForTimeout(1500); return pg; };
+
+// ---- URL สาธารณะไม่มี query: ไม่รับ control, ไม่อ่านค่าจอเดิม และเริ่ม 16:9 อิสระ ----
+const publicView = await mk('');
+await publicView.evaluate(() => {
+  localStorage.setItem('nora:screen', 'remembered-screen');
+  localStorage.setItem('nora:mode', 'wall');
+  localStorage.setItem('nora:sync', '1');
+  localStorage.setItem('nora:deck', 'intro');
+});
+await publicView.reload();
+await publicView.waitForTimeout(1200);
+const publicState = await publicView.evaluate(() => ({
+  publicView:typeof PUBLIC_VIEW !== 'undefined' && PUBLIC_VIEW, ctrl:CTRL_ON, id:NORA.id,
+  mode:NORA.state.mode, sync:NORA.state.sync, deck:NORA.state.deck,
+}));
+ok(publicState.publicView, '/exhibition/ ที่ไม่มี query ถูกระบุเป็น public view');
+ok(!publicState.ctrl && publicState.id === 'public', 'public view ไม่รายงานตัวเป็นจอ main และไม่รับคำสั่ง control');
+ok(publicState.mode === '0', 'public view เริ่มต้นเป็น 16:9 แม้เครื่องเคยจำโหมด 48:9');
+ok(!publicState.sync && publicState.deck === 'main', 'public view เล่นอิสระในชุดหลัก แม้เครื่องเคยจำ sync/ม่าน');
+await publicView.close();
 
 // ---- ชื่อจอมาจาก ?screen= อย่างเดียว ไม่ผูกกับโหมด ----
 // ใส่ ?ctrl=0 ไม่ให้สองบานนี้ไปรายงานตัวกับรีเลย์ ไม่งั้นจะค้างเป็นจอชื่อ main
@@ -365,9 +387,9 @@ ok(links.every((h, i) => h.includes('panel=' + (i + 1)) && h.includes('kiosk=1')
 // ข้อสำคัญที่สุด: แท็บกลุ่มต้องไม่ทิ้งร่องรอยไว้ในเครื่อง
 const clean = await mkg('?ctrl=0&sync=0');
 ok(await clean.evaluate(() => window.NORA.id) === 'main',
-   'เปิดหน้าเปล่าในเครื่องเดิม — ยังชื่อ main ไม่ใช่ wall-3 (แท็บกลุ่มไม่เขียนค่าที่จำไว้)');
+   'เปิด URL ควบคุมโดยไม่ส่ง screen — ยังชื่อ main ไม่ใช่ wall-3 (แท็บกลุ่มไม่เขียนค่าที่จำไว้)');
 ok(!(await clean.evaluate(() => document.documentElement.classList.contains('ultra'))),
-   'เปิดหน้าเปล่าในเครื่องเดิม — ยังเป็น 16:9 ไม่ติดโหมดครอปของแท็บกลุ่ม');
+   'เปิด URL ควบคุมใหม่ — ยังเป็น 16:9 ไม่ติดโหมดครอปของแท็บกลุ่ม');
 await clean.close();
 
 await w1.close(); await w2.close(); await w3.close();
@@ -376,7 +398,7 @@ ok(/ออฟไลน์ทั้งหมด/.test(await ctl3.textContent('#no
    'ปิดทั้งสามแท็บแล้ว แถวผนังขึ้นว่าออฟไลน์ทั้งหมด');
 await ctl3.close(); await gctx.close();
 
-// ---- จำค่าไว้ในเครื่อง เปิดใหม่ไม่ต้องมี query string ----
+// ---- จอควบคุมจำค่าไว้ในเครื่อง เปิดใหม่โดยไม่ต้องส่งค่าซ้ำทุกตัว ----
 // ใช้ context แยกเพื่อให้ localStorage สะอาด ไม่ปนกับจอด้านบน
 const ctx = await b.newContext();
 const mkc = async q => { const pg = await ctx.newPage();
@@ -389,9 +411,9 @@ await p1.waitForTimeout(400); await p1.close();
 
 const p2 = await mkc('?ctrl=0&sync=0');
 ok(await p2.evaluate(() => window.NORA.id) === 'remembered',
-   'เปิดใหม่แบบไม่มี query string — จำชื่อจอไว้');
+   'เปิดใหม่ด้วย query ควบคุม — จำชื่อจอไว้');
 ok(await p2.evaluate(() => document.documentElement.classList.contains('ultra')),
-   'เปิดใหม่แบบไม่มี query string — จำโหมด 48:9 ไว้');
+   'เปิดใหม่ด้วย query ควบคุม — จำโหมด 48:9 ไว้');
 await p2.close();
 
 const p3 = await mkc('?screen=forced&panel=1&ctrl=0&sync=0');
@@ -403,7 +425,7 @@ ok(await p4.evaluate(() => window.NORA.state.deck) === 'intro', '?deck=intro เ
 await p4.close();
 const p5 = await mkc('?ctrl=0&sync=0');
 ok(await p5.evaluate(() => window.NORA.state.deck) === 'intro',
-   'เปิดใหม่แบบไม่มี query string — จำชุดม่านไว้ (ไฟดับก่อนพิธีเปิดก็ยังปิดม่านอยู่)');
+   'เปิดใหม่ด้วย query ควบคุม — จำชุดม่านไว้ (ไฟดับก่อนพิธีเปิดก็ยังปิดม่านอยู่)');
 await p5.close();
 
 await ctx.close();
@@ -496,6 +518,7 @@ ok(bad === 401, 'โทเคนผิดถูกปฏิเสธ (ได้ 
    ตัวกัน localhost ทำให้ทดสอบตรง ๆ ไม่ได้ จึงหลอก DNS ให้ชื่อปลอมชี้มาที่ 127.0.0.1
    ถ้าไม่ทดสอบข้อนี้ อาจเขียนตัวกันแน่นเกินจนไม่มีใครถูกนับเลยแล้วไม่มีใครรู้ */
 const b2 = await chromium.launch({
+  executablePath: process.env.CHROMIUM_PATH || undefined,
   args: ['--host-resolver-rules=MAP ainora.test 127.0.0.1'],
 });
 const real = await b2.newPage({ viewport:{width:900,height:520} });
