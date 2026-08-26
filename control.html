@@ -620,12 +620,31 @@ function drawList(){
     .forEach(b => b.onclick = () => enter(b.dataset.pick));
 }
 
-let es;
+/* ---- สายรับสถานะจอ ----
+   หน้านี้ถูกเปิดค้างบนมือถือทั้งวัน เจอปัญหาเดียวกับฝั่งจอคือ "สายตายเงียบ"
+   (สลับไปแอปอื่นแล้วมือถือแช่แข็งการเชื่อมต่อ · เน็ตสลับ wifi/มือถือ · nginx รีโหลด)
+   EventSource จะค้างที่ readyState=OPEN โดยไม่ยิง error แล้วก็ไม่ต่อใหม่ให้
+   ผลคือรายการจอค้างอยู่ที่ภาพเก่า กดปุ่มแล้วงงว่าทำไมจอไม่ขยับ
+
+   จึงจับจังหวะ ping ที่รีเลย์ส่งมาทุก 15 วิ เงียบเกิน 45 วิ = ต่อใหม่
+   และตอนสลับกลับมาที่หน้านี้ให้เช็คทันที ไม่ต้องรอครบรอบ */
+let es, beat = 0, tries = 0, reTimer;
+
 function connect(){
-  try{ es = new EventSource(API + '/events?role=controller'); }
-  catch(e){ $('#conn').textContent = 'ต่อรีเลย์ไม่ได้'; return; }
-  es.addEventListener('open', () => { $('#conn').textContent = 'ต่อรีเลย์แล้ว'; });
-  es.addEventListener('screens', ev => {
+  clearTimeout(reTimer);
+  if(es){ try{ es.close(); }catch(e){} es = null; }
+
+  let stream;
+  try{ stream = new EventSource(API + '/events?role=controller'); }
+  catch(e){ $('#conn').textContent = 'ต่อรีเลย์ไม่ได้'; return retry(); }
+  es = stream;
+  beat = Date.now();
+
+  const alive = () => { beat = Date.now(); };
+  stream.addEventListener('open', () => { tries = 0; alive(); $('#conn').textContent = 'ต่อรีเลย์แล้ว'; });
+  stream.addEventListener('ping', alive);
+  stream.addEventListener('screens', ev => {
+    alive();
     try{ screens = JSON.parse(ev.data); }catch(e){ screens = []; }
     buildView();
     const on = view.filter(s => s.online).length;
@@ -633,12 +652,23 @@ function connect(){
     if(target) drawNow();
     drawList();
   });
-  es.onerror = () => {
-    $('#conn').textContent = 'สายหลุด กำลังต่อใหม่…';
-    try{ es.close(); }catch(e){}
-    setTimeout(connect, 4000);
-  };
+  // สายเก่าที่ถูกแทนไปแล้วต้องไม่มาตั้งเวลาต่อใหม่แข่งกับสายปัจจุบัน
+  stream.onerror = () => { if(es === stream) retry(); };
 }
+
+function retry(){
+  if(es){ try{ es.close(); }catch(e){} es = null; }
+  $('#conn').textContent = 'สายหลุด กำลังต่อใหม่…';
+  clearTimeout(reTimer);
+  reTimer = setTimeout(connect, Math.min(30000, 2000 * Math.pow(2, tries++)));
+}
+
+setInterval(() => { if(es && Date.now() - beat > 45000) retry(); }, 5000);
+
+function wakeUp(){ if(!es || Date.now() - beat > 20000){ tries = 0; connect(); } }
+addEventListener('online', wakeUp);
+addEventListener('pageshow', wakeUp);
+addEventListener('visibilitychange', () => { if(!document.hidden) wakeUp(); });
 /* ถ้ารีเลย์ไม่ได้ตั้งโทเคน ก็ไม่ต้องโชว์ช่องให้กรอก */
 fetch(API + '/healthz').then(r => r.json()).then(h => {
   $('#tokBox').hidden = !h.auth;

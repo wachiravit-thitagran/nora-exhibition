@@ -148,7 +148,11 @@ const srv = http.createServer(async (req, res) => {
                   farm: !!body.farm };
     screens.set(id, cur);
     pushScreens();
-    return json(res, 200, { ok: true });
+    /* linked = "ฝั่งนี้ยังเห็นสาย SSE ของจอตัวนี้เปิดอยู่ไหม"
+       เป็นตัวจับ "สายตายฝั่งเดียว" ที่แม่นที่สุด — จอคิดว่าตัวเองยังต่ออยู่
+       แต่สายจริงตายไปแล้วโดยไม่มี error ให้จับ ถ้าตอบ false จอจะรู้ตัวแล้วต่อใหม่
+       (ตัวนี้เป็น HTTP request ใหม่ทุกครั้ง จึงไม่ติดปัญหาสายค้างแบบเดียวกัน) */
+    return json(res, 200, { ok: true, linked: !!cur.res });
   }
 
   if(path === '/screens' && req.method === 'GET') return json(res, 200, snapshot());
@@ -157,11 +161,22 @@ const srv = http.createServer(async (req, res) => {
   return json(res, 404, { error: 'ไม่พบปลายทาง' });
 });
 
-/* กันสายตายเงียบ ๆ ระหว่างทาง — ส่งคอมเมนต์ทุก 15 วินาที
-   และเก็บกวาดชื่อจอที่ไม่มีใครใช้แล้วออกจากรายการ */
+/* ---- จังหวะหัวใจทุก 15 วินาที ----
+   เดิมส่งเป็นคอมเมนต์ (': ping') ซึ่งพอกันสายโดนตัดระหว่างทางได้
+   แต่ EventSource ฝั่งเบราว์เซอร์ "มองไม่เห็น" คอมเมนต์เลย จอจึงไม่มีทางรู้ว่า
+   สายยังดีอยู่ไหม ถ้าสายตายเงียบ ๆ (nginx รีโหลด · เน็ตวูบ · NAT ตัดสายที่ว่าง ·
+   จอพักหน้าจอ) เบราว์เซอร์จะค้างที่ readyState=OPEN ต่อไปโดยไม่ยิง error
+   แล้วก็ไม่ต่อใหม่ให้ — จอที่เปิดค้างข้ามคืนจึงสั่งจากมือถือไม่ได้อีกเลย
+   ทั้งที่หน้าจอยังเล่นสไลด์อยู่ปกติทุกอย่าง
+
+   ส่งเป็น event จริงแทน ฝั่งจอจะจับเวลาได้ว่าเงียบไปนานแค่ไหนแล้ว
+   (จอที่ยังไม่ได้อัปเดตไม่พัง — event ที่ไม่ได้ฟังจะถูกทิ้งไปเฉย ๆ)
+
+   และเก็บกวาดชื่อจอที่ไม่มีใครใช้แล้วออกจากรายการไปด้วยในรอบเดียวกัน */
 setInterval(() => {
-  for(const s of screens.values()) if(s.res){ try{ s.res.write(': ping\n\n'); }catch(e){} }
-  for(const c of controllers){ try{ c.write(': ping\n\n'); }catch(e){} }
+  const beat = { t: now() };
+  for(const s of screens.values()) if(s.res) sse(s.res, 'ping', beat);
+  for(const c of controllers) sse(c, 'ping', beat);
   for(const [id, s] of screens) if(!s.res && now() - s.seen > FORGET) screens.delete(id);
   pushScreens();
 }, 15000).unref?.();
