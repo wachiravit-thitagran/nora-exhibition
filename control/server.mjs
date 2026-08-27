@@ -32,7 +32,7 @@ const now = () => Date.now();
 const json = (res, code, obj) => {
   const b = Buffer.from(JSON.stringify(obj));
   res.writeHead(code, { 'content-type': 'application/json; charset=utf-8',
-    'content-length': b.length, 'cache-control': 'no-store' });
+    'content-length': b.length });
   res.end(b);
 };
 /* online ต้องดูทั้งสองอย่าง

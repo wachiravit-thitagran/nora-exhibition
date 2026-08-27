@@ -3,9 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>InfraDash · จอวนแดชบอร์ดโครงสร้างพื้นฐาน PSU</title>
 <style>
 :root{
@@ -197,7 +194,7 @@ async function probeAll(){
   await Promise.all(PAGES.map(async p => {
     try{
       const r = await fetch(`${API}/probe?url=${encodeURIComponent(p.url)}`
-        + `&as=${encodeURIComponent(location.origin)}`, { cache:'no-store' });
+        + `&as=${encodeURIComponent(location.origin)}`);
       if(!r.ok) throw new Error('probe ' + r.status);
       const j = await r.json();
       framable.set(p.url, j.framable);
@@ -266,9 +263,7 @@ function load(slot, i){
     if(bad) showError(slot, page, 'csp');
     mark(i, !bad);
   };
-  // เติม cache buster ทุกครั้ง — แดชบอร์ดต้องเป็นข้อมูลสด ไม่ใช่ของที่ค้างในแคช
-  const sep = page.url.includes('?') ? '&' : '?';
-  slot.fr.src = page.url + sep + '_t=' + Date.now();
+  slot.fr.src = page.url;
 }
 
 function mark(i, ok){

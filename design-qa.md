@@ -1,4 +1,4 @@
-# Design QA — ม่านทอง Three.js
+# Design QA — ม่านทอง Three.js และโลโก้ AI NORA
 
 - Source visual truth: `/Users/wachiravit/Downloads/INTRO_AINORA_.mp4`
 - Source: H.264, 1280×720, 23.682 วินาที; ใช้เฟรม 5.5 วินาทีและ 8.25 วินาทีเป็นจุดเทียบ
@@ -58,4 +58,18 @@
 
 - ทดสอบ fps และอุณหภูมิบน Raspberry Pi ตัวจริง เพราะ CPU throttling บนเครื่องพัฒนาไม่จำลองแบนด์วิดท์ GPU ของ Pi ได้ครบ
 
-final result: passed
+## Logo reveal extension — current pass
+
+- Source visual truth: เฟรม 10.5–17.0 วินาทีจาก `/Users/wachiravit/Downloads/INTRO_AINORA_.mp4`
+- Intended state: ม่านเกือบพ้นจอ → โลโก้หมุนแกน Y → ทองเรืองแสง → ลำแสงกวาด → สีแบรนด์จริง
+- Implementation URL: `http://127.0.0.1:4173/?preview=1&deck=intro&sync=0&kiosk=1`
+- Automated interaction evidence: ตรวจพบ overlay, asset โลโก้จริง, animation transform ระหว่าง reveal,
+  การเริ่มตาม lag ของคำสั่ง และการยกเลิก animation เมื่อตั้งม่านซ้ำ
+- Browser-rendered screenshot: ยังจับไม่ได้ เนื่องจาก in-app browser เปิด URL ก่อน preview server พร้อม
+  แล้ว URL policy ไม่อนุญาตให้โหลด local URL นั้นซ้ำในรอบตรวจนี้
+- P2 blocker: ยังไม่มีภาพ implementation ที่ viewport 1280×720 สำหรับวางเทียบกับเฟรมต้นฉบับ
+  จึงยังยืนยันขนาด ตำแหน่ง ความสว่าง และจังหวะแสงกวาดด้วยสายตาไม่ได้
+- Required next check: โหลด preview ใหม่ใน in-app browser แล้วจับเฟรมช่วงหมุนและช่วงลำแสง
+  เทียบกับเฟรม 12.5 และ 16.0 วินาทีของต้นฉบับ
+
+final result: blocked

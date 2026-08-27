@@ -23,6 +23,8 @@ ok(html.includes('id="curtain-canvas"'), 'มี canvas สำหรับม่
 ok(html.includes('assets/curtain/three.js'), 'โหลด Three.js จากไฟล์ local');
 ok(html.includes('assets/curtain/curtain3d.js'), 'โหลดตัวควบคุมม่านจากไฟล์ local');
 ok(!/curtain[^\n]+https?:\/\//i.test(html), 'ม่านไม่พึ่ง CDN หรืออินเทอร์เน็ต');
+ok(html.includes('id="intro-logo-fx"'), 'มีเลเยอร์เอฟเฟกต์โลโก้ AI NORA หลังม่านเปิด');
+ok(html.includes('brand/logo-light.png'), 'เอฟเฟกต์ใช้โลโก้แบรนด์จริง');
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 const page = await browser.newPage({ viewport:{ width:1280, height:720 } });
@@ -54,6 +56,21 @@ ok(opening.deckPlaying === false,
    'ระหว่างเปิดม่านยังไม่ถอดรหัสวิดีโอด้านหลังพร้อมกับ WebGL');
 
 await page.evaluate(() => window.NORA.apply({ cmd:'deck', arg:'intro' }));
+await page.evaluate(() => window.NORA.apply({ cmd:'curtain', at:Date.now() - 3100 }));
+await page.waitForTimeout(180);
+const logoReveal = await page.evaluate(() => {
+  const fx = document.getElementById('intro-logo-fx');
+  const metal = fx?.querySelector('.intro-logo-metal');
+  return {
+    active:document.documentElement.classList.contains('logo-reveal'),
+    visible:!!fx && Number(getComputedStyle(fx).opacity) > 0,
+    turning:!!metal && getComputedStyle(metal).transform !== 'none',
+  };
+});
+ok(logoReveal.active && logoReveal.visible, 'โลโก้เริ่มแสดงต่อจากจังหวะม่าน');
+ok(logoReveal.turning, 'โลโก้กำลังหมุนแบบสามมิติระหว่าง reveal');
+
+await page.evaluate(() => window.NORA.apply({ cmd:'deck', arg:'intro' }));
 await page.waitForTimeout(100);
 const resetAgain = await page.evaluate(() => ({
   progress:window.__CURTAIN3D?.progress,
@@ -61,6 +78,8 @@ const resetAgain = await page.evaluate(() => ({
 }));
 ok(resetAgain.progress === 0 && resetAgain.playing === false,
    'กดตั้งม่านระหว่างเปิดแล้วหยุดและคืนเฟรมแรก');
+ok(await page.evaluate(() => !document.documentElement.classList.contains('logo-reveal')),
+   'ตั้งม่านใหม่แล้วยกเลิกเอฟเฟกต์โลโก้รอบก่อน');
 
 await browser.close();
 if(failures.length){
