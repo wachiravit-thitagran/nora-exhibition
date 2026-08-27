@@ -95,6 +95,8 @@ pipeline {
                                && echo "" \
                                && node tests/check-sync.mjs /w \
                                && echo "" \
+                               && node tests/check-curtain-three.mjs /w \
+                               && echo "" \
                                && node tests/check-anim.mjs /w' | tee deck_report.txt
                 '''
             }

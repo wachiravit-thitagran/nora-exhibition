@@ -30,7 +30,7 @@ const srv = http.createServer((req, res) => {
 await new Promise(r => srv.listen(0, r));
 const base = `http://127.0.0.1:${srv.address().port}/exhibition`;
 
-const b = await chromium.launch();
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 let bad = 0;
 
 for(const [label, q] of [['16:9', ''], ['48:9 แบ่ง 3', '&ultra=1']]){
