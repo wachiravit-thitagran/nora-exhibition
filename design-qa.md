@@ -58,18 +58,36 @@
 
 - ทดสอบ fps และอุณหภูมิบน Raspberry Pi ตัวจริง เพราะ CPU throttling บนเครื่องพัฒนาไม่จำลองแบนด์วิดท์ GPU ของ Pi ได้ครบ
 
-## Logo reveal extension — current pass
+## Logo reveal extension — frame-accurate pass
 
-- Source visual truth: เฟรม 10.5–17.0 วินาทีจาก `/Users/wachiravit/Downloads/INTRO_AINORA_.mp4`
-- Intended state: ม่านเกือบพ้นจอ → โลโก้หมุนแกน Y → ทองเรืองแสง → ลำแสงกวาด → สีแบรนด์จริง
+- Source visual truth: เฟรม 9.700–23.680 วินาทีจาก `/Users/wachiravit/Downloads/INTRO_AINORA_.mp4`
+- Implementation asset: `assets/curtain/ainora-logo-reveal.mp4`, H.264 High, 1280×720, 30 fps,
+  ถอดช่วงภาพจริงจากต้นฉบับโดยไม่สร้างแสงหรือรูปทรงทดแทนด้วย CSS
 - Implementation URL: `http://127.0.0.1:4173/?preview=1&deck=intro&sync=0&kiosk=1`
-- Automated interaction evidence: ตรวจพบ overlay, asset โลโก้จริง, animation transform ระหว่าง reveal,
-  การเริ่มตาม lag ของคำสั่ง และการยกเลิก animation เมื่อตั้งม่านซ้ำ
-- Browser-rendered screenshot: ยังจับไม่ได้ เนื่องจาก in-app browser เปิด URL ก่อน preview server พร้อม
-  แล้ว URL policy ไม่อนุญาตให้โหลด local URL นั้นซ้ำในรอบตรวจนี้
-- P2 blocker: ยังไม่มีภาพ implementation ที่ viewport 1280×720 สำหรับวางเทียบกับเฟรมต้นฉบับ
-  จึงยังยืนยันขนาด ตำแหน่ง ความสว่าง และจังหวะแสงกวาดด้วยสายตาไม่ได้
-- Required next check: โหลด preview ใหม่ใน in-app browser แล้วจับเฟรมช่วงหมุนและช่วงลำแสง
-  เทียบกับเฟรม 12.5 และ 16.0 วินาทีของต้นฉบับ
+- Browser-rendered implementation screenshot: `docs/qa/logo-reveal-implementation-t8.3.png`
+- Source frame: `docs/qa/logo-reveal-source-t15.011.png`
+- Combined comparison: `docs/qa/logo-reveal-frame-comparison.jpg`
+- Viewport/CSS size: 1280×720; source, implementation และ comparison ปกติที่ density 1:1
+- State samples: clip 0.361, 2.205, 5.311 และ 9.357 วินาที เทียบกับ source 10.061,
+  11.905, 15.011 และ 19.057 วินาทีตามลำดับ
+- Primary interactions: ตั้งม่าน, เปิดม่าน, เล่นโลโก้ตาม command lag, ตั้งม่านซ้ำแล้วกรอกลับเฟรมแรก
+- Browser console: ไม่พบ warning หรือ error ที่เกี่ยวกับ logo reveal
 
-final result: blocked
+### Full-view and focused comparison evidence
+
+- Fonts/typography: ตัวอักษร AI NORA และ BREATH OF NORA เป็นพิกเซลจากต้นฉบับ จึงตรงทั้งรูปทรง น้ำหนัก ระยะห่าง และการเรียง
+- Spacing/layout rhythm: เฟรมแสดงแบบ 16:9 `object-fit: contain` ที่จุดศูนย์กลางเวที ไม่มีการ crop หรือขยายสัดส่วน
+- Colors/tokens: สีกระดาษ โลหะทอง ท้องฟ้า เงา และแสงวาบมาจากเฟรมต้นฉบับโดยตรง
+- Image quality/asset fidelity: รูปทรงสเก็ตช์ พื้นผิว 3D ทิศทางการหมุน ประกาย และลำแสงตรงรายเฟรม; ต่างเฉพาะ compression จากการเข้ารหัส H.264 สำหรับเล่นบนเว็บ
+- Copy/content: ข้อความทั้งหมดมาจากต้นฉบับ ไม่มี HTML text ซ้อนที่จะเลื่อนหรือใช้ฟอนต์ต่างกัน
+- Focused comparison จำเป็นที่จังหวะหมุน/ลำแสง จึงรวม 4 คู่เวลาไว้ใน `logo-reveal-frame-comparison.jpg`; ทุกคู่มีองค์ประกอบและจังหวะตรงกัน
+
+### Comparison history
+
+1. P1 — รอบก่อนสร้างโลโก้ทอง แสงวาบ เส้นแสง และข้อความด้วย CSS จึงคลาดจากต้นฉบับทั้งรูปทรง พื้นผิว และเวลา
+   - Fix: เอาเลเยอร์จำลองออกทั้งหมด และใช้เฟรมจริง 9.700–23.680 วินาที
+2. P2 — timeline เดิมเริ่มที่ 2.7 วินาทีและหายไปหลัง 6.2 วินาที แต่ต้นฉบับเริ่มหลังม่านเกือบพ้นและค้างเฟรมจบ
+   - Fix: เริ่มที่ 3.2 วินาที, เล่นครั้งเดียว, ไม่ loop, และไม่ซ่อนเลเยอร์จนกว่าจะตั้งม่านใหม่หรือเข้าชุดหลัก
+3. Post-fix evidence — ภาพเบราว์เซอร์ 4 จังหวะตรงกับเฟรมต้นฉบับที่เวลาเดียวกัน ไม่เหลือ P0/P1/P2 ที่แก้ได้จากฝั่งเว็บ
+
+final result: passed

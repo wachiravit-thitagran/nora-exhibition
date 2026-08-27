@@ -803,93 +803,15 @@ html.deck-intro.curtain-up #curtain{display:none}
 #curtain.webgl #curtain-canvas{display:block}
 #curtain.webgl .cpanel,#curtain.webgl .crod{display:none}
 
-/* โลโก้หลังม่าน — จังหวะอ้างอิงช่วง 10.5–17.0 วินาทีของ INTRO_AINORA_.mp4
-   เริ่มจากแผ่นโลโก้เอียงเกือบตั้งฉาก หมุนเข้าหากล้อง เปลี่ยนจากทองเรืองแสง
-   เป็นสีแบรนด์จริง แล้วมีลำแสงกวาดผ่านก่อนเผยหน้าปกนิทรรศการด้านล่าง */
+/* โลโก้หลังม่านใช้เฟรมจริงช่วง 9.700–23.680 วินาทีของ INTRO_AINORA_.mp4
+   แทนการประกอบโลโก้/แสงด้วย CSS เพื่อรักษารูปทรง พื้นผิว มุมหมุน
+   ประกาย ลำแสง และจังหวะทุกเฟรมให้ตรงต้นฉบับ */
 #intro-logo-fx{
   position:absolute;inset:0;z-index:39;display:flex;align-items:center;justify-content:center;
-  pointer-events:none;opacity:0;background:rgba(17,10,2,.78);overflow:hidden;
-  perspective:3000px;
+  pointer-events:none;visibility:hidden;opacity:0;background:#100A04;overflow:hidden;
 }
-.intro-logo-wrap{position:relative;width:min(68%,3400px);aspect-ratio:1100/650;transform-style:preserve-3d}
-.intro-logo-wrap img{position:absolute;left:0;top:0;width:100%;height:auto;will-change:transform,opacity}
-.intro-logo-metal{
-  filter:sepia(1) saturate(5) brightness(1.45)
-    drop-shadow(0 0 18px rgba(255,218,112,.95))
-    drop-shadow(0 0 70px rgba(232,139,0,.72));
-}
-.intro-logo-final{opacity:0;filter:drop-shadow(0 20px 34px rgba(0,0,0,.72))}
-.intro-logo-tagline{
-  position:absolute;left:19%;top:78%;color:#F2D073;font:700 52px/1 "Anuphan",sans-serif;
-  letter-spacing:.18em;white-space:nowrap;opacity:0;text-shadow:0 0 22px rgba(255,198,63,.7);
-}
-.intro-logo-tagline::before{content:"";display:inline-block;width:130px;height:5px;margin:0 30px 10px 0;background:#E3C468}
-.intro-logo-flare{
-  position:absolute;left:-18%;top:46%;width:36%;height:10%;border-radius:50%;opacity:0;
-  background:radial-gradient(ellipse at center,#FFF 0%,#FFE29A 8%,rgba(255,173,32,.8) 24%,transparent 70%);
-  filter:blur(5px);mix-blend-mode:screen;will-change:transform,opacity;
-}
-.intro-logo-ribbon{
-  position:absolute;left:-25%;top:56%;width:150%;height:18px;border-radius:50%;opacity:0;
-  background:linear-gradient(90deg,transparent 0%,#E88B00 18%,#FFF4C7 49%,#D89C28 78%,transparent 100%);
-  box-shadow:0 0 20px #E88B00,0 0 54px rgba(255,194,65,.7);
-  transform:rotate(-3deg) scaleX(.25);will-change:transform,opacity;
-}
-.intro-logo-ribbon.r2{top:62%;height:7px;transform:rotate(2deg) scaleX(.2)}
-
-html.motion.logo-reveal #intro-logo-fx{
-  animation:introLogoScene 6.2s ease var(--logo-delay,2700ms) both;
-}
-html.motion.logo-reveal .intro-logo-metal{
-  animation:introLogoTurn 4.5s cubic-bezier(.18,.72,.18,1) var(--logo-delay,2700ms) both;
-}
-html.motion.logo-reveal .intro-logo-final{
-  animation:introLogoFinal 6.2s ease var(--logo-delay,2700ms) both;
-}
-html.motion.logo-reveal .intro-logo-tagline{
-  animation:introLogoTag 6.2s ease var(--logo-delay,2700ms) both;
-}
-html.motion.logo-reveal .intro-logo-flare{
-  animation:introLogoFlare 2.5s cubic-bezier(.2,.7,.2,1) calc(var(--logo-delay,2700ms) + 2.5s) both;
-}
-html.motion.logo-reveal .intro-logo-ribbon{
-  animation:introLogoRibbon 2.8s cubic-bezier(.16,.72,.2,1) calc(var(--logo-delay,2700ms) + 2.15s) both;
-}
-html.motion.logo-reveal .intro-logo-ribbon.r2{animation-delay:calc(var(--logo-delay,2700ms) + 2.4s)}
-
-@keyframes introLogoScene{
-  0%{opacity:0} 7%{opacity:1} 88%{opacity:1} 100%{opacity:0}
-}
-@keyframes introLogoTurn{
-  0%{opacity:0;transform:rotateY(-88deg) rotateZ(-7deg) scale(.68)}
-  10%{opacity:.8}
-  32%{opacity:1;transform:rotateY(18deg) rotateZ(1.5deg) scale(1.06)}
-  48%{transform:rotateY(-7deg) rotateZ(-.5deg) scale(.99)}
-  66%{opacity:1;transform:rotateY(0) rotateZ(0) scale(1)}
-  82%,100%{opacity:0;transform:rotateY(0) scale(1)}
-}
-@keyframes introLogoFinal{
-  0%,45%{opacity:0;transform:scale(.98)}
-  60%,90%{opacity:1;transform:scale(1)}
-  100%{opacity:0;transform:scale(1.015)}
-}
-@keyframes introLogoTag{
-  0%,52%{opacity:0;transform:translateY(30px)}
-  64%,90%{opacity:1;transform:translateY(0)}
-  100%{opacity:0;transform:translateY(-8px)}
-}
-@keyframes introLogoFlare{
-  0%{opacity:0;transform:translateX(0) scale(.45)}
-  18%{opacity:1}
-  78%{opacity:.9}
-  100%{opacity:0;transform:translateX(360%) scale(1.15)}
-}
-@keyframes introLogoRibbon{
-  0%{opacity:0;transform:rotate(-3deg) scaleX(.2) translateX(-24%)}
-  24%{opacity:1}
-  74%{opacity:.85}
-  100%{opacity:0;transform:rotate(2deg) scaleX(1) translateX(18%)}
-}
+#intro-logo-video{display:block;width:100%;height:100%;object-fit:contain;background:#100A04}
+html.deck-intro.logo-reveal #intro-logo-fx{visibility:visible;opacity:1}
 
 /* ---- ผืนผ้า ----
    fallback เมื่อ WebGL ใช้ไม่ได้: ม่านทองแบบ CSS ที่ยังเปิดงานต่อได้
@@ -1061,14 +983,8 @@ html.nomotion #armfull{animation:none}
       <div class="crod"></div>
     </div>
     <div id="intro-logo-fx" aria-hidden="true">
-      <div class="intro-logo-wrap">
-        <img class="intro-logo-metal" src="brand/logo-light.png" alt="">
-        <img class="intro-logo-final" src="brand/logo-light.png" alt="">
-        <div class="intro-logo-tagline">BREATH OF NORA</div>
-        <div class="intro-logo-ribbon"></div>
-        <div class="intro-logo-ribbon r2"></div>
-        <div class="intro-logo-flare"></div>
-      </div>
+      <video id="intro-logo-video" muted playsinline preload="none"
+        src="assets/curtain/ainora-logo-reveal.mp4"></video>
     </div>
   </div>
 </div>
@@ -2651,11 +2567,53 @@ function setPlaying(v){
 
 /* ---------- สลับชุดสไลด์ / เปิดม่าน ---------- */
 const curtainEl = () => document.getElementById('curtain');
+const logoVideoEl = () => document.getElementById('intro-logo-video');
 let curtainTimer = 0;      // ตัวจับเวลาปิดท้ายอนิเมชันเปิดม่าน ต้องยกเลิกได้
 const CURTAIN_MS = 3400;   // ช่วงแหวกจริงใน INTRO_AINORA_.mp4 ประมาณ 6.5–9.9 วิ
 let logoTimer = 0;
-const LOGO_START_MS = 2700; // โลโก้เริ่มเมื่อม่านเกือบพ้นจอ เหมือนช่วง 9.5–10.5 วิของคลิป
-const LOGO_FX_MS = 6200;
+let logoRun = 0;
+const LOGO_START_MS = 3200; // เฟรม 9.700 วิของต้นฉบับ เมื่อม่านเกือบพ้นจอ
+
+function resetLogo(){
+  logoRun++;
+  clearTimeout(logoTimer); logoTimer = 0;
+  document.documentElement.classList.remove('logo-reveal');
+  const video = logoVideoEl();
+  if(!video) return;
+  video.pause();
+  try{ video.currentTime = 0; }catch(_){ /* metadata ยังไม่พร้อม */ }
+}
+
+/* คลิปถูกตัดจากต้นฉบับตั้งแต่ 9.700 วินาที จึงเล่นจริงเพียงรอบเดียว
+   และปล่อยให้ video element ค้างเฟรมจบเอง ถ้าคำสั่งมาช้าจะ seek ชดเชย
+   ให้ทุกจออยู่เฟรมเดียวกันเหมือนม่าน Three.js */
+function playLogoFrom(elapsedMs){
+  const run = logoRun;
+  const video = logoVideoEl();
+  if(!video || run !== logoRun) return;
+  document.documentElement.classList.add('logo-reveal');
+  const seekAndPlay = () => {
+    if(run !== logoRun) return;
+    const lastFrame = Math.max(0, video.duration - (1 / 30));
+    const target = Math.min(Math.max(0, elapsedMs / 1000), lastFrame);
+    try{ video.currentTime = target; }catch(_){ return; }
+    if(target >= lastFrame){ video.pause(); return; }
+    video.play().catch(()=>{});
+  };
+  if(video.readyState >= 1) seekAndPlay();
+  else video.addEventListener('loadedmetadata', seekAndPlay, {once:true});
+}
+
+function scheduleLogo(elapsedMs){
+  clearTimeout(logoTimer); logoTimer = 0;
+  const wait = LOGO_START_MS - elapsedMs;
+  if(wait <= 0){ playLogoFrom(-wait); return; }
+  const run = logoRun;
+  logoTimer = setTimeout(() => {
+    logoTimer = 0;
+    if(run === logoRun) playLogoFrom(0);
+  }, wait);
+}
 
 function setDeck(name, lag){
   const d = DECKS[name] ? name : 'main';
@@ -2675,9 +2633,8 @@ function setDeck(name, lag){
   // ยกเลิกอนิเมชันที่ยังรูดค้างอยู่ให้หมด ทั้งคลาส สไตล์อินไลน์ และตัวจับเวลา
   // ไม่งั้นของที่ค้างจากรอบก่อนจะโผล่มาตอนกดตั้งม่านครั้งถัดไป
   clearTimeout(curtainTimer); curtainTimer = 0;
-  clearTimeout(logoTimer); logoTimer = 0;
-  root.classList.remove('logo-reveal');
-  root.style.removeProperty('--logo-delay');
+  resetLogo();
+  if(d === 'intro') logoVideoEl()?.load(); // ตั้งม่านแล้วค่อย buffer คลิป ไม่แย่ง network ตอนดูสไลด์ปกติ
   const c = curtainEl();
   c.classList.remove('open');
   c.style.removeProperty('--copen');
@@ -2701,23 +2658,20 @@ function setDeck(name, lag){
 function openCurtain(lag){
   if(DECK !== 'intro' || CURTAIN_UP) return;
   const c = curtainEl();
-  const d = Math.max(0, Math.min(CURTAIN_MS, lag || 0));
+  const elapsed = Math.max(0, lag || 0);
+  const d = Math.min(CURTAIN_MS, elapsed);
   NORA.manual();
   show(0, d);
   setPlaying(false);                  // เริ่มวิดีโอหลัง WebGL จบ เพื่อลดภาระ GPU/decoder
   c.style.setProperty('--copen', -d + 'ms');
   c.classList.add('open');
   if(MOTION_ON){
-    document.documentElement.style.setProperty('--logo-delay', (LOGO_START_MS - d) + 'ms');
-    document.documentElement.classList.add('logo-reveal');
+    scheduleLogo(elapsed);
     window.__CURTAIN3D?.open(d);
-    clearTimeout(logoTimer);
-    logoTimer = setTimeout(() => {
-      logoTimer = 0;
-      document.documentElement.classList.remove('logo-reveal');
-      document.documentElement.style.removeProperty('--logo-delay');
-    }, Math.max(0, LOGO_START_MS + LOGO_FX_MS - d));
-  }else window.__CURTAIN3D?.finish();
+  }else{
+    window.__CURTAIN3D?.finish();
+    playLogoFrom(Number.MAX_SAFE_INTEGER); // ปิด motion = แสดงเฟรมสุดท้ายทันที
+  }
   /* เก็บ id ไว้ยกเลิกได้ — ถ้าสแตฟฟ์กด "ชุดหลัก" ระหว่างม่านกำลังรูด
      ตัวจับเวลานี้จะยังทำงานต่อแล้วไปตั้ง curtain-up ทั้งที่ออกจากชุด intro
      ไปแล้ว สถานะที่รายงานกลับ controller จะเพี้ยน (บอกว่าม่านเปิดอยู่
@@ -2729,7 +2683,7 @@ function openCurtain(lag){
     CURTAIN_UP = true;
     PREF.set('curtain', 'up');
     document.documentElement.classList.add('curtain-up');
-    setPlaying(true);                 // เปิดแล้วจึงปล่อยวิดีโอวน แต่ intro ยังไม่เดินหน้า
+    setPlaying(true);                 // WebGL หยุดแล้ว จึงค่อยปล่อยวิดีโอสไลด์ให้รักษา state เดิม
     c.classList.remove('open');
     c.style.removeProperty('--copen');
     paintInfo();
