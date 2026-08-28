@@ -1,8 +1,6 @@
-/* ม่านทอง AI NORA — Three.js/WebGL
- *
- * ลักษณะผ้าอ้างอิงจาก INTRO_AINORA_.mp4 ช่วง 00:05.5–00:10.0:
- * ใช้เฟรมม่านปิดจริงเป็น texture แล้วดัดผ้า/รวบลอนด้วย vertex shader
- * ระหว่างเปิดขยับเฉพาะ uniform บน GPU ไม่แก้ geometry หรือวาด CSS ใหม่ทุกเฟรม
+/* ม่านทอง AI NORA — Three.js/WebGL procedural shader.
+ * ไม่มี video, image หรือ texture: สีผ้า ลอน แสง และ weave สร้างบน GPU ทั้งหมด
+ * ระหว่างเปิดขยับเฉพาะ uniform ไม่แก้ geometry หรือวาด CSS ใหม่ทุกเฟรม
  */
 (function(){
   'use strict';
@@ -48,18 +46,6 @@
   const CLOTH_H = 9;
   camera.position.set(0, 0, CAM_Z);
 
-  const texture = new THREE.TextureLoader().load(
-    'assets/curtain/curtain-plate.jpg',
-    () => render(),
-    undefined,
-    () => curtain.classList.add('curtain-texture-failed')
-  );
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-
   const VERTEX = `
     uniform float uOpen;
     uniform float uFolds;
@@ -84,7 +70,7 @@
       vEdge = u;
 
       /* รางด้านบนถูกดึงก่อน ชายล่างหนักจึงตามช้า เกิดช่องเปิดทรง V กลับหัว
-         แบบเดียวกับเฟรม 7.0–9.0 วินาทีของคลิป ไม่ใช่ช่องสี่เหลี่ยมตรง ๆ */
+         แทนช่องสี่เหลี่ยมตรง ๆ */
       float openExponent = mix(4.20, 1.0, pow(uv.y, 0.82));
       /* ช่วงท้ายแรงดึงชนะน้ำหนักผ้า ชายล่างจึงเร่งตามขึ้นมาทันในเวลาอันสั้น */
       float catchUp = smoothstep(0.55, 0.86, uOpen);
@@ -98,7 +84,7 @@
       float phase = u * uFolds * TAU;
       phase += sin(uv.y * 2.3 + u * 7.0) * 0.32;
       phase += (1.0 - uv.y) * localOpen * 1.35;
-      /* เฟรมปิดต้องเป็น plate ตรงพิกเซล จึงค่อยเพิ่มความลึกเมื่อผ้าเริ่มขยับ */
+      /* ตอนปิดใช้ลอนจาก fragment shader จึงค่อยเพิ่มความลึก geometry เมื่อผ้าเริ่มขยับ */
       amplitude *= localOpen;
       float z = amplitude * cos(phase);
 
@@ -118,13 +104,11 @@
   `;
 
   const FRAGMENT = `
-    uniform sampler2D uPlate;
     uniform vec3 uWarm;
     uniform vec3 uDark;
     uniform float uOpen;
     uniform float uSide;
-    uniform float uTexY;
-    uniform float uRepeat;
+    uniform float uFolds;
 
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -145,20 +129,19 @@
       float sheenA = pow(max(dot(n, normalize(lightA + viewDirection)), 0.0), 20.0);
       float sheenB = pow(max(dot(n, normalize(lightB + viewDirection)), 0.0), 11.0);
 
-      float baseX = 0.5 + uSide * vEdge * 0.5;
-      float textureX = fract((baseX + 1.0) * uRepeat);
-      float textureY = 0.5 + (vUv.y - 0.5) * uTexY;
-      vec3 plate = texture2D(uPlate, vec2(textureX, textureY)).rgb;
-
+      float phase = vUv.x * uFolds * 6.28318530718;
+      phase += sin(vUv.y * 9.0 + vUv.x * 5.0) * 0.24;
+      float broadFold = 0.5 + 0.5 * cos(phase);
+      float fineFold = 0.5 + 0.5 * cos(phase * 2.07 + vUv.y * 3.2);
+      float weave = sin(vUv.x * 920.0) * sin(vUv.y * 710.0) * 0.018;
+      float verticalShade = mix(0.62, 1.08, smoothstep(0.0, 0.34, vUv.y));
+      verticalShade *= mix(1.0, 0.78, smoothstep(0.86, 1.0, vUv.y));
+      vec3 cloth = mix(uDark, uWarm, broadFold * 0.72 + fineFold * 0.14 + 0.10);
+      cloth *= verticalShade + weave;
       vec3 procedural = mix(uDark, uWarm,
         clamp(diffuseA * 0.86 + diffuseB * 0.42, 0.0, 1.0));
       procedural += uWarm * (sheenA * 0.62 + sheenB * 0.26);
-
-      /* เฟรมปิดใช้สีจากวิดีโอตรง ๆ พอเริ่มรวบจึงเติมแสงตามผิวใหม่ */
-      float relight = clamp(diffuseA * 0.90 + diffuseB * 0.50 + sheenA * 0.50,
-                            0.76, 1.42);
-      vec3 color = mix(plate, plate * relight, uOpen * 0.52);
-      color = mix(color, procedural, uOpen * 0.06);
+      vec3 color = mix(cloth, procedural, uOpen * 0.34);
       color *= mix(1.0, 0.72, smoothstep(0.58, 1.0, vEdge) * uOpen);
       gl_FragColor = vec4(color, 1.0);
       #include <colorspace_fragment>
@@ -174,11 +157,8 @@
     uSway:{ value:0.055 },
     uHalf:{ value:4.2 },
     uClothH:{ value:CLOTH_H },
-    uPlate:{ value:texture },
     uWarm:{ value:new THREE.Color('#F0D081') },
     uDark:{ value:new THREE.Color('#4E3711') },
-    uTexY:{ value:1.77 },
-    uRepeat:{ value:1 },
   };
 
   function createPanel(side){
@@ -220,14 +200,12 @@
     camera.updateProjectionMatrix();
     const halfHeight = Math.tan(camera.fov * Math.PI / 360) * CAM_Z;
     shared.uHalf.value = halfHeight * aspect;
-    shared.uTexY.value = CLOTH_H / (2 * halfHeight);
     const referenceScale = Math.max(1, aspect / (16 / 9));
     shared.uFolds.value = 12 * referenceScale;
-    shared.uRepeat.value = referenceScale;
   }
 
   function referenceCurve(t){
-    /* จุดวัดจากขอบม่านในคลิปช่วง 6.5–9.9 วินาที */
+    /* easing แบบผ้าหนัก: เริ่มช้า เร่งกลางทาง และรวบเร็วช่วงท้าย */
     const points = [
       [0.00, 0.000], [0.10, 0.012], [0.24, 0.095], [0.43, 0.300],
       [0.62, 0.555], [0.80, 0.790], [0.93, 0.945], [1.00, 1.000],

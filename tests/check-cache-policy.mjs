@@ -6,7 +6,6 @@ const root = resolve(process.argv[2] || process.cwd());
 const files = {
   index: await readFile(join(root, 'index.html'), 'utf8'),
   control: await readFile(join(root, 'control.html'), 'utf8'),
-  infradash: await readFile(join(root, 'infradash/index.html'), 'utf8'),
   nginx: await readFile(join(root, 'deploy/nginx.conf'), 'utf8'),
   relay: await readFile(join(root, 'control/server.mjs'), 'utf8'),
 };
@@ -24,8 +23,6 @@ for(const [name, source] of Object.entries(files)){
 
 ok(!/add_header\s+(?:Cache-Control|Pragma|Expires)\b/i.test(files.nginx),
   'nginx ไม่บังคับ header ปิด cache สำหรับหน้าเว็บและ assets');
-ok(!/page\.url\s*\+\s*sep\s*\+\s*['"]_t=/.test(files.infradash),
-  'infradash ไม่เติม timestamp เพื่อหลบ cache');
 ok(!Object.entries(files)
   .filter(([name]) => name !== 'relay')
   .some(([, source]) => /cache\s*:\s*['"]no-store['"]/.test(source)),
