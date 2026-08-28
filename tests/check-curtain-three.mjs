@@ -64,6 +64,52 @@ const reset = await page.evaluate(() => ({
 ok(reset.shown, 'ตั้งม่านแล้วแสดง canvas');
 ok(reset.progress === 0 && reset.playing === false, 'ตั้งม่านแล้วกลับเฟรมปิดและหยุดนิ่ง');
 
+const curtainBox = await page.locator('#curtain').boundingBox();
+const closedPng = await page.screenshot({ clip:curtainBox });
+const closedPalette = await page.evaluate(async encoded => {
+  const source = new Image();
+  source.src = `data:image/png;base64,${encoded}`;
+  await source.decode();
+  const sample = document.createElement('canvas');
+  sample.width = 160;
+  sample.height = 90;
+  const ctx = sample.getContext('2d', { willReadFrequently:true });
+  ctx.drawImage(source, 0, 0, sample.width, sample.height);
+  const px = ctx.getImageData(0, 0, sample.width, sample.height).data;
+  let luminance = 0;
+  let saturation = 0;
+  let dark = 0;
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  const count = px.length / 4;
+  for(let i = 0; i < px.length; i += 4){
+    const r = px[i] / 255;
+    const g = px[i + 1] / 255;
+    const b = px[i + 2] / 255;
+    const hi = Math.max(r, g, b);
+    const lo = Math.min(r, g, b);
+    const y = .2126 * r + .7152 * g + .0722 * b;
+    luminance += y;
+    saturation += hi ? (hi - lo) / hi : 0;
+    dark += y < .25 ? 1 : 0;
+    red += r;
+    green += g;
+    blue += b;
+  }
+  return {
+    luminance:luminance / count,
+    saturation:saturation / count,
+    darkShare:dark / count,
+    rgb:[red / count, green / count, blue / count],
+  };
+}, closedPng.toString('base64'));
+ok(closedPalette.luminance < .50 && closedPalette.saturation > .58
+   && closedPalette.darkShare > .20
+   && closedPalette.rgb[0] > closedPalette.rgb[1]
+   && closedPalette.rgb[1] > closedPalette.rgb[2],
+   `ม่านปิดเป็นเหลืองทองอมอำพัน มีเงาร่องลึกแบบต้นฉบับ (${JSON.stringify(closedPalette)})`);
+
 await page.evaluate(() => window.NORA.apply({ cmd:'curtain' }));
 await page.waitForTimeout(500);
 const opening = await page.evaluate(() => ({

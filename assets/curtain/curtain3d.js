@@ -134,9 +134,12 @@
       float broadFold = 0.5 + 0.5 * cos(phase);
       float fineFold = 0.5 + 0.5 * cos(phase * 2.07 + vUv.y * 3.2);
       float weave = sin(vUv.x * 920.0) * sin(vUv.y * 710.0) * 0.018;
-      float verticalShade = mix(0.62, 1.08, smoothstep(0.0, 0.34, vUv.y));
-      verticalShade *= mix(1.0, 0.78, smoothstep(0.86, 1.0, vUv.y));
-      vec3 cloth = mix(uDark, uWarm, broadFold * 0.72 + fineFold * 0.14 + 0.10);
+      float verticalShade = mix(0.44, 0.94, smoothstep(0.0, 0.34, vUv.y));
+      verticalShade *= mix(1.0, 0.72, smoothstep(0.86, 1.0, vUv.y));
+      /* บีบแถบ highlight ให้แคบและปล่อยร่องจีบลงเงาลึกแบบผ้าทองในต้นฉบับ */
+      float foldLight = pow(broadFold, 1.70) * 0.80
+        + pow(fineFold, 2.20) * 0.12 + 0.02;
+      vec3 cloth = mix(uDark, uWarm, foldLight);
       cloth *= verticalShade + weave;
       vec3 procedural = mix(uDark, uWarm,
         clamp(diffuseA * 0.86 + diffuseB * 0.42, 0.0, 1.0));
@@ -157,8 +160,8 @@
     uSway:{ value:0.055 },
     uHalf:{ value:4.2 },
     uClothH:{ value:CLOTH_H },
-    uWarm:{ value:new THREE.Color('#F0D081') },
-    uDark:{ value:new THREE.Color('#4E3711') },
+    uWarm:{ value:new THREE.Color('#D0A548') },
+    uDark:{ value:new THREE.Color('#1D1107') },
   };
 
   function createPanel(side){
