@@ -796,15 +796,8 @@ html.deck-intro #curtain{display:block}
    รอสแตฟฟ์กดเข้าชุดหลักเอง ไม่ใช่ระบบพาไปเอง */
 html.deck-intro.curtain-up #curtain{display:none}
 
-/* ม่านหลักวาดด้วย Three.js procedural shader จากโค้ดล้วน
-   canvas กว้างเท่าเวทีเพื่อให้ลอนต่อเนื่องข้ามสามจอ ส่วน backing buffer
-   ถูกจำกัดใน curtain3d.js ไม่ให้ Raspberry Pi สร้าง framebuffer 11520px */
-#curtain-canvas{position:absolute;inset:0;z-index:5;width:100%;height:100%;display:none;pointer-events:none}
-#curtain.webgl #curtain-canvas{display:block}
-#curtain.webgl .cpanel,#curtain.webgl .crod{display:none}
-
 /* ---- ผืนผ้า ----
-   fallback เมื่อ WebGL ใช้ไม่ได้: ม่านทองแบบ CSS ที่ยังเปิดงานต่อได้
+   อ้างจากภาพม่านจริงที่ได้มา: แดงสด ผ้าด้าน ไม่มีทองเลย
    จีบเป็นคลื่นกว้างและนุ่ม ไม่ใช่ซี่ถี่คอนทราสต์จัด
    หัวผ้าเข้มชัดเพราะอยู่ในเงาของราง แล้วค่อยสว่างลงมาและสว่างค้างไว้จนถึงชายผ้า
 
@@ -812,7 +805,7 @@ html.deck-intro.curtain-up #curtain{display:none}
    ลายจึงไม่ซ้ำเป็นบล็อกให้จับได้ เหมือนผ้าจริงที่จีบไม่เท่ากันทุกลูก        */
 .cfabric{
   position:absolute;inset:0;
-  background-color:#9A731D;
+  background-color:#C4132A;
   background-image:
     /* เงาจากรางด้านบน · ชายผ้าเข้มลงเล็กน้อย */
     linear-gradient(180deg,
@@ -826,14 +819,14 @@ html.deck-intro.curtain-up #curtain{display:none}
     repeating-linear-gradient(90deg,
       rgba(0,0,0,.42) 0px,
       rgba(0,0,0,.15) 52px,
-      rgba(255,236,166,.12) 140px,
+      rgba(255,196,186,.07) 140px,
       rgba(0,0,0,.13) 222px,
       rgba(0,0,0,.42) 300px),
     /* คลื่นย่อยกับคลื่นกว้าง คนละจังหวะ ทำลายความสม่ำเสมอของชั้นบน */
     repeating-linear-gradient(90deg,
-      rgba(0,0,0,.10) 0px, rgba(255,236,166,.08) 70px, rgba(0,0,0,.10) 137px),
+      rgba(0,0,0,.10) 0px, rgba(255,196,186,.05) 70px, rgba(0,0,0,.10) 137px),
     repeating-linear-gradient(90deg,
-      rgba(0,0,0,.15) 0px, rgba(255,236,166,.09) 470px, rgba(0,0,0,.15) 1130px);
+      rgba(0,0,0,.15) 0px, rgba(255,196,186,.06) 470px, rgba(0,0,0,.15) 1130px);
 }
 
 .cpanel{
@@ -909,10 +902,10 @@ html.deck-intro.curtain-up #curtain{display:none}
 /* --copen เป็นค่าติดลบเท่ากับเวลาที่คำสั่งใช้เดินทางมาถึงจอนี้
    ม่านจึงเริ่มที่เฟรม "ผ่านมาแล้วเท่านั้น" ไม่ใช่เฟรมแรกเสมอ
    จอสามบานได้รับคำสั่งห่างกันหลักสิบ ms ถ้าไม่หักออก ม่านจะรูดเหลื่อมกัน */
-html.motion #curtain:not(.webgl).open .cpanel.l{
-  animation:curtainL 3.4s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
-html.motion #curtain:not(.webgl).open .cpanel.r{
-  animation:curtainR 3.4s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
+html.motion #curtain.open .cpanel.l{
+  animation:curtainL 4.2s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
+html.motion #curtain.open .cpanel.r{
+  animation:curtainR 4.2s cubic-bezier(.42,0,.14,1) var(--copen,0ms) forwards}
 /* ทั้งสองเส้นข้างบนขยับแค่ transform อย่างเดียว คอมโพสิตเตอร์รับไปทำได้หมด
    ไม่มีการวาดใหม่สักเฟรม — เพิ่มคุณสมบัติอื่นเข้าไปเมื่อไรก็เสียข้อนี้ทันที */
 /* ปิดอนิเมชันไว้ = ไม่ต้องรูด ม่านหายไปพร้อมกับที่ชุดสลับเป็นชุดหลัก */
@@ -967,7 +960,6 @@ html.nomotion #armfull{animation:none}
 <div id="viewport">
   <div id="stage">
     <div id="curtain">
-      <canvas id="curtain-canvas" aria-hidden="true"></canvas>
       <div class="cpanel l"><div class="cfabric"></div><div class="chooks"></div><div class="cedge"></div></div>
       <div class="cpanel r"><div class="cfabric"></div><div class="chooks"></div><div class="cedge"></div></div>
       <div class="crod"></div>
@@ -998,10 +990,6 @@ html.nomotion #armfull{animation:none}
   <button data-act="restart">↻ เริ่มใหม่</button>
 </div>
 
-<!-- ใช้ไฟล์ local ทั้งหมด เพราะจอนิทรรศการต้องทำงานได้แม้อินเทอร์เน็ตหลุด -->
-<script>window.exports = {};</script>
-<script src="assets/curtain/three.js"></script>
-<script src="assets/curtain/curtain3d.js"></script>
 <script>
 /* ================================================================
    1. CONFIG — แก้ได้ตรงนี้
@@ -2183,7 +2171,7 @@ if(MOTION_ON) document.documentElement.classList.add('motion');
 
 /* ---------- ชุดสไลด์ ----------------------------------------------
    main   รายการ 50 หน้าใน 16:9 หรือ 46 หน้าใน 48:9 ที่วนลูปตามปกติ
-   intro  ม่านทอง Three.js หน้าเดียว ค้างรอสั่ง "เปิดม่าน" จาก controller
+   intro  ม่านแดง CSS หน้าเดียว ค้างรอสั่ง "เปิดม่าน" จาก controller
           แล้วเล่นอนิเมชันแยกม่านเผยหน้าแรกของชุดหลัก
 
    ชุดที่เป็น overlay ไม่ได้เพิ่มหน้าเข้าไปในไทม์ไลน์ — เลขหน้า ความยาวรอบ
@@ -2554,7 +2542,7 @@ function setPlaying(v){
 /* ---------- สลับชุดสไลด์ / เปิดม่าน ---------- */
 const curtainEl = () => document.getElementById('curtain');
 let curtainTimer = 0;      // ตัวจับเวลาปิดท้ายอนิเมชันเปิดม่าน ต้องยกเลิกได้
-const CURTAIN_MS = 3400;   // ระยะเวลาเปิดม่าน procedural
+const CURTAIN_MS = 4200;   // ระยะเวลาเปิดม่านแดง CSS จาก cf53625
 
 function setDeck(name, lag){
   const d = DECKS[name] ? name : 'main';
@@ -2577,15 +2565,14 @@ function setDeck(name, lag){
   const c = curtainEl();
   c.classList.remove('open');
   c.style.removeProperty('--copen');
-  window.__CURTAIN3D?.reset();
   NORA.manual();                      // ทั้งสองทางต้องหลุดจากนาฬิกาโลกก่อน
   show(0, Math.max(0, lag || 0));     // หักเวลาเดินทางของคำสั่ง ทุกจอเริ่มนับตรงกัน
   setPlaying(d !== 'intro');          // ตั้งม่าน = ค้างหน้าแรกไว้ใต้ม่าน
   paintInfo();
 }
 
-/* เปิดม่าน: ค้างวิดีโอหน้าแรกไว้ก่อน แล้วเริ่มเล่นเมื่อม่านพ้นจอ
-   Raspberry Pi จึงไม่ต้องถอดรหัสวิดีโอพร้อมกับวาด WebGL ในช่วงที่หนักที่สุด
+/* เปิดม่าน: หน้าแรกเริ่มเดินตั้งแต่ม่านเริ่มแยก ผู้ชมจะได้เห็นภาพที่มีชีวิต
+   ไม่ใช่ภาพนิ่งที่ค่อยขยับตอนม่านเปิดสุด
 
    เปิดเสร็จแล้ว "ยังอยู่ในชุด intro" — ค้างหน้าแรกไว้ ไม่วิ่งต่อเอง
    เพราะช่วงกล่าวเปิดงานยาวไม่เท่ากันทุกครั้ง สแตฟฟ์กด "ชุดหลัก" เองเมื่อพร้อม
@@ -2601,14 +2588,9 @@ function openCurtain(lag){
   const d = Math.min(CURTAIN_MS, elapsed);
   NORA.manual();
   show(0, d);
-  setPlaying(false);                  // เริ่มวิดีโอหลัง WebGL จบ เพื่อลดภาระ GPU/decoder
+  setPlaying(true);                   // ม่าน CSS เบา จึงเล่นหน้าแรกพร้อมเปิดได้เหมือน cf53625
   c.style.setProperty('--copen', -d + 'ms');
   c.classList.add('open');
-  if(MOTION_ON){
-    window.__CURTAIN3D?.open(d);
-  }else{
-    window.__CURTAIN3D?.finish();
-  }
   /* เก็บ id ไว้ยกเลิกได้ — ถ้าสแตฟฟ์กด "ชุดหลัก" ระหว่างม่านกำลังรูด
      ตัวจับเวลานี้จะยังทำงานต่อแล้วไปตั้ง curtain-up ทั้งที่ออกจากชุด intro
      ไปแล้ว สถานะที่รายงานกลับ controller จะเพี้ยน (บอกว่าม่านเปิดอยู่
@@ -2620,12 +2602,11 @@ function openCurtain(lag){
     CURTAIN_UP = true;
     PREF.set('curtain', 'up');
     document.documentElement.classList.add('curtain-up');
-    setPlaying(true);                 // WebGL หยุดแล้ว จึงค่อยปล่อยวิดีโอสไลด์ให้รักษา state เดิม
     c.classList.remove('open');
     c.style.removeProperty('--copen');
     paintInfo();
     NORA.report();
-  }, Math.max(0, (MOTION_ON ? CURTAIN_MS + 200 : 0) - d));
+  }, Math.max(0, (MOTION_ON ? 4400 : 0) - d));   // 4.2s รูด + เผื่ออีกนิด
 }
 
 /* ---------- เต็มจอ ---------------------------------------------------

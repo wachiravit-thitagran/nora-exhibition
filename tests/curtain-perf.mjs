@@ -21,8 +21,11 @@
  *   ตอนที่ม่านยังเลื่อนลายจีบด้วย background-position   0.4 fps · ค้างยาวสุด 4.7 วิ
  *   หลังตัดออก                                        11-28 fps · ค้างยาวสุด 0.2 วิ
  */
-import { chromium } from 'playwright';
 import { resolve, join } from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 
 const ROOT  = resolve(process.env.ROOT || process.cwd());
 const RATE  = Number(process.env.RATE || 12);

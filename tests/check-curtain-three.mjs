@@ -1,10 +1,10 @@
 /**
- * ตรวจ contract ของม่าน Three.js กับ state เดิมของเด็ค
+ * ตรวจ contract ของม่านแดง CSS กับ state เดิมของเด็ค
  *
  *   node tests/check-curtain-three.mjs [รากโฟลเดอร์]
  */
 import { readFile } from 'node:fs/promises';
-import { createReadStream, existsSync, readdirSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, statSync } from 'node:fs';
 import http from 'node:http';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
@@ -21,19 +21,14 @@ const ok = (value, label) => {
   else { console.error('พลาด ' + label); failures.push(label); }
 };
 
-ok(html.includes('id="curtain-canvas"'), 'มี canvas สำหรับม่าน Three.js');
-ok(html.includes('assets/curtain/three.js'), 'โหลด Three.js จากไฟล์ local');
-ok(html.includes('assets/curtain/curtain3d.js'), 'โหลดตัวควบคุมม่านจากไฟล์ local');
-ok(!/curtain[^\n]+https?:\/\//i.test(html), 'ม่านไม่พึ่ง CDN หรืออินเทอร์เน็ต');
-const curtainDir = join(ROOT, 'assets/curtain');
-const curtainAssets = readdirSync(curtainDir, { recursive:true }).map(String);
-ok(!curtainAssets.some(name => /\.(?:mp4|webm|jpe?g|png|webp|gif|avif)$/i.test(name)),
-   'ชุดม่านไม่มีวิดีโอหรือไฟล์ภาพ raster');
-ok(!existsSync(join(curtainDir, 'logo-pure-code.js')),
-   'ไม่มี runtime โลโก้หรือฉากคั่นหลังม่าน');
-const curtainCode = await readFile(join(curtainDir, 'curtain3d.js'), 'utf8');
-ok(!/TextureLoader|curtain-plate|sampler2D|texture2D/.test(curtainCode),
-   'ม่าน Three.js ใช้ shader procedural โดยไม่มี texture ภาพ');
+ok(!html.includes('id="curtain-canvas"'), 'ม่านแดงไม่มี canvas หรือ WebGL');
+ok(!html.includes('assets/curtain/three.js') && !html.includes('assets/curtain/curtain3d.js'),
+   'หน้าสไลด์ไม่โหลด Three.js สำหรับม่าน');
+ok(html.includes('background-color:#C4132A'), 'ใช้สีแดงของม่านรุ่น cf53625');
+ok(html.includes('@keyframes curtainL') && html.includes('@keyframes curtainR'),
+   'ม่านสองบานใช้ animation เดิมจาก cf53625');
+ok(!/@keyframes\s+cripple\s*\{/.test(html),
+   'ไม่คืน animation background-position ที่ทำให้ Raspberry Pi กระตุก');
 
 const mime = {'.html':'text/html','.js':'text/javascript','.svg':'image/svg+xml','.png':'image/png',
   '.jpg':'image/jpeg','.woff2':'font/woff2','.mp4':'video/mp4'};
@@ -52,17 +47,19 @@ const page = await browser.newPage({ viewport:{ width:1280, height:720 } });
 await page.goto(base + '/index.html?sync=0&kiosk=1', { waitUntil:'load' });
 await page.waitForTimeout(800);
 
-ok(await page.evaluate(() => !!window.__CURTAIN3D?.ready), 'WebGL renderer พร้อมใช้งาน');
 await page.evaluate(() => window.NORA.apply({ cmd:'deck', arg:'intro' }));
 await page.waitForTimeout(120);
 const reset = await page.evaluate(() => ({
-  progress:window.__CURTAIN3D?.progress,
-  playing:window.__CURTAIN3D?.playing,
-  shown:!!document.getElementById('curtain-canvas')
-    && getComputedStyle(document.getElementById('curtain-canvas')).display !== 'none',
+  curtainShown:getComputedStyle(document.getElementById('curtain')).display !== 'none',
+  panels:[...document.querySelectorAll('#curtain .cpanel')].map(panel => ({
+    animation:getComputedStyle(panel).animationName,
+    color:getComputedStyle(panel.querySelector('.cfabric')).backgroundColor,
+  })),
 }));
-ok(reset.shown, 'ตั้งม่านแล้วแสดง canvas');
-ok(reset.progress === 0 && reset.playing === false, 'ตั้งม่านแล้วกลับเฟรมปิดและหยุดนิ่ง');
+ok(reset.curtainShown && reset.panels.length === 2, 'ตั้งม่านแล้วแสดงผ้าสองบานครบ');
+ok(reset.panels.every(x => x.animation === 'none'), 'ตั้งม่านแล้วหยุดนิ่งที่เฟรมปิด');
+ok(reset.panels.every(x => x.color === 'rgb(196, 19, 42)'),
+   'ผ้าทั้งสองบานเป็นสีแดงจาก cf53625');
 
 const curtainBox = await page.locator('#curtain').boundingBox();
 const closedPng = await page.screenshot({ clip:curtainBox });
@@ -104,30 +101,29 @@ const closedPalette = await page.evaluate(async encoded => {
     rgb:[red / count, green / count, blue / count],
   };
 }, closedPng.toString('base64'));
-ok(closedPalette.luminance < .50 && closedPalette.saturation > .58
-   && closedPalette.darkShare > .20
-   && closedPalette.rgb[0] > closedPalette.rgb[1]
-   && closedPalette.rgb[1] > closedPalette.rgb[2],
-   `ม่านปิดเป็นเหลืองทองอมอำพัน มีเงาร่องลึกแบบต้นฉบับ (${JSON.stringify(closedPalette)})`);
+ok(closedPalette.saturation > .60
+   && closedPalette.rgb[0] > closedPalette.rgb[1] * 2.2
+   && closedPalette.rgb[0] > closedPalette.rgb[2] * 1.8,
+   `ม่านปิดเป็นสีแดงอิ่มตัว ไม่ใช่สีทอง (${JSON.stringify(closedPalette)})`);
 
 await page.evaluate(() => window.NORA.apply({ cmd:'curtain' }));
 await page.waitForTimeout(500);
 const opening = await page.evaluate(() => ({
-  progress:window.__CURTAIN3D?.progress,
-  playing:window.__CURTAIN3D?.playing,
+  animations:[...document.querySelectorAll('#curtain .cpanel')]
+    .map(panel => getComputedStyle(panel).animationName),
   deckPlaying:window.NORA.state.playing,
   hasLogoLayer:!!document.getElementById('intro-logo-fx')
     || !!document.getElementById('intro-logo-canvas'),
 }));
-ok(opening.playing && opening.progress > 0 && opening.progress < 1,
-   'คำสั่งเปิดม่านเริ่ม timeline ของ Three.js');
-ok(opening.deckPlaying === false,
-   'ระหว่างเปิดม่านยังไม่ถอดรหัสวิดีโอด้านหลังพร้อมกับ WebGL');
+ok(opening.animations.includes('curtainL') && opening.animations.includes('curtainR'),
+   'คำสั่งเปิดม่านเริ่ม animation ของผ้าทั้งสองบาน');
+ok(opening.deckPlaying === true,
+   'ม่าน CSS เบาพอให้สไลด์แรกเริ่มเล่นพร้อมการเปิดเหมือน cf53625');
 ok(opening.hasLogoLayer === false,
    'ระหว่างเปิดม่านไม่มีชั้นโลโก้หรือฉากคั่นซ้อนอยู่');
 
 await page.evaluate(() => window.NORA.apply({ cmd:'deck', arg:'intro' }));
-await page.evaluate(() => window.NORA.apply({ cmd:'curtain', at:Date.now() - 3300 }));
+await page.evaluate(() => window.NORA.apply({ cmd:'curtain', at:Date.now() - 4100 }));
 await page.waitForTimeout(350);
 const opened = await page.evaluate(() => ({
   curtainUp:document.documentElement.classList.contains('curtain-up'),
@@ -140,10 +136,10 @@ ok(opened.curtainUp && opened.deckPlaying && !opened.curtainShown,
 await page.evaluate(() => window.NORA.apply({ cmd:'deck', arg:'intro' }));
 await page.waitForTimeout(100);
 const resetAgain = await page.evaluate(() => ({
-  progress:window.__CURTAIN3D?.progress,
-  playing:window.__CURTAIN3D?.playing,
+  animations:[...document.querySelectorAll('#curtain .cpanel')]
+    .map(panel => getComputedStyle(panel).animationName),
 }));
-ok(resetAgain.progress === 0 && resetAgain.playing === false,
+ok(resetAgain.animations.every(name => name === 'none'),
    'กดตั้งม่านระหว่างเปิดแล้วหยุดและคืนเฟรมแรก');
 
 await browser.close();
@@ -152,4 +148,4 @@ if(failures.length){
   console.error(`\nไม่ผ่าน ${failures.length} จุด`);
   process.exit(1);
 }
-console.log('\nผ่าน — ม่าน Three.js เชื่อมกับ state เดิมครบ');
+console.log('\nผ่าน — ม่านแดง CSS จาก cf53625 เชื่อมกับ state เดิมครบ');
