@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 
 const ROOT = process.argv[2] || process.cwd();
 const source = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -13,11 +14,11 @@ const pairsBlock = source.match(/const STUDENT_PAIRS = \[[\s\S]*?\n\];/)?.[0] ||
 const pairs = [...pairsBlock.matchAll(/\['([^']+\.mp4)','([a-f0-9]+)'\]/g)]
   .map(([, student, generated]) => [student, generated]);
 const expectedPairs = [
-  ['นักศึกษา-1.mp4','6a6d8d43eab1361e29e3045e'],
+  ['นักศึกษา-1.mp4','b193231bf0c77bbdb0ae1660'],
   ['นักศึกษา-2.mp4','6a6d8b704e74c6635728adda'],
   ['นักศึกษา-3.mp4','6a6d8b34c262c1cc3e46a496'],
-  ['นักศึกษา-4.mp4','6a6d8b34c262c1cc3e46a496'],
-  ['นักศึกษา-5.mp4','6a7488164e74c6635728adf4'],
+  ['นักศึกษา-4.mp4','6a9207217bdf762f4ea3c975'],
+  ['นักศึกษา-5.mp4','39700d79562e283e5fbae152'],
   ['นักศึกษา-6.mp4','6a6d8eadc262c1cc3e46a4bc'],
 ];
 ok(JSON.stringify(pairs) === JSON.stringify(expectedPairs),
@@ -26,6 +27,17 @@ ok(pairs.length === 6 && pairs.every(([file]) => fs.existsSync(path.join(ROOT, '
    'ไฟล์วิดีโอนักศึกษาทั้ง 6 คลิปมีอยู่ใน assets/students');
 ok(pairs.length === 6 && pairs.every(([, id]) => fs.existsSync(path.join(ROOT, 'assets', 'videos', id + '.mp4'))),
    'ไฟล์วิดีโอ AI ที่จับคู่ทั้ง 6 รายการมีอยู่ใน assets/videos');
+const sha256 = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.mp4'))
+  && sha256(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.mp4'))
+    === 'b193231bf0c77bbdb0ae16600170483d36dcbd6de34fcca48843fdf3a81ebea6',
+  'คลิปนักศึกษา 1 ใช้วิดีโอ AI ท่าขี้หนอนที่มีผู้รำ 2 คนจากไฟล์แนบ');
+ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
+  && sha256(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
+    === '39700d79562e283e5fbae1524f29bcb88d4ae13cf22f71788686d8576a141fe2',
+  'คลิปนักศึกษา 5 ใช้วิดีโอ AI ท่าจับระบำไปท่าลงฉากน้อย');
+ok(/const STUDENT_AI_TITLES = \{[\s\S]*?['"]?b193231bf0c77bbdb0ae1660['"]?:'ท่าขี้หนอน \(ผู้รำ 2 คน\)'[\s\S]*?['"]?39700d79562e283e5fbae152['"]?:'ท่าจับระบำ → ท่าลงฉากน้อย'/.test(source),
+  'ชื่อวิดีโอ AI เฉพาะคลิป 1 และ 5 แสดงตรงกับท่าที่แก้ไข');
 
 const section = source.match(/\/\* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ[\s\S]*?\/\* ---- ปิดท้าย:/)?.[0] || '';
 ok(/STUDENT_PAIRS\.forEach/.test(section), 'สร้างสไลด์ขั้นตอนที่ 5 จากคู่ AI และนักศึกษา');

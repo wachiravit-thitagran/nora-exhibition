@@ -1261,12 +1261,16 @@ const DRIVE_PAIRS = [
 ];
 
 /* --- 2.5 วิดีโอต้นแบบ AI ↔ วิดีโอนักศึกษาที่รำตาม (6 คู่) --------- */
+const STUDENT_AI_TITLES = {
+  b193231bf0c77bbdb0ae1660:'ท่าขี้หนอน (ผู้รำ 2 คน)',
+  '39700d79562e283e5fbae152':'ท่าจับระบำ → ท่าลงฉากน้อย',
+};
 const STUDENT_PAIRS = [
-  ['นักศึกษา-1.mp4','6a6d8d43eab1361e29e3045e'],
+  ['นักศึกษา-1.mp4','b193231bf0c77bbdb0ae1660'],
   ['นักศึกษา-2.mp4','6a6d8b704e74c6635728adda'],
   ['นักศึกษา-3.mp4','6a6d8b34c262c1cc3e46a496'],
-  ['นักศึกษา-4.mp4','6a6d8b34c262c1cc3e46a496'],
-  ['นักศึกษา-5.mp4','6a7488164e74c6635728adf4'],
+  ['นักศึกษา-4.mp4','6a9207217bdf762f4ea3c975'],
+  ['นักศึกษา-5.mp4','39700d79562e283e5fbae152'],
   ['นักศึกษา-6.mp4','6a6d8eadc262c1cc3e46a4bc'],
 ];
 
@@ -1747,7 +1751,7 @@ function clipUnit(entry, i){
   const poses = title.split('→').map(x => x.trim());
   const nNew  = poses.filter(x => /ท่าใหม่/.test(x)).length;
   const visiblePoses = poses.map((nm, k) => ({ nm, k }))
-    .filter(({ nm }) => nm !== 'ท่าพนมมือ');
+    .filter(({ nm }) => !['ท่าพนมมือ','ท่าที่ยังไม่มีชื่อ'].includes(nm));
   const chips = visiblePoses.map(({ nm, k })=>{
     const isNew = /ท่าใหม่/.test(nm);
     const srcs  = poseSrc(id, k, nm);
@@ -1762,7 +1766,7 @@ function clipUnit(entry, i){
     title:esc(title),
     /* ป้ายกำกับจอขวาถูกแทนที่ด้วยคลิปที่สองแล้ว ข้อมูลที่เคยอยู่ตรงนั้น
        จึงย้ายมาไว้บรรทัดใต้หัวข้อ ให้ยังอ่านได้ครบจากจอเดียวกัน */
-    sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(VIDEOS.length) + ' · ประกอบจาก ' + thNum(poses.length) + ' ท่า'
+    sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(VIDEOS.length) + ' · ประกอบจาก ' + thNum(visiblePoses.length) + ' ท่า'
       + (nNew ? ' · ท่าที่ AI สร้างใหม่ ' + thNum(nNew) + ' ท่า' : ''),
     body:`<div class="combine">
       <div class="chips n${Math.min(visiblePoses.length,4)}">${chips}</div>
@@ -1845,7 +1849,8 @@ if(CONFIG.SHOW_TWOSETS) for(let i = 0; i < DRIVE_PAIRS.length; i += 3){
 
 /* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — ต้นแบบ AI เทียบกับนักศึกษารำตาม ---- */
 divider(4);
-const studentPairTitle = generatedId => (VIDEOS.find(v => v[0] === generatedId) || [,'ท่ารำต้นแบบ'])[1];
+const studentPairTitle = generatedId => STUDENT_AI_TITLES[generatedId]
+  || (VIDEOS.find(v => v[0] === generatedId) || [,'ท่ารำต้นแบบ'])[1];
 const studentPairBody = ([file, generatedId]) => `<div class="duowide student-pair">
     ${panel('วิดีโอที่ AI สร้าง','ต้นแบบ AI', mediaVid(vurl(generatedId)), true)}
     <div class="arrow">»<small>ถ่ายทอด</small></div>

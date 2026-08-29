@@ -129,6 +129,9 @@ const rr = await regression.evaluate(() => {
     step1HasNaN: step1Text.includes('NaN'),
     step2HasPendingPose: step2Text.includes('ท่าแมงมุมชักไย'),
     restoredCount: RESTORED_PAIRS.length,
+    slide17ChipLabels: [...SLIDES[16].el.querySelectorAll('.pane.pC .chip .nm')]
+      .map(n => n.textContent.trim()),
+    slide17Text: SLIDES[16].el.querySelector('.pane.pC')?.textContent || '',
     slide22Text: SLIDES[21].el.textContent,
     step3HasOldPoseName: step3Text.includes('ท่าจีบปรกหน้า'),
     step3HasHeavenImage: [...document.querySelectorAll('.chip .nm')].some(n =>
@@ -144,12 +147,18 @@ if(rr.step1HasUndefined) fails.push('ขั้นตอนที่ 1 ยัง�
 if(rr.step1HasNaN) fails.push('ช่วงเลขท่าในขั้นตอนที่ 1 ยังแสดง NaN');
 if(rr.step2HasPendingPose) fails.push('ขั้นตอนที่ 2 ยังมีท่าแมงมุมชักไย');
 if(rr.restoredCount !== 11) fails.push(`ขั้นตอนที่ 2 มี ${rr.restoredCount} ท่า (คาด 11)`);
+if(rr.slide17ChipLabels.length !== 2 || rr.slide17ChipLabels.includes('ท่าที่ยังไม่มีชื่อ'))
+  fails.push('สไลด์ 17 ยังไม่ได้เหลือเฉพาะกล่องท่าพรหมสี่หน้าและท่าเทวดา');
+if(!rr.slide17Text.includes('ประกอบจาก ๒ ท่า'))
+  fails.push('สไลด์ 17 ยังระบุจำนวนกล่องท่าที่แสดงไม่เป็น 2 ท่า');
 if(rr.afterDeck !== rr.beforeDeck) fails.push('Ctrl+C ยังสั่งเปลี่ยนสถานะม่าน');
 if(!rr.slide22Text.includes('ท่าจีบหน้า → ท่าเทวดา → ท่าเขาควาย')) fails.push('สไลด์ 22 ยังไม่ได้เปลี่ยนเป็นท่าจีบหน้า');
 if(rr.step3HasOldPoseName) fails.push('ขั้นตอนที่ 3 ยังมีชื่อท่าจีบปรกหน้า');
 if(!rr.step3HasHeavenImage) fails.push('ท่าเทวดายังไม่ได้ใช้ภาพใหม่');
 if(rr.step3HasHandPrayerBox) fails.push('ยังมีกล่องภาพท่าพนมมือ');
 console.log(!rr.step1HasUndefined && !rr.step1HasNaN && !rr.step2HasPendingPose && rr.restoredCount === 11
+  && rr.slide17ChipLabels.length === 2 && !rr.slide17ChipLabels.includes('ท่าที่ยังไม่มีชื่อ')
+  && rr.slide17Text.includes('ประกอบจาก ๒ ท่า')
   && rr.afterDeck === rr.beforeDeck && !rr.step3HasOldPoseName && rr.step3HasHeavenImage
   && !rr.step3HasHandPrayerBox
   ? 'ok    regression — เลขท่า, Ctrl และภาพฟื้นฟู 11 ท่า'

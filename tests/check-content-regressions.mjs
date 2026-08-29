@@ -48,9 +48,9 @@ ok(!/'(?:ท่าเขาควาย|เขาควาย)'\\s*:\\s*'04_ท�
    'ไม่มีสไลด์ลำดับท่าชี้กลับไปภาพท่าเขาควายเก่า');
 ok(source.includes("['6a6d8dfce8c21f9b2fa12af4','ท่าจีบหน้า → ท่าเทวดา → ท่าเขาควาย']"),
    'สไลด์ 22 เปลี่ยนท่าจีบปรกหน้าเป็นท่าจีบหน้า');
-ok(/const visiblePoses = poses\.map\(\(nm, k\) => \(\{ nm, k \}\)\)[\s\S]*?\.filter\(\(\{ nm \}\) => nm !== 'ท่าพนมมือ'\)/.test(source)
+ok(/const visiblePoses = poses\.map\(\(nm, k\) => \(\{ nm, k \}\)\)[\s\S]*?\.filter\(\(\{ nm \}\) => !\['ท่าพนมมือ','ท่าที่ยังไม่มีชื่อ'\]\.includes\(nm\)\)/.test(source)
    && /const chips = visiblePoses\.map\(\(\{ nm, k \}\)/.test(source),
-   'ไม่สร้างกล่องภาพสำหรับท่าพนมมือที่ยังไม่มีภาพ');
+   'ไม่สร้างกล่องภาพสำหรับท่าพนมมือและท่าที่ยังไม่มีชื่อ');
 
 const newPoseImageBackground = source.match(/\.chip\.newpose \.ph\{([^}]*)\}/)?.[1] || '';
 ok(/background:\s*#FBF5E4/.test(newPoseImageBackground)
