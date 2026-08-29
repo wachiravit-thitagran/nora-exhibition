@@ -38,6 +38,15 @@ ok(/TEAM_LEADS\.map\(p => who\(p, 'lead'\)\)\.join\(''\)/.test(html),
 ok(/TEAM\.map\(p => who\(p\)\)\.join\(''\)/.test(html),
   'วาดสมาชิกแถวล่างจากรายการ TEAM ครบทุกคน');
 
+const attireCredit = html.match(/const CR_ATTIRE = `([\s\S]*?)`;/)?.[1] || '';
+ok(attireCredit.includes('ความอนุเคราะห์ภาพเครื่องประดับและเครื่องแต่งกายโนรา')
+  && attireCredit.includes('คุณพีรมณฑ์ ชมธวัช'),
+  'เครดิตภาพเครื่องประดับและเครื่องแต่งกายระบุคุณพีรมณฑ์ ชมธวัช');
+ok(html.includes('${CR_SRC}${CR_ATTIRE}${CR_ORG}'),
+  'เครดิตภาพเครื่องแต่งกายอยู่ต่อจากรายการต้นฉบับท่ารำบนจอขวา');
+ok(!html.includes('ชมผลงานทั้งหมดได้ที่'),
+  'นำข้อความชมผลงานทั้งหมดได้ที่ออกเพื่อเพิ่มพื้นที่');
+
 if(failures.length){
   console.error(`\nไม่ผ่าน ${failures.length} ข้อ`);
   process.exit(1);

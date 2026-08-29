@@ -1927,14 +1927,13 @@ const CR_SRC = `<div class="col" style="--i:0"><h3>ต้นฉบับท่�
       <p>ตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร<small>พ.ศ. ๒๔๖๖</small></p>
       <p>โนราหมื่นระบำบันเทิงชาตรี (คล้าย ขี้หนอน)<small>จังหวัดนครศรีธรรมราช</small></p>
       <p>ครูธรรมนิตย์ นิคมรัตน์<small>ศิลปินแห่งชาติ สาขาศิลปะการแสดง</small></p></div>`;
+const CR_ATTIRE = `<div class="col" style="--i:1"><h3>ความอนุเคราะห์ภาพเครื่องประดับและเครื่องแต่งกายโนรา</h3>
+      <p>คุณพีรมณฑ์ ชมธวัช</p></div>`;
 const CR_ORG = `<div class="col" style="--i:1"><h3>ดำเนินโครงการ</h3>
       <p>สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ<small>มหาวิทยาลัยสงขลานครินทร์</small></p>
       <p>คณะศิลปกรรมศาสตร์<small>มหาวิทยาลัยทักษิณ</small></p></div>`;
 const CR_SUP = `<div class="col" style="--i:2"><h3>สนับสนุนโดย</h3>
-      <p>สำนักงานศิลปวัฒนธรรมร่วมสมัย<small>กระทรวงวัฒนธรรม</small></p>
-      <p>ชมผลงานทั้งหมดได้ที่<small style="font-size:44px;color:#E3C468;margin-top:12px">ainora.psu.ac.th</small></p></div>`;
-const CR_URL = `<div class="col" style="--i:2"><h3>ชมผลงานทั้งหมดได้ที่</h3>
-      <p><span style="color:#E3C468">ainora.psu.ac.th</span><small>ขอบคุณครูโนราและผู้ถ่ายทอดองค์ความรู้ทุกท่าน</small></p></div>`;
+      <p>สำนักงานศิลปวัฒนธรรมร่วมสมัย<small>กระทรวงวัฒนธรรม</small></p></div>`;
 
 /* ---- ทีมทำงาน ----------------------------------------------------
    หัวหน้าสองคนอยู่แถวบน วงใหญ่เท่ากัน ทีมงานเรียงเป็นสี่วงเล็กด้านล่าง
@@ -1998,7 +1997,7 @@ push({ dur:D.summary, dark:true, step:-1, spanCU:true,
     body:DSBODY }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
     h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
-    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>${CR_TEAM}</div>` }),
+    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ATTIRE}${CR_ORG}</div>${CR_TEAM}</div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'ชุดข้อมูลเปิด',
     title:'ท่ารำโนราที่นำไปใช้ต่อได้',
     sub:'สิ่งที่ได้จากโครงการถูกจัดเป็นชุดข้อมูล เปิดให้นักวิจัยและครูโนราขอดาวน์โหลดไปใช้ต่อ',
@@ -2044,7 +2043,7 @@ push({ dur:D.summary, dark:true, step:-1, spanCU:true, wall:{
     body:`<div class="newgrid">${NEWGRID}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
     h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
-    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>${CR_TEAM}</div>` }),
+    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ATTIRE}${CR_ORG}</div>${CR_TEAM}</div>` }),
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'สรุปผลงาน',
     title:'ท่าใหม่ที่เกิดขึ้นในกระบวนการ', sub:NEWSUB,
     body:`<div class="newgrid">${NEWGRID}</div>` })});
@@ -2063,14 +2062,14 @@ push({ dur:D.summary + D.credits, dark:true, step:-1, spanCU:true, wall:{
     body:`<div class="sumgrid grid2">${KPI}</div>` }),
   right:()=> `<div class="bgimg"></div>` + band({ eyebrow:'เครดิต',
     h2:96, title:'ที่มาและผู้ร่วมงาน', nologo:true,
-    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ORG}${CR_URL}</div>${CR_TEAM}</div>` }),
+    body:`<div class="credpane"><div class="credits stack">${CR_SRC}${CR_ATTIRE}${CR_ORG}</div>${CR_TEAM}</div>` }),
   /* โหมดจอเดียว 16:9 รวมทั้งสามส่วนไว้ในหน้าเดียว — โลโก้ผู้สนับสนุนอยู่แถบท้ายหน้าของ frame() */
   html:`<div class="bgimg"></div>` + frame({ eyebrow:'ปิดท้าย',
     title:'ผลงานทั้งโครงการ',
     sub:'จาก ๑๒ ภาพนิ่งในตำรา สู่ ๒๒ วิดีโอที่เคลื่อนไหวได้',
     body:`<div class="endstack">
       <div class="sumgrid">${KPI}</div>
-      <div class="credits">${CR_SRC}${CR_ORG}${CR_SUP}</div>
+      <div class="credits">${CR_SRC}${CR_ATTIRE}${CR_ORG}${CR_SUP}</div>
       ${CR_TEAM}
     </div>` })});
 
