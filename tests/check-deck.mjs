@@ -73,12 +73,17 @@ for (const m of MODES) {
       .filter(p => getComputedStyle(p).display !== 'none')
       .flatMap(p => [...p.querySelectorAll('video')])
       .map(v => decodeURIComponent(v.getAttribute('src') || '')));
+    const centerStudentAi = SLIDES[42]?.el.querySelector('.pane.pCU .student-pair video');
+    const centerStudentAiBody = centerStudentAi?.parentElement;
     return {
       slides: document.querySelectorAll('.slide').length,
       colorSlides: SLIDES.filter(s => s.section?.includes('(ลงสี)')).length,
       studentSlides: studentSlides.length,
       studentSources,
       studentText: studentSlides.map(s => s.el.textContent).join('\n'),
+      centerStudentAiHeightFill: centerStudentAi && centerStudentAiBody
+        ? centerStudentAi.getBoundingClientRect().height / centerStudentAiBody.getBoundingClientRect().height
+        : null,
       overY: de.scrollHeight - innerHeight,
       overX: de.scrollWidth - innerWidth,
       panes: on ? [...on.querySelectorAll('.pane')].filter(p => p.offsetWidth > 0)
@@ -98,6 +103,8 @@ for (const m of MODES) {
     bad.push(`จำนวนวิดีโอ AI และนักศึกษาที่มองเห็นต่อหน้าต้องเป็น ${expectedVideosPerSlide}`);
   if (!r.studentText.includes('วิดีโอที่ AI สร้าง') || !r.studentText.includes('นักศึกษารำตาม'))
     bad.push('ขั้นตอนที่ 5 ไม่มีป้ายต้นแบบ AI หรือนักศึกษารำตาม');
+  if (m.slides === EXPECT_WIDE_SLIDES && !(r.centerStudentAiHeightFill >= 0.8))
+    bad.push(`วิดีโอ AI สไลด์ 43 จอกลางสูงเพียง ${Math.round((r.centerStudentAiHeightFill || 0) * 100)}% ของกรอบ`);
   if (r.overY > 0)                  bad.push(`เลื่อนแนวตั้งได้ ${r.overY}px`);
   if (r.overX > 0)                  bad.push(`เลื่อนแนวนอนได้ ${r.overX}px`);
   if (!r.panes.length)              bad.push('ไม่มี pane ที่แสดงผล');
