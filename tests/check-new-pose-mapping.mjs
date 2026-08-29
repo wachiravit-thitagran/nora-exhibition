@@ -31,6 +31,12 @@ ok(!index.includes(`['${obsolete}'`), 'ถอดคลิปที่ไม่�
 ok(!picker.includes(`['${obsolete}'`), 'ถอดคลิปเก่าออกจาก frame picker');
 ok(!fetcher.includes(`${obsolete}\t`), 'ถอดคลิปเก่าออกจากรายการดาวน์โหลด');
 ok(index.includes("['ท่าใหม่ที่เกิดขึ้น','๘ ท่า (A–H)']"), 'สรุปท่าใหม่เป็น 8 ท่า A–H');
+const summaryKpi = index.match(/const KPI = \[([\s\S]*?)\]\n\s*\.map/)?.[1] || '';
+ok(summaryKpi.includes("['11','ท่ารำต้นแบบที่ฟื้นฟูแล้ว']")
+  && summaryKpi.includes("['22','วิดีโอที่ AI สร้างได้']")
+  && summaryKpi.includes("['8','ท่าใหม่ที่เกิดในกระบวนการ']")
+  && summaryKpi.includes("['5','ขั้นตอนของกระบวนการ']"),
+  'การ์ดตัวเลขสรุปผลงานเป็น 11 ท่าฟื้นฟู 22 วิดีโอ 8 ท่าใหม่ และ 5 ขั้นตอน');
 
 const poseFrames = [
   ['6a791869a8615dbe0af2670b', 0], ['6a791869a8615dbe0af2670b', 1],
