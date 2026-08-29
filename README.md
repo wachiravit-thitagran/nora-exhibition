@@ -646,7 +646,7 @@ chromium-browser --kiosk --user-data-dir=/tmp/nora \
 | ในอิมเมจ | มาจาก | หมายเหตุ |
 |---|---|---|
 | `index.html` · `brand/` · `tools/` | repo | สไลด์ ฟอนต์ Anuphan โลโก้ 4 ชุด |
-| `assets/compare/` 25 ไฟล์ 6.2 MB | repo | ชุด `.jpg` ที่ย่อจาก PNG ต้นฉบับ (อยู่ใน git แล้ว) |
+| `assets/compare/` 29 ไฟล์ 6.5 MB | repo | ชุด `.jpg` ที่ย่อจาก PNG ต้นฉบับ รวมภาพท่าเขาควายฉบับคมชัด (อยู่ใน git แล้ว) |
 | `assets/videos/` 22 คลิป | `deploy/fetch-media.sh` | ดึงก่อน build ไม่เก็บใน git |
 | `assets/static/background.png` | `deploy/fetch-media.sh` | ภาพพื้นหลังลายไทย |
 | `assets/drive/` 12 คลิป | `deploy/fetch-media.sh` | คลิปจาก Google Drive ใช้ในหน้า ๓ คลิปพร้อมกัน |
