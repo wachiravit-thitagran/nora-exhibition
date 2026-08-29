@@ -78,6 +78,7 @@ for (const m of MODES) {
       colorSlides: SLIDES.filter(s => s.section?.includes('(ลงสี)')).length,
       studentSlides: studentSlides.length,
       studentSources,
+      studentText: studentSlides.map(s => s.el.textContent).join('\n'),
       overY: de.scrollHeight - innerHeight,
       overX: de.scrollWidth - innerWidth,
       panes: on ? [...on.querySelectorAll('.pane')].filter(p => p.offsetWidth > 0)
@@ -90,11 +91,13 @@ for (const m of MODES) {
   if (r.slides !== m.slides)        bad.push(`สไลด์ ${r.slides} หน้า (คาด ${m.slides})`);
   if (r.colorSlides !== 8)          bad.push(`สไลด์ลงสี ${r.colorSlides} หน้า (คาด 8)`);
   const expectedStudentSlides = m.slides === EXPECT_SINGLE_SLIDES ? 6 : 2;
-  const expectedVideosPerSlide = m.slides === EXPECT_SINGLE_SLIDES ? 1 : 3;
+  const expectedVideosPerSlide = m.slides === EXPECT_SINGLE_SLIDES ? 2 : 6;
   if (r.studentSlides !== expectedStudentSlides)
     bad.push(`สไลด์นักศึกษา ${r.studentSlides} หน้า (คาด ${expectedStudentSlides})`);
   if (!r.studentSources.every(srcs => new Set(srcs).size === expectedVideosPerSlide))
-    bad.push(`จำนวนวิดีโอนักศึกษาต่อหน้าต้องเป็น ${expectedVideosPerSlide}`);
+    bad.push(`จำนวนวิดีโอ AI และนักศึกษาที่มองเห็นต่อหน้าต้องเป็น ${expectedVideosPerSlide}`);
+  if (!r.studentText.includes('วิดีโอที่ AI สร้าง') || !r.studentText.includes('นักศึกษารำตาม'))
+    bad.push('ขั้นตอนที่ 5 ไม่มีป้ายต้นแบบ AI หรือนักศึกษารำตาม');
   if (r.overY > 0)                  bad.push(`เลื่อนแนวตั้งได้ ${r.overY}px`);
   if (r.overX > 0)                  bad.push(`เลื่อนแนวนอนได้ ${r.overX}px`);
   if (!r.panes.length)              bad.push('ไม่มี pane ที่แสดงผล');
@@ -152,8 +155,8 @@ console.log(!rr.step1HasUndefined && !rr.step1HasNaN && !rr.step2HasPendingPose 
   ? 'ok    regression — เลขท่า, Ctrl และภาพฟื้นฟู 11 ท่า'
   : 'FAIL  regression — ' + fails.slice(-9).join(' · '));
 
-// regression: ขั้นตอนถ่ายทอดสู่ผู้รำต้องเป็นคลิปนักศึกษาเดี่ยว 6 หน้า
-// และไฟล์ที่ deploy ต้องอ่าน metadata ได้จริงใน Chromium
+// regression: ขั้นตอนถ่ายทอดสู่ผู้รำต้องมีคู่ต้นแบบ AI/นักศึกษา 6 หน้า
+// และไฟล์ทั้งสองฝั่งที่ deploy ต้องอ่าน metadata ได้จริงใน Chromium
 await regression.waitForFunction(() => {
   const studentSlides = SLIDES.filter(s => s.step === 4 && s.el.querySelector('video'));
   return studentSlides.length === 6
@@ -163,26 +166,30 @@ const student = await regression.evaluate(() => {
   const studentSlides = SLIDES.filter(s => s.step === 4 && s.el.querySelector('video'));
   return {
     count: studentSlides.length,
-    oneSourceEach: studentSlides.every(s => new Set([...s.el.querySelectorAll('video')]
-      .map(v => decodeURIComponent(v.getAttribute('src') || ''))).size === 1),
+    twoSourcesEach: studentSlides.every(s => new Set([...s.el.querySelectorAll('video')]
+      .map(v => decodeURIComponent(v.getAttribute('src') || ''))).size === 2),
     allPlayable: studentSlides.every(s => [...s.el.querySelectorAll('video')]
       .every(v => Number.isFinite(v.duration) && v.duration > 0)),
-    sources: studentSlides.flatMap(s => [...s.el.querySelectorAll('video')]
-      .map(v => decodeURIComponent(v.getAttribute('src') || ''))),
+    sources: studentSlides.flatMap(s => [...new Set([...s.el.querySelectorAll('video')]
+      .map(v => decodeURIComponent(v.getAttribute('src') || '')))]),
     text: studentSlides.map(s => s.el.textContent).join('\n'),
   };
 });
 if(student.count !== 6) fails.push(`ขั้นตอนที่ 5 มีวิดีโอนักศึกษา ${student.count} หน้า (คาด 6)`);
-if(!student.oneSourceEach) fails.push('บางสไลด์ในขั้นตอนที่ 5 อ้างวิดีโอมากกว่าหนึ่งไฟล์');
-if(!student.allPlayable) fails.push('มีไฟล์วิดีโอนักศึกษาที่ Chromium อ่าน metadata ไม่ได้');
-if(student.sources.some(src => !/assets\/students\/นักศึกษา-[1-6]\.mp4$/.test(src)))
-  fails.push('ขั้นตอนที่ 5 อ้างวิดีโออื่นที่ไม่ใช่ไฟล์นักศึกษา 1–6');
-if(student.text.includes('วิดีโอที่ AI สร้างได้')) fails.push('ขั้นตอนที่ 5 ยังมีข้อความเปรียบเทียบวิดีโอ AI');
-console.log(student.count === 6 && student.oneSourceEach && student.allPlayable
-  && student.sources.every(src => /assets\/students\/นักศึกษา-[1-6]\.mp4$/.test(src))
-  && !student.text.includes('วิดีโอที่ AI สร้างได้')
-  ? 'ok    student videos — 6 คลิปเดี่ยวและ Chromium อ่านได้ครบ'
-  : 'FAIL  student videos — ' + fails.slice(-5).join(' · '));
+if(!student.twoSourcesEach) fails.push('บางสไลด์ในขั้นตอนที่ 5ไม่ได้แสดงวิดีโอ AI และนักศึกษาอย่างละหนึ่งไฟล์');
+if(!student.allPlayable) fails.push('มีไฟล์วิดีโอ AI หรือนักศึกษาที่ Chromium อ่าน metadata ไม่ได้');
+const studentFiles = student.sources.filter(src => /assets\/students\//.test(src));
+const generatedFiles = student.sources.filter(src => /assets\/videos\//.test(src));
+if(studentFiles.length !== 6 || studentFiles.some(src => !/assets\/students\/นักศึกษา-[1-6]\.mp4$/.test(src)))
+  fails.push('ขั้นตอนที่ 5 อ้างวิดีโอนักศึกษาไม่ครบไฟล์ 1–6');
+if(generatedFiles.length !== 6) fails.push('ขั้นตอนที่ 5 อ้างวิดีโอ AI ไม่ครบทั้ง 6 คู่');
+if(!student.text.includes('วิดีโอที่ AI สร้าง') || !student.text.includes('นักศึกษารำตาม'))
+  fails.push('ขั้นตอนที่ 5 ไม่มีป้ายต้นแบบ AI หรือนักศึกษารำตาม');
+console.log(student.count === 6 && student.twoSourcesEach && student.allPlayable
+  && studentFiles.length === 6 && generatedFiles.length === 6
+  && student.text.includes('วิดีโอที่ AI สร้าง') && student.text.includes('นักศึกษารำตาม')
+  ? 'ok    student videos — 6 คู่ AI/นักศึกษาและ Chromium อ่านได้ครบ'
+  : 'FAIL  student videos — ' + fails.slice(-6).join(' · '));
 
 // regression: เมื่อเวลาหน้าหมด แต่คลิปยังไม่จบรอบแรก ต้องค้างหน้าเดิม
 // และ ended ของคลิปทุกตัวจึงปล่อยให้เดินต่อได้

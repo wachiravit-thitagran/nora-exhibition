@@ -229,7 +229,7 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .chip .ph img{position:absolute;inset:18px;width:calc(100% - 36px);height:calc(100% - 36px);object-fit:contain}
 .chip .nm{padding:18px 22px;font-size:34px;font-weight:600;text-align:center;color:var(--ink);background:var(--card);line-height:1.25}
 .chip.newpose .nm{color:var(--gold-dk)}
-.chip.newpose .ph{background:repeating-linear-gradient(135deg,#FBF5E4 0 26px,#F5EDD6 26px 52px)}
+.chip.newpose .ph{background:#FBF5E4}
 .newmark{font-size:92px;color:var(--gold);font-weight:700;line-height:1;text-align:center}
 .newmark span{display:block;font-size:30px;color:var(--muted);font-weight:600;margin-top:10px}
 
@@ -1260,14 +1260,14 @@ const DRIVE_PAIRS = [
   ['6a6d8a98e8c21f9b2fa12ae4','ท่าขุนศรัทธา → ท่าพรหมสี่หน้า.mp4'],
 ];
 
-/* --- 2.5 วิดีโอนักศึกษารำ เรียงตามชื่อไฟล์ต้นฉบับใน /นักศึกษารำ/ --- */
-const STUDENT_CLIPS = [
-  'นักศึกษา-1.mp4',
-  'นักศึกษา-2.mp4',
-  'นักศึกษา-3.mp4',
-  'นักศึกษา-4.mp4',
-  'นักศึกษา-5.mp4',
-  'นักศึกษา-6.mp4',
+/* --- 2.5 วิดีโอต้นแบบ AI ↔ วิดีโอนักศึกษาที่รำตาม (6 คู่) --------- */
+const STUDENT_PAIRS = [
+  ['นักศึกษา-1.mp4','6a6d8d43eab1361e29e3045e'],
+  ['นักศึกษา-2.mp4','6a6d8b704e74c6635728adda'],
+  ['นักศึกษา-3.mp4','6a6d8b34c262c1cc3e46a496'],
+  ['นักศึกษา-4.mp4','6a6d8b34c262c1cc3e46a496'],
+  ['นักศึกษา-5.mp4','6a7488164e74c6635728adf4'],
+  ['นักศึกษา-6.mp4','6a6d8eadc262c1cc3e46a4bc'],
 ];
 
 /* ================================================================
@@ -1843,50 +1843,56 @@ if(CONFIG.SHOW_TWOSETS) for(let i = 0; i < DRIVE_PAIRS.length; i += 3){
       }).join('')}</div>` })});
 }
 
-/* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — วิดีโอนักศึกษาเพียงอย่างเดียว (2｜1) ---- */
+/* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ — ต้นแบบ AI เทียบกับนักศึกษารำตาม ---- */
 divider(4);
-if(CONFIG.SHOW_STUDENT) STUDENT_CLIPS.forEach((file,i)=>{
-  const total = STUDENT_CLIPS.length;
-  const title = 'นักศึกษารำ';
-  const body = `<div class="cmp solo clip">
-      ${panel('วิดีโอนักศึกษารำ','คนจริง', mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)}
-    </div>`;
+const studentPairTitle = generatedId => (VIDEOS.find(v => v[0] === generatedId) || [,'ท่ารำต้นแบบ'])[1];
+const studentPairBody = ([file, generatedId]) => `<div class="duowide student-pair">
+    ${panel('วิดีโอที่ AI สร้าง','ต้นแบบ AI', mediaVid(vurl(generatedId)), true)}
+    <div class="arrow">»<small>ถ่ายทอด</small></div>
+    ${panel('นักศึกษารำตาม','ผู้รำ', mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)}
+  </div>`;
+if(CONFIG.SHOW_STUDENT) STUDENT_PAIRS.forEach((pair,i)=>{
+  const [file, generatedId] = pair;
+  const total = STUDENT_PAIRS.length;
+  const poseTitle = studentPairTitle(generatedId);
+  const body = studentPairBody(pair);
   push({ dur:D.student, step:4, spanLC:true, studentSingle:true,
+    vids:[generatedId],
     section:stepFoot(4, i+1, total) + ' (นักศึกษา)',
-    wall:{ head:stepEB(4) + ' — นักศึกษา', title:'คลิปที่ ' + thNum(i+1),
-      rows:[['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง'],
-            ['สื่อที่แสดง', 'การรำของนักศึกษา']],
-      note:'ขั้นตอนนี้แสดงผลการถ่ายทอดท่ารำกลับสู่ผู้รำ ผ่านการเคลื่อนไหวของร่างกายจริง' },
-    lc:()=> band({ eyebrow:stepEB(4) + ' — นักศึกษา', title:esc(title),
-      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(total) + ' · การรำของนักศึกษาสาขาศิลปะการแสดง',
+    wall:{ head:stepEB(4) + ' — ถ่ายทอดสู่ผู้รำ', title:'คลิปที่ ' + thNum(i+1),
+      rows:[['ต้นแบบ AI', poseTitle],
+            ['ผู้รำ', 'นักศึกษาสาขาศิลปะการแสดง']],
+      note:'วิดีโอด้านซ้ายคือต้นแบบที่นำไปให้นักศึกษาฝึกรำตาม แล้วบันทึกผลไว้ด้านขวา' },
+    lc:()=> band({ eyebrow:stepEB(4) + ' — ถ่ายทอดสู่ผู้รำ', title:esc(poseTitle),
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(total) + ' · จากต้นแบบ AI สู่การรำของนักศึกษา',
       body }),
-    html: frame({ eyebrow:stepEB(4) + ' — นักศึกษา',
+    html: frame({ eyebrow:stepEB(4) + ' — ถ่ายทอดสู่ผู้รำ',
       section:stepFoot(4, i+1, total) + ' (นักศึกษา)',
-      title:esc(title),
-      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(total) + ' · การรำของนักศึกษาสาขาศิลปะการแสดง', body })});
+      title:esc(poseTitle),
+      sub:'คลิปที่ ' + thNum(i+1) + ' จาก ' + thNum(total) + ' · จากต้นแบบ AI สู่การรำของนักศึกษา', body })});
 });
 
-/* โหมดผนัง 48:9 วางคลิปนักศึกษาจอละหนึ่งคลิป จึงใช้เพียง 2 สไลด์ */
-if(CONFIG.SHOW_STUDENT) for(let i = 0; i < STUDENT_CLIPS.length; i += 3){
-  const set = STUDENT_CLIPS.slice(i, i + 3);
+/* โหมดผนัง 48:9 วางคู่ AI/นักศึกษาจอละหนึ่งคู่ จึงใช้เพียง 2 สไลด์ */
+if(CONFIG.SHOW_STUDENT) for(let i = 0; i < STUDENT_PAIRS.length; i += 3){
+  const set = STUDENT_PAIRS.slice(i, i + 3);
   const pageNo = i / 3 + 1;
-  const pageTotal = Math.ceil(STUDENT_CLIPS.length / 3);
-  const studentPane = (file, k) => band({
-    eyebrow:stepEB(4) + ' — นักศึกษา',
-    title:'นักศึกษารำ',
-    sub:'คลิปที่ ' + thNum(i+k+1) + ' จาก ' + thNum(STUDENT_CLIPS.length),
-    body:`<div class="cmp solo clip">${panel('วิดีโอนักศึกษารำ','คนจริง',
-      mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)}</div>`,
+  const pageTotal = Math.ceil(STUDENT_PAIRS.length / 3);
+  const studentPane = (pair, k) => band({
+    eyebrow:stepEB(4) + ' — ถ่ายทอดสู่ผู้รำ',
+    title:esc(studentPairTitle(pair[1])),
+    sub:'คลิปที่ ' + thNum(i+k+1) + ' จาก ' + thNum(STUDENT_PAIRS.length),
+    body:studentPairBody(pair),
   });
   push({ dur:D.student, step:4, spanCU:true, studentWide:true,
+    vids:set.map(([, generatedId]) => generatedId),
     section:stepFoot(4, pageNo, pageTotal) + ' (นักศึกษา)',
     left:()=> studentPane(set[0], 0),
     midU:()=> studentPane(set[1], 1),
     right:()=> studentPane(set[2], 2),
-    html:frame({ eyebrow:stepEB(4) + ' — นักศึกษา', title:'นักศึกษารำ',
-      sub:'คลิปที่ ' + thNum(i+1) + '–' + thNum(i+set.length) + ' จาก ' + thNum(STUDENT_CLIPS.length),
-      body:`<div class="cmp3">${set.map((file,k) => panel('วิดีโอนักศึกษารำ',
-        thNum(i+k+1), mediaVid(alt(CONFIG.DIR_STUDENT+file)), true)).join('')}</div>` }),
+    html:frame({ eyebrow:stepEB(4) + ' — ถ่ายทอดสู่ผู้รำ', title:'จากต้นแบบ AI สู่การรำของนักศึกษา',
+      sub:'คลิปที่ ' + thNum(i+1) + '–' + thNum(i+set.length) + ' จาก ' + thNum(STUDENT_PAIRS.length),
+      body:`<div class="cmp3">${set.map((pair,k) => panel(studentPairTitle(pair[1]),
+        thNum(i+k+1), studentPairBody(pair), true)).join('')}</div>` }),
   });
 }
 

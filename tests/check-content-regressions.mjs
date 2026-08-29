@@ -52,6 +52,11 @@ ok(/const visiblePoses = poses\.map\(\(nm, k\) => \(\{ nm, k \}\)\)[\s\S]*?\.fil
    && /const chips = visiblePoses\.map\(\(\{ nm, k \}\)/.test(source),
    'ไม่สร้างกล่องภาพสำหรับท่าพนมมือที่ยังไม่มีภาพ');
 
+const newPoseImageBackground = source.match(/\.chip\.newpose \.ph\{([^}]*)\}/)?.[1] || '';
+ok(/background:\s*#FBF5E4/.test(newPoseImageBackground)
+   && !/repeating-linear-gradient/.test(newPoseImageBackground),
+   'พื้นหลังภาพท่าใหม่เป็นสีเหลืองทึบและไม่มีลายตารางแนวทแยง');
+
 if(fail.length){
   console.error(`\nไม่ผ่าน ${fail.length} ข้อ`);
   process.exitCode = 1;
