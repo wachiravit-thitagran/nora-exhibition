@@ -31,12 +31,12 @@ const sha256 = file => createHash('sha256').update(fs.readFileSync(file)).digest
 ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.mp4'))
   && sha256(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.mp4'))
     === 'b193231bf0c77bbdb0ae16600170483d36dcbd6de34fcca48843fdf3a81ebea6',
-  'คลิปนักศึกษา 1 ใช้วิดีโอ AI ท่าขี้หนอนที่มีผู้รำ 2 คนจากไฟล์แนบ');
+  'คลิปนักศึกษา 1 ใช้วิดีโอ AI ท่าจับระบำไปท่าขี้หนอนจากไฟล์แนบ');
 ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
   && sha256(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
     === '39700d79562e283e5fbae1524f29bcb88d4ae13cf22f71788686d8576a141fe2',
   'คลิปนักศึกษา 5 ใช้วิดีโอ AI ท่าจับระบำไปท่าลงฉากน้อย');
-ok(/const STUDENT_AI_TITLES = \{[\s\S]*?['"]?b193231bf0c77bbdb0ae1660['"]?:'ท่าขี้หนอน \(ผู้รำ 2 คน\)'[\s\S]*?['"]?39700d79562e283e5fbae152['"]?:'ท่าจับระบำ → ท่าลงฉากน้อย'/.test(source),
+ok(/const STUDENT_AI_TITLES = \{[\s\S]*?['"]?b193231bf0c77bbdb0ae1660['"]?:'ท่าจับระบำ → ท่าขี้หนอน'[\s\S]*?['"]?39700d79562e283e5fbae152['"]?:'ท่าจับระบำ → ท่าลงฉากน้อย'/.test(source),
   'ชื่อวิดีโอ AI เฉพาะคลิป 1 และ 5 แสดงตรงกับท่าที่แก้ไข');
 
 const section = source.match(/\/\* ---- ขั้นที่ 05 ถ่ายทอดสู่ผู้รำ[\s\S]*?\/\* ---- ปิดท้าย:/)?.[0] || '';
