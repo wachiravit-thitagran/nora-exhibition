@@ -34,7 +34,7 @@ ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.m
   'คลิปนักศึกษา 1 ใช้วิดีโอ AI ท่าจับระบำไปท่าขี้หนอนจากไฟล์แนบ');
 ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
   && sha256(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
-    === '39700d79562e283e5fbae1524f29bcb88d4ae13cf22f71788686d8576a141fe2',
+    === '5b5c22fd846db22e627bf5890b27631c901765fac18c7421d1df924dcce4be98',
   'คลิปนักศึกษา 5 ใช้วิดีโอ AI ท่าจับระบำไปท่าลงฉากน้อย');
 ok(/const STUDENT_AI_TITLES = \{[\s\S]*?['"]?b193231bf0c77bbdb0ae1660['"]?:'ท่าจับระบำ → ท่าขี้หนอน'[\s\S]*?['"]?39700d79562e283e5fbae152['"]?:'ท่าจับระบำ → ท่าลงฉากน้อย'/.test(source),
   'ชื่อวิดีโอ AI เฉพาะคลิป 1 และ 5 แสดงตรงกับท่าที่แก้ไข');

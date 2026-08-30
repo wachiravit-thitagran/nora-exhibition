@@ -36,6 +36,13 @@ ok(fs.existsSync(path.join(ROOT, 'assets', 'compare', heavenFile)),
 ok(new RegExp(`'ท่าเทวดา'\\s*:\\s*'${heavenFile}'`).test(source),
    'POSE_IMG จับคู่ท่าเทวดากับภาพใหม่');
 
+const jeebNaFile = '16_ท่าจีบหน้า_B-ซ่อมแซม.jpg';
+ok(fs.existsSync(path.join(ROOT, 'assets', 'compare', jeebNaFile)),
+   'มีไฟล์ภาพท่าจีบหน้าฉบับซ่อมแซมใหม่ที่ผู้ใช้ให้มา');
+ok(new RegExp(`book:'ท่าจีบหน้า',[^\\n]*fix:'${jeebNaFile}'`).test(source)
+   && new RegExp(`'ท่าจีบหน้า'\\s*:\\s*'${jeebNaFile}'`).test(source),
+   'สไลด์เปรียบเทียบและสไลด์ลำดับท่าใช้ภาพท่าจีบหน้าฉบับใหม่');
+
 const khokwaiFile = '15_ท่าเขาควาย_B-ซ่อมแซม.jpg';
 ok(fs.existsSync(path.join(ROOT, 'assets', 'compare', khokwaiFile)),
    'มีไฟล์ภาพท่าเขาควายใหม่ที่คมชัดใน assets/compare');
