@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>AI NORA Poster</title>
+<!-- โปสเตอร์ขนาดจริง กว้าง 3000 มม. × สูง 2400 มม. (หน่วยทั้งหน้าเป็น mm)
+     พิมพ์เป็น PDF: sh poster/build.sh -->
+<style>
+@font-face{font-family:Anuphan;src:url(../brand/Anuphan-var.woff2) format("woff2");font-weight:100 700}
+@page{size:3000mm 2400mm;margin:0}
+:root{
+  --gold:#D4AF37; --orange:#E88B00; --cream:#F3E6C4; --paper:#FBF6EA; --ink:#111827;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#15100A}
+body{font-family:Anuphan,sans-serif;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.poster{position:relative;width:3000mm;height:2400mm;overflow:hidden;padding:100mm 110mm 90mm;
+  display:grid;grid-template-rows:720mm 651mm 409mm 1fr;row-gap:60mm;
+  background:
+    radial-gradient(120% 100% at 12% -8%, rgba(212,175,55,.34) 0%, transparent 58%),
+    radial-gradient(120% 100% at 100% 104%, rgba(232,139,0,.24) 0%, transparent 60%),
+    linear-gradient(158deg,#3A2B15 0%,#241A0E 46%,#15100A 100%)}
+.poster::before{content:"";position:absolute;inset:0;background:url(../assets/static/background.png) center/cover;
+  opacity:.34;mix-blend-mode:soft-light;filter:saturate(1.15) contrast(1.05);pointer-events:none}
+.poster>*{position:relative}
+
+.eyebrow{display:flex;align-items:center;gap:22mm;color:var(--gold);font-weight:700;
+  font-size:34mm;letter-spacing:.28em;text-transform:uppercase}
+.eyebrow::before{content:"";width:90mm;height:5mm;background:var(--gold);border-radius:3mm}
+h2{font-size:74mm;font-weight:700;line-height:1.35;color:#fff}
+h2 small{font-size:36mm;font-weight:500;color:var(--cream);margin-left:24mm}
+
+/* ---------- A: hero ---------- */
+.hero{display:grid;grid-template-columns:1fr 1150mm;column-gap:80mm;align-items:center}
+.hero .logo{height:170mm;display:block;margin-bottom:26mm}
+.hero h1{font-size:108mm;font-weight:700;line-height:1.3;color:var(--gold);margin:20mm 0 26mm;white-space:nowrap}
+.hero .rule{width:200mm;height:6mm;background:var(--gold);border-radius:3mm;margin-bottom:30mm}
+.hero .lead{font-size:40mm;font-weight:500;line-height:1.5;color:var(--cream)}
+.ba{display:grid;grid-template-columns:480mm 130mm 1fr;align-items:center;height:720mm}
+.ba figure{height:100%;display:flex;flex-direction:column;gap:18mm}
+.ba .ph{height:624mm;border-radius:14mm;overflow:hidden;border:4mm solid rgba(212,175,55,.7);background:var(--paper)}
+.ba img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
+.ba figcaption{font-size:34mm;font-weight:700;color:var(--cream);text-align:center;line-height:1.3}
+.ba figcaption span{display:block;font-size:26mm;font-weight:400;color:var(--gold)}
+.ba .arrow{font-size:120mm;color:var(--gold);text-align:center;margin-bottom:90mm}
+
+/* ---------- B: 5 steps ---------- */
+.steps{display:flex;flex-direction:column;gap:30mm}
+.steps ol{list-style:none;flex:1;display:grid;grid-template-columns:repeat(5,1fr);column-gap:44mm}
+.steps li{display:flex;flex-direction:column;background:rgba(21,16,10,.55);border:3mm solid rgba(212,175,55,.45);
+  border-radius:14mm;overflow:hidden}
+.steps .ph{height:260mm;background:var(--paper);position:relative}
+.steps .ph img{width:100%;height:100%;object-fit:cover;object-position:center 22%;display:block}
+.steps .no{position:absolute;left:22mm;top:18mm;width:96mm;height:96mm;border-radius:50%;background:var(--orange);
+  color:#fff;font-size:52mm;font-weight:700;display:grid;place-items:center;line-height:1}
+.steps .ct{position:absolute;right:20mm;bottom:18mm;background:rgba(21,16,10,.85);color:var(--gold);
+  font-size:28mm;font-weight:700;padding:6mm 20mm;border-radius:20mm}
+.steps .tx{padding:22mm 26mm 20mm}
+.steps b{display:block;font-size:40mm;line-height:1.35;color:var(--gold);margin-bottom:10mm}
+.steps p{font-size:25mm;line-height:1.55;color:var(--cream)}
+
+/* ---------- C: 11 restored poses ---------- */
+.poses{display:flex;flex-direction:column;gap:20mm}
+.poses .row{flex:1;display:grid;grid-template-columns:repeat(11,1fr);column-gap:22mm}
+.poses figure{display:flex;flex-direction:column;gap:10mm;min-height:0}
+.poses .ph{height:247mm;background:#fff;border-radius:10mm;overflow:hidden}
+.poses img{width:100%;height:100%;object-fit:contain;display:block}
+.poses figcaption{font-size:24mm;font-weight:600;text-align:center;color:var(--cream);line-height:1.3}
+
+/* ---------- D: KPI + QR + credits/logos ---------- */
+.foot{display:grid;grid-template-columns:1180mm 1fr 560mm;column-gap:70mm;align-items:stretch}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);column-gap:30mm;align-items:center}
+.kpi b{display:block;font-size:110mm;font-weight:700;color:var(--gold);line-height:1.1}
+.kpi span{display:block;font-size:26mm;line-height:1.35;color:var(--cream)}
+.credit{display:flex;flex-direction:column;justify-content:center;gap:16mm;font-size:22mm;line-height:1.5;color:var(--cream)}
+.credit h3{font-size:24mm;color:var(--gold);font-weight:700}
+.logos{display:flex;align-items:center;gap:34mm;background:#fff;border-radius:60mm;padding:18mm 44mm;align-self:flex-start}
+.logos img{height:calc(var(--k) * 82mm);display:block}
+.qr{display:flex;align-items:center;gap:30mm;background:rgba(21,16,10,.55);border:3mm solid rgba(212,175,55,.45);
+  border-radius:14mm;padding:20mm 26mm}
+.qr img{width:200mm;height:200mm;background:#fff;padding:10mm;border-radius:6mm;display:block}
+.qr b{display:block;font-size:34mm;color:var(--gold);line-height:1.35}
+.qr span{display:block;font-size:24mm;color:var(--cream);line-height:1.45}
+</style>
+</head>
+<body>
+<main class="poster">
+
+  <!-- A · หัวเรื่อง + ภาพก่อน/หลัง -->
+  <section class="hero">
+    <div>
+      <img class="logo" src="../brand/logo-light.png" alt="AI NORA">
+      <div class="eyebrow">Breath of Nora</div>
+      <h1>ท่าที่นิ่งในหนังสือมากว่า ๑๐๐ ปี<br>กลับมาเคลื่อนไหวอีกครั้ง</h1>
+      <div class="rule"></div>
+      <p class="lead">การถอดรหัสพันธุกรรมท่ารำโนราด้วยปัญญาประดิษฐ์<br>
+        จากภาพขาวดำในตำราฟ้อนรำ พ.ศ. ๒๔๖๖ สู่วิดีโอท่ารำที่เคลื่อนไหวต่อเนื่อง</p>
+    </div>
+    <div class="ba">
+      <figure>
+        <div class="ph"><img src="../assets/compare/12_ท่าเหาะเหิน_A-ต้นฉบับ.jpg" alt="ภาพสแกนท่าเหาะเหินจากตำรา"></div>
+        <figcaption>ภาพในตำรา<span>พ.ศ. ๒๔๖๖ · ท่าเหาะเหิน</span></figcaption>
+      </figure>
+      <div class="arrow">→</div>
+      <figure>
+        <div class="ph"><img src="img/ai-color.png" alt="เฟรมจากวิดีโอที่ AI สร้าง ลงสีแล้ว"></div>
+        <figcaption>วิดีโอที่ AI สร้าง<span>ท่าครู → ท่าเหาะเหิน · ลงสีแล้ว</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- B · ๕ ขั้นตอน (ข้อความจาก SECTIONS ใน index.html) -->
+  <section class="steps">
+    <h2>กระบวนการทั้งหมดที่เกิดขึ้น<small>๕ ขั้นตอน จากหน้ากระดาษ สู่ร่างกายผู้รำ</small></h2>
+    <ol>
+      <li><div class="ph"><img src="../assets/compare/10_ท่าหน้าไม้_A-ต้นฉบับ.jpg" alt=""><div class="no">๑</div><div class="ct">๑๒ ภาพ</div></div>
+        <div class="tx"><b>สแกนภาพจากหนังสือ</b>
+          <p>ภาพท่ารำขาวดำอายุกว่า ๑๐๐ ปี ในตำราฟ้อนรำ ฉบับหอพระสมุดวชิรญาณสำหรับพระนคร พ.ศ. ๒๔๖๖ ถูกสแกนเก็บไว้ทั้งชุด</p></div></li>
+      <li><div class="ph"><img src="../assets/compare/10_ท่าหน้าไม้_B-ซ่อมแซม.jpg" alt=""><div class="no">๒</div><div class="ct">๑๑ ท่า</div></div>
+        <div class="tx"><b>ฟื้นฟูภาพ</b>
+          <p>ฟื้นฟูรายละเอียดเครื่องแต่งกาย เครื่องประดับ และท่ามือ กลับมาทีละท่า จนได้ภาพท่ารำที่คมชัดพอจะใช้งานต่อได้</p></div></li>
+      <li><div class="ph"><img src="../assets/poses/6a6d8f23e8c21f9b2fa12afb-1.jpg" alt=""><div class="no">๓</div><div class="ct">๒๒ คลิป</div></div>
+        <div class="tx"><b>สร้างการเคลื่อนไหว</b>
+          <p>นำภาพท่ารำมาเรียงต่อกัน แล้วให้ปัญญาประดิษฐ์สร้างช่วงเชื่อมระหว่างท่า ภาพนิ่งจึงกลายเป็นการรำที่เคลื่อนไหวต่อเนื่อง</p></div></li>
+      <li><div class="ph"><img src="img/skeleton.png" alt=""><div class="no">๔</div><div class="ct">๑๒ คลิป</div></div>
+        <div class="tx"><b>ถอดรหัสท่ารำ</b>
+          <p>คอมพิวเตอร์อ่านตำแหน่งข้อต่อของผู้รำจากวิดีโอทีละเฟรม ท่ารำจึงกลายเป็นข้อมูลที่วัดและสร้างซ้ำได้</p></div></li>
+      <li><div class="ph"><img src="img/student.png" alt=""><div class="no">๕</div><div class="ct">๖ คลิป</div></div>
+        <div class="tx"><b>ถ่ายทอดสู่ผู้รำ</b>
+          <p>ขั้นสุดท้ายคือการคืนท่ารำให้คน — นักศึกษาถ่ายทอดท่ารำผ่านการเคลื่อนไหวของร่างกายจริง</p></div></li>
+    </ol>
+  </section>
+
+  <!-- C · ท่าครูที่ฟื้นฟูแล้ว เรียงตามตำรา (ชื่อไฟล์ตาม PAIRS/POSE_IMG ใน index.html) -->
+  <section class="poses">
+    <h2>ท่าครูที่ฟื้นฟูแล้ว ๑๑ ท่า<small>เรียงตามลำดับในตำราฟ้อนรำ พ.ศ. ๒๔๖๖</small></h2>
+    <div class="row">
+      <figure><div class="ph"><img src="../assets/compare/02_ท่าขุนศรัทธา_B-ซ่อมแซม.jpg" alt=""></div><figcaption>ขุนศรัทธา</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/10_ท่าหน้าไม้_B-ซ่อมแซม.jpg" alt=""></div><figcaption>ท่าครู</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/15_ท่าเขาควาย_B-ซ่อมแซม.jpg" alt=""></div><figcaption>เขาควาย</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/16_ท่าจีบหน้า_B-ซ่อมแซม.jpg" alt=""></div><figcaption>จีบหน้า</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/05_ท่าฉากน้อย_B-ซ่อมแซม.jpg" alt=""></div><figcaption>ย่างสามขุม</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/01_ท่าขี้หนูร่อนรำ_B-ซ่อมแซม.jpg" alt=""></div><figcaption>ขี้หนอน</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/12_ท่าเหาะเหิน_B-ซ่อมแซม.jpg" alt=""></div><figcaption>เหาะเหิน</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/06_ท่าฉากใหญ่_B-ซ่อมแซม.jpg" alt=""></div><figcaption>ลงฉากน้อย</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/03_ท่าจับระบำ_B-ซ่อมแซม-ขวา.jpg" alt=""></div><figcaption>จับระบำ</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/09_ท่าสามย่าง_B-ซ่อมแซม.jpg" alt=""></div><figcaption>พรหมสี่หน้า</figcaption></figure>
+      <figure><div class="ph"><img src="../assets/compare/08_ท่าวงอก_B-ซ่อมแซม.jpg" alt=""></div><figcaption>ชัดหวางอก</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- D · ตัวเลขสรุป + QR + เครดิต/โลโก้ -->
+  <section class="foot">
+    <div class="kpis">
+      <div class="kpi"><b>๑๑</b><span>ท่ารำต้นแบบ<br>ที่ฟื้นฟูแล้ว</span></div>
+      <div class="kpi"><b>๒๒</b><span>วิดีโอที่ AI<br>สร้างได้</span></div>
+      <div class="kpi"><b>๘</b><span>ท่าใหม่ที่เกิด<br>ในกระบวนการ</span></div>
+      <div class="kpi"><b>๖๓</b><span>ภาพจดหมายเหตุ<br>ที่ฟื้นฟูเพิ่ม</span></div>
+    </div>
+    <div class="qr">
+      <img src="img/qr.svg" alt="QR ainora.psu.ac.th">
+      <div><b>ชมวิดีโอและชุดข้อมูลเปิด</b>
+        <span>ภาพท่าครู · วิดีโอที่ AI สร้าง · ตำแหน่งท่ารำ<br>ainora.psu.ac.th</span></div>
+    </div>
+    <div class="credit">
+      <div class="logos">
+        <img style="--k:1.05" src="../brand/logo-moc.png" alt="กระทรวงวัฒนธรรม">
+        <img style="--k:.92" src="../brand/logo-ocac.png" alt="สำนักงานศิลปวัฒนธรรมร่วมสมัย">
+        <img style="--k:.62" src="../brand/logo-psu.png" alt="มหาวิทยาลัยสงขลานครินทร์">
+      </div>
+      <div><h3>ดำเนินโครงการ</h3>สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ ม.สงขลานครินทร์<br>คณะศิลปกรรมศาสตร์ มหาวิทยาลัยทักษิณ</div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>
