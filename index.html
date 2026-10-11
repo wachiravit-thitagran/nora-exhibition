@@ -160,7 +160,9 @@ h1.title .thin{color:var(--muted);font-weight:600}
 .hero .logos img{height:calc(112px * var(--k,1))}
 
 .progress{position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(17,24,39,.10)}
-.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--saffron));transition:width .1s linear}
+/* ขยับด้วย transform ที่ element.animate() สั่งครั้งเดียวต่อหน้า (ดู syncBar) — compositor วิ่งเอง
+   เดิมเขียน width ทุกเฟรม = layout + วาดแถบกว้าง 3840px ใหม่ 60 ครั้ง/วิ (scaleX ยืดสีไล่ไปพร้อมกล่อง หน้าตาเท่าเดิม) */
+.progress > i{display:block;height:100%;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,var(--gold),var(--saffron))}
 
 /* ---------- comparison grid ---------- */
 .stagebody{position:absolute;left:150px;right:150px;top:404px;bottom:230px;display:flex;flex-direction:column}
@@ -2309,7 +2311,8 @@ function fit(){
 }
 addEventListener('resize', fit); fit();
 
-let cur = -1, playing = true, t0 = 0, durMs = 0, raf = 0;
+let cur = -1, playing = true, t0 = 0, durMs = 0;
+let barAnim = null, tickTimer = 0;        // แถบเวลา (syncBar) · ตัวปลุก (tick) — ประกาศก่อน show() ทุกจุดที่เรียก
 
 /* ================================================================
    ไทม์ไลน์คงที่ + นาฬิกาโลก (ใช้ในโหมด SYNC)
@@ -2395,13 +2398,38 @@ function wallDedupe(el){
   pick('.wordmark').slice(0, -1).forEach(n => { n.style.display = 'none'; });   // เหลือขวาสุด
 }
 
+/* ---- วิดีโอโหลดเต็มเฉพาะหน้าปัจจุบันกับหน้าถัดไป ----
+   ทุกคลิปยังโหลด metadata ตั้งแต่เปิดหน้าเหมือนเดิม (ขนาดกรอบวิดีโอขึ้นกับ metadata และ check-deck ใช้ตรวจว่าไฟล์อ่านได้)
+   แต่เดิมหน้าที่ผ่านไปแล้วถือบัฟเฟอร์เต็ม (preload=auto) ไว้ตลอด — วัดด้วย CDP + footprint (Chrome 154 บน Mac):
+   renderer 456 MB ตอนเปิด → 717 MB หลังวนครบรอบ ไม่มีวันลด
+   ตอนนี้หน้าที่ผ่านไปถอยกลับไปเหลือ metadata เหมือนตอนเปิดหน้า
+   ต้องถอด src แล้ว load() ก่อนใส่กลับ — แค่ตั้ง preload ใหม่แล้ว load() Chrome ยังถือข้อมูลไว้ (วัดแล้ว readyState ยังเป็น 4)
+   ไม่มี src = ไม่ยิง error ตัวสำรองไฟล์ (attachFallback) จึงไม่เข้าใจผิดว่าไฟล์หาย */
+function wantVid(v){
+  if(v.preload !== 'auto'){ v.preload = 'auto'; v.load(); }
+}
+function dropVid(v){
+  v.pause();
+  if(v.preload !== 'auto') return;              // ยังไม่เคยโหลดเกิน metadata
+  const src = v.getAttribute('src');
+  v.removeAttribute('src'); v.load();           // ถอด src = Chrome ปล่อยตัวถอดรหัสและบัฟเฟอร์ทันที
+  v.preload = 'metadata';
+  if(src) v.setAttribute('src', src);           // ใส่กลับ = โหลด metadata ใหม่แบบตอนเปิดหน้า
+}
+
 function show(i, seekMs){
-  if(cur >= 0){
-    const p = SLIDES[cur];
-    p.el.classList.remove('on');
-    p.el.querySelectorAll('video').forEach(v => { try{ v.pause(); v.currentTime = 0; }catch(e){} });
-  }
+  const prev = cur;
+  if(prev >= 0) SLIDES[prev].el.classList.remove('on');
   cur = (i + SLIDES.length) % SLIDES.length;
+  // ปล่อยวิดีโอทุกหน้าที่ไม่ใช่หน้าใหม่/หน้าถัดไป — รวมหน้าที่เคยโหลดรอไว้ก่อนกระโดดด้วย goto
+  // หน้าเดิมที่ยังใช้ต่อ (เล่นหน้าเดิมซ้ำ หรือถอยหลังหนึ่งหน้า) แค่หยุดแล้วกรอกลับต้นเหมือนเดิม
+  const nxI = (cur + 1) % SLIDES.length;
+  SLIDES.forEach((sl, k) => sl.el.querySelectorAll('video').forEach(v => {
+    try{
+      if(k !== cur && k !== nxI) dropVid(v);
+      else if(k === prev){ v.pause(); v.currentTime = 0; }
+    }catch(e){}
+  }));
   const s = SLIDES[cur];
   s.el.classList.add('on');
   wallDedupe(s.el);
@@ -2411,6 +2439,7 @@ function show(i, seekMs){
   all.forEach(v => { const pn = v.closest('.pane'); if(!paneIsVisible(pn)){ try{ v.pause(); }catch(e){} } });
   const vids = all.filter(v => paneIsVisible(v.closest('.pane')));
   vids.forEach(v => {
+    wantVid(v);
     v.muted = true;
     /* เดินอิสระ: รอบแรกไม่ loop เพื่อให้ ended เป็น state ที่เชื่อถือได้
        พอจบรอบแรกจึงเปิด loop และเล่นต่อระหว่างรอเวลา DWELL */
@@ -2428,24 +2457,37 @@ function show(i, seekMs){
         try{ v.currentTime = Math.min(seek % v.duration, v.duration - 0.05); }catch(e){}
       }
     };
+    /* รอ metadata เฉพาะวิดีโอที่ยังไม่มี — เดิมผูก listener ทุกครั้งที่เข้าหน้า แต่วิดีโอที่โหลดแล้ว
+       ไม่ยิง loadedmetadata อีก listener {once} จึงค้างตลอดไป (วัดด้วย CDP: +60 ตัวต่อรอบ ไม่มีวันลด)
+       ที่โหลดแล้ว slideDuration() ด้านล่างอ่านความยาวจริงได้เลย */
     if(v.readyState >= 1) align();
-    v.addEventListener('loadedmetadata', () => {
+    else v.addEventListener('loadedmetadata', () => {
       align();
-      if(!SYNC) durMs = slideDuration(s);
+      // ย้ายไปหน้าอื่นแล้วค่อยได้ metadata ต้องไม่เอาความยาวของหน้านี้ไปทับหน้าปัจจุบัน
+      if(!SYNC && SLIDES[cur] === s){ durMs = slideDuration(s); syncBar(); }
     }, { once:true });
     const pr = v.play(); if(pr && pr.catch) pr.catch(()=>{});
   });
   t0 = performance.now() - (seekMs || 0);
   durMs = SYNC ? fixedDur(cur) : slideDuration(s);
   // preload next slide's media
-  const nx = SLIDES[(cur+1) % SLIDES.length];
-  nx.el.querySelectorAll('video').forEach(v => {
-    const pn = v.closest('.pane');
-    if(pn && pn.offsetWidth === 0 && !nx.el.classList.contains('on')) { /* ยังบอกไม่ได้ ปล่อยผ่าน */ }
-    if(v.preload!=='auto'){ v.preload='auto'; try{v.load();}catch(e){} }
-  });
+  const nx = SLIDES[nxI];
+  nx.el.querySelectorAll('video').forEach(v => { try{ wantVid(v); }catch(e){} });
+  syncBar();
+  tickIn(0);                               // ตั้งเวลาปลุกใหม่ตามความยาวและวิดีโอของหน้านี้
   NORA && NORA.report();
   paintInfo();
+}
+
+/* แถบเวลาท้ายสไลด์ — element.animate() ครั้งเดียวต่อหน้า แล้ว compositor (GPU) วิ่งเองจนจบ
+   ไม่มี JS ทุกเฟรม เรียกใหม่เมื่อหน้า/ความยาว/หยุด-เล่น เปลี่ยน · หน้าเก่าซ่อนทันที (visibility) ยกเลิกได้เลย */
+function syncBar(){
+  barAnim?.cancel(); barAnim = null;
+  const s = SLIDES[cur];
+  if(!s || !s.bar || !(durMs > 0)) return;
+  barAnim = s.bar.animate([{ transform:'scaleX(0)' }, { transform:'scaleX(1)' }], { duration:durMs, fill:'forwards' });
+  barAnim.currentTime = Math.min(durMs, Math.max(0, performance.now() - t0));
+  if(!playing) barAnim.pause();
 }
 
 /* ข้อความท้ายแถบควบคุมของสไลด์ — แยกออกมาเพราะต้องวาดใหม่ทันทีเมื่อ
@@ -2515,31 +2557,42 @@ function alignVideos(offMs, now){
   });
 }
 
-function tick(now){
-  raf = requestAnimationFrame(tick);
+/* ---- ตัวเดินเวลา ----
+   เดิมวน requestAnimationFrame ทุกเฟรมตลอดงาน แม้หน้านิ่งหรือกดหยุดอยู่ — วัดด้วย CDP (Chrome 154 บน Mac):
+   หน้าไม่มีวิดีโอใช้เธรดหลัก 98 ms/วิ (layout + style 60 ครั้ง/วิ จากการเขียน width ของแถบเวลา)
+   บน Raspberry Pi ช้ากว่าหลายเท่า กินเธรดเดียวกับที่ต้องถอดรหัสภาพและรูดม่าน
+   ตอนนี้ตื่นด้วย setTimeout เฉพาะตอนมีงาน
+     ถึงเวลาเปลี่ยนหน้า   ตั้งเวลาตรงขอบหน้าพอดี (ตำแหน่งคิดจากนาฬิกา ไม่ได้คิดจากจังหวะที่ตื่น จึงตรงกันทุกจอเหมือนเดิม)
+     มีวิดีโอเล่นอยู่      ทุก V_EVERY เพื่อดึงเข้าจังหวะ (alignVideos)
+     นอกนั้น             อย่างช้าวินาทีละครั้ง กันพลาดสถานะที่ไม่ได้ผ่าน show()/setPlaying()
+     หยุดอยู่             ไม่ตื่นเลย — setPlaying(true) ปลุกเอง
+   แถบเวลาไม่ต้องพึ่งตัวนี้แล้ว (syncBar) */
+function tickIn(ms){ clearTimeout(tickTimer); tickTimer = setTimeout(tick, Math.max(0, ms)); }
+function tick(){
+  clearTimeout(tickTimer);
+  if(!playing) return;                         // หยุดดูชั่วคราว พอเล่นต่อจะกระโดดกลับเข้าจังหวะเอง
+  const now = performance.now();
   if(SYNC){
-    if(!playing) return;                       // หยุดดูชั่วคราว พอเล่นต่อจะกระโดดกลับเข้าจังหวะเอง
     const q = clockPos();
     if(q.i !== cur) show(q.i, q.off);
-    const s = SLIDES[cur];
-    if(s && s.bar) s.bar.style.width = (Math.min(1, q.off / q.dur) * 100).toFixed(2) + '%';
     alignVideos(q.off, now);
-    return;
+    return tickIn(Math.min(q.dur - q.off, visibleVideos(SLIDES[cur]).length ? V_EVERY : 1000));
   }
   const s = SLIDES[cur];
   if(!s) return;
-  if(!playing){ t0 = now - Math.min(now - t0, durMs); return; }
-  const p = Math.min(1, (now - t0) / durMs);
-  if(s.bar) s.bar.style.width = (p*100).toFixed(2) + '%';
   // เดินเวลาเองก็ยังดึงวิดีโอเข้าจังหวะได้ เพราะ t0 ถูกตั้งจากเวลาของรีเลย์
   // ทุกจอจึงนับ "เวลาในหน้า" เป็นเลขเดียวกัน ไม่ใช่ต่างคนต่างนับจากตอนที่คำสั่งมาถึง
   alignVideos(now - t0, now);
   // ชุด intro ค้างหน้าแรกไว้เสมอ วิดีโอยังวนเล่นได้ (loop) แต่ไม่ไปหน้าถัดไป
   // ต้องรอสแตฟฟ์กด "ชุดหลัก" เอง
-  if(p >= 1 && firstRoundComplete(s) && DECK !== 'intro') show(cur + 1);
+  const p = (now - t0) / durMs;
+  if(p >= 1 && firstRoundComplete(s) && DECK !== 'intro') return show(cur + 1);   // show() ปลุกรอบใหม่เอง
+  tickIn(Math.min(p < 1 ? durMs - (now - t0) : 1000, visibleVideos(s).length ? V_EVERY : 1000));
 }
 
 function setPlaying(v){
+  // หยุดอยู่นานแค่ไหน เล่นต่อแล้วเวลาในหน้าไม่เกินความยาวหน้า — ของเดิม tick คอยกดไว้ทุกเฟรมระหว่างหยุด
+  if(v && !playing && !SYNC){ const now = performance.now(); t0 = now - Math.min(now - t0, durMs); }
   playing = v;
   document.querySelector('[data-act="toggle"]').textContent = v ? '⏸ หยุด' : '▶ เล่น';
   const s = SLIDES[cur];
@@ -2548,6 +2601,8 @@ function setPlaying(v){
     if(pn && pn.offsetWidth === 0) return;
     v ? x.play().catch(()=>{}) : x.pause();
   });
+  syncBar();
+  tickIn(0);
 }
 
 /* ---------- สลับชุดสไลด์ / เปิดม่าน ---------- */
@@ -2785,7 +2840,7 @@ const NORA = {
   },
   /* คำสั่งเดินหน้า/ถอยหลังต้องหลุดจากโหมดนาฬิกาโลกก่อน
      ไม่งั้น tick รอบถัดไปจะดึงกลับไปหน้าตามเวลาทันที */
-  manual(){ if(SYNC){ SYNC = false; t0 = performance.now(); durMs = slideDuration(SLIDES[cur]); } },
+  manual(){ if(SYNC){ SYNC = false; t0 = performance.now(); durMs = slideDuration(SLIDES[cur]); syncBar(); } },
   apply(m){
     if(!m || !m.cmd) return;
     /* คำสั่งจากรีเลย์พก at = เวลาของรีเลย์ตอนยิงคำสั่งออกมา ทุกจอได้เลขเดียวกัน
@@ -2980,7 +3035,6 @@ async function boot(){
   if(DECK === 'intro'){ show(0); setPlaying(CURTAIN_UP); }
   markMode(PANEL_ON ? String(PANEL_ON)
                     : (WALL_ON ? 'wall' : (ULTRA_ON ? 'w' : '0')));
-  raf = requestAnimationFrame(tick);
   NORA.connect();
 }
 boot();

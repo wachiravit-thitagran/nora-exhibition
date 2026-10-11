@@ -234,6 +234,26 @@ if(!advanced) fails.push('สไลด์ไม่เดินต่อหลั
 console.log(timing.mapCount >= 22 && timing.durMs + 1 >= timing.mediaMs + 2000 && held && advanced
   ? 'ok    video timing — รอ ended รอบแรก แล้วจึงเปลี่ยนหน้า'
   : 'FAIL  video timing — ' + fails.slice(-4).join(' · '));
+
+// regression: จอเปิดทั้งวันบน Raspberry Pi — หน้านิ่งต้องไม่มีอะไรวิ่งทุกเฟรม และวิดีโอโหลดเต็มแค่หน้าปัจจุบัน/ถัดไป
+// เดิมวน requestAnimationFrame + เขียน width ของแถบเวลา 60 ครั้ง/วิ ตลอดงาน · หน้าที่ผ่านไปถือบัฟเฟอร์วิดีโอไว้ทุกหน้า
+const idle = await regression.evaluate(async () => {
+  let n = 0;
+  const raf = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = cb => { n++; return raf(cb); };
+  NORA.apply({ cmd:'goto', arg:2 });                 // หน้าไม่มีวิดีโอ
+  await new Promise(r => setTimeout(r, 1500));
+  for(let k = 17; k <= 26; k++){ NORA.apply({ cmd:'goto', arg:k }); await new Promise(r => setTimeout(r, 60)); }
+  const near = new Set([cur, (cur + 1) % SLIDES.length].flatMap(i => [...SLIDES[i].el.querySelectorAll('video')]));
+  const full = [...document.querySelectorAll('video')].filter(v => v.preload === 'auto');
+  return { raf:n, bar:SLIDES[cur].bar.getAnimations().some(a => !(a instanceof CSSTransition) && !(a instanceof CSSAnimation)), full:full.length, onlyNear:full.every(v => near.has(v)) };
+});
+if(idle.raf > 2) fails.push(`หน้านิ่งยังเรียก requestAnimationFrame ${idle.raf} ครั้งใน 1.5 วิ`);
+if(!idle.bar) fails.push('แถบเวลาไม่ได้ใช้ element.animate()');
+if(!idle.onlyNear) fails.push(`วิดีโอโหลดเต็ม (preload=auto) ค้างอยู่ในหน้าอื่นนอกจากหน้าปัจจุบัน/ถัดไป (${idle.full} คลิป)`);
+console.log(idle.raf <= 2 && idle.bar && idle.onlyNear
+  ? `ok    idle — ไม่มี requestAnimationFrame บนหน้านิ่ง · แถบเวลาให้ compositor วิ่ง · โหลดเต็มแค่ ${idle.full} คลิปของหน้าปัจจุบัน/ถัดไป`
+  : 'FAIL  idle — ' + fails.slice(-3).join(' · '));
 await regression.close();
 
 await browser.close();
