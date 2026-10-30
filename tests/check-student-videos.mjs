@@ -28,9 +28,10 @@ ok(pairs.length === 6 && pairs.every(([file]) => fs.existsSync(path.join(ROOT, '
 ok(pairs.length === 6 && pairs.every(([, id]) => fs.existsSync(path.join(ROOT, 'assets', 'videos', id + '.mp4'))),
    'ไฟล์วิดีโอ AI ที่จับคู่ทั้ง 6 รายการมีอยู่ใน assets/videos');
 const sha256 = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+// ชื่อไฟล์มาจาก hash ของไฟล์แนบต้นฉบับ — เนื้อไฟล์ตอนนี้คือฉบับฝังลายน้ำ AINORA (07823b2) hash จึงไม่ตรงกับชื่อ
 ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.mp4'))
   && sha256(path.join(ROOT, 'assets', 'videos', 'b193231bf0c77bbdb0ae1660.mp4'))
-    === 'b193231bf0c77bbdb0ae16600170483d36dcbd6de34fcca48843fdf3a81ebea6',
+    === 'ed47fa985a2e477cdecd491de7049f70b7e8a550676ac8fe68856493a2a19399',
   'คลิปนักศึกษา 1 ใช้วิดีโอ AI ท่าจับระบำไปท่าขี้หนอนจากไฟล์แนบ');
 ok(fs.existsSync(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
   && sha256(path.join(ROOT, 'assets', 'videos', '39700d79562e283e5fbae152.mp4'))
