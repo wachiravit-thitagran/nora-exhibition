@@ -266,6 +266,23 @@ ok(await ctl2.evaluate(() => {
 ok(await ctl2.evaluate(() => {
   try{ return !document.getElementById('pv').contentWindow.dataLayer; }catch(e){ return false; }
 }), 'ภาพตัวอย่างไม่มี dataLayer เลย — ไม่ได้แค่ไม่ส่ง แต่ไม่โหลดสคริปต์ด้วย');
+/* ---- ภาพตัวอย่างต้องเบาพอสำหรับมือถือ ----
+   เดิมเปิดสไลด์ทั้งชุดแบบจอ 4K ใน iframe — วัดด้วย WebKit โปรไฟล์ iPhone ได้ ~1.0–1.3 GB
+   (GPU + หน้าเว็บ เทียบ ~0.2 GB ตอนปิดภาพตัวอย่าง) กดถัดไปแล้ว iOS ปิดแท็บ Chrome ทิ้ง
+   แบบเบา: เหลือแต่สไลด์ที่แสดง · ไม่มีแอนิเมชัน · ไม่โหลดวิดีโอเลย (WebKit ค้างข้อมูลทุกครั้งที่โหลดคลิป)
+   สั่งไปหน้าวิดีโอด้วย — ต้องไม่มีวิดีโอตัวไหนมี src แม้แต่ของสไลด์ที่แสดง */
+const lite = await ctl2.evaluate(async () => {
+  const w = document.getElementById('pv').contentWindow, d = w.document;
+  const vidSlide = [...d.querySelectorAll('.slide')].findIndex(s => s.querySelector('video')) + 1;
+  w.NORA.apply({ cmd:'goto', arg:vidSlide });
+  await new Promise(r => setTimeout(r, 600));
+  const on = d.querySelector('.slide.on');
+  return { vidSlide, shown:[...d.querySelectorAll('.slide')].filter(s => w.getComputedStyle(s).display !== 'none').length,
+           videosOnSlide:on.querySelectorAll('video').length, withSrc:d.querySelectorAll('video[src]').length,
+           motion:d.documentElement.classList.contains('motion'), fade:w.getComputedStyle(on).transitionDuration };
+});
+ok(lite.shown === 1 && lite.videosOnSlide > 0 && lite.withSrc === 0 && !lite.motion && /^0s/.test(lite.fade),
+   `ภาพตัวอย่างแบบเบาสำหรับมือถือ — เหลือสไลด์เดียว ไม่มีแอนิเมชัน ไม่โหลดวิดีโอแม้อยู่หน้าวิดีโอ (${JSON.stringify(lite)})`);
 
 await ctl2.click('#pvtoggle'); await ctl2.waitForTimeout(400);
 ok(await ctl2.evaluate(() => !document.getElementById('pv').getAttribute('srcdoc')),
